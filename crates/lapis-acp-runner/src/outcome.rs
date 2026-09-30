@@ -6,6 +6,8 @@
 
 use lapis_acp_protocol::{Error as ProtocolError, StopReason};
 
+use crate::configuration::ConfigurationReport;
+
 /// Why a turn did not complete normally.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FailureKind {
@@ -93,6 +95,8 @@ pub struct TurnOutcome {
     pub timeout: Option<TimeoutKind>,
     /// The session identifier when one was created.
     pub session_id: Option<String>,
+    /// What happened to each requested session setting.
+    pub configuration: ConfigurationReport,
 }
 
 impl TurnOutcome {
@@ -104,6 +108,7 @@ impl TurnOutcome {
             failure: None,
             timeout: None,
             session_id: Some(session_id),
+            configuration: ConfigurationReport::default(),
         }
     }
 
@@ -115,6 +120,7 @@ impl TurnOutcome {
             failure: Some(failure),
             timeout: None,
             session_id,
+            configuration: ConfigurationReport::default(),
         }
     }
 
@@ -126,6 +132,7 @@ impl TurnOutcome {
             failure: None,
             timeout: Some(timeout),
             session_id,
+            configuration: ConfigurationReport::default(),
         }
     }
 
@@ -137,7 +144,14 @@ impl TurnOutcome {
             failure: None,
             timeout: None,
             session_id,
+            configuration: ConfigurationReport::default(),
         }
+    }
+
+    /// Attach the configuration report to an outcome.
+    pub fn with_configuration(mut self, configuration: ConfigurationReport) -> Self {
+        self.configuration = configuration;
+        self
     }
 
     /// Classify a protocol error into a timeout or a failure.

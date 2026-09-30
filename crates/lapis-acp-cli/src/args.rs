@@ -49,6 +49,10 @@ pub struct LaunchOptions {
     pub catalog: Option<String>,
     /// Model to request when the agent offers it.
     pub model: Option<String>,
+    /// Reasoning effort to request when the agent offers one.
+    pub effort: Option<String>,
+    /// Execution mode to request when the agent offers one.
+    pub mode: Option<String>,
     /// Idle window reset by agent output.
     pub idle_timeout: Duration,
     /// Absolute cap a task document can lower but never raise.
@@ -71,6 +75,8 @@ impl Default for LaunchOptions {
             runner: None,
             catalog: None,
             model: None,
+            effort: None,
+            mode: None,
             idle_timeout: DEFAULT_IDLE_TIMEOUT,
             max_turn_duration: DEFAULT_MAX_TURN_DURATION,
             cancel_grace: DEFAULT_CANCEL_GRACE,
@@ -146,6 +152,8 @@ Run options:
   --runner <id>              runner this process acts as (LAPIS_ACP_RUNNER)
   --catalog <path>           additional runner catalog (LAPIS_ACP_CATALOG)
   --model <id>               model to request (LAPIS_ACP_MODEL)
+  --effort <level>           reasoning effort to request (LAPIS_ACP_EFFORT)
+  --mode <id>                execution mode to request (LAPIS_ACP_MODE)
   --cwd <path>               working directory (LAPIS_ACP_CWD)
   --idle-timeout <secs>      idle bound (LAPIS_ACP_IDLE_TIMEOUT)
   --max-turn-duration <secs> absolute cap (LAPIS_ACP_MAX_TURN_DURATION)
@@ -153,6 +161,9 @@ Run options:
   --reap-timeout <secs>      reap bound (LAPIS_ACP_REAP_TIMEOUT)
   --system-prompt-file <p>   standing instructions (LAPIS_ACP_SYSTEM_PROMPT_FILE)
   --prompt-transport <kind>  field | meta | meta-append (LAPIS_ACP_PROMPT_TRANSPORT)
+
+A requested model, effort or mode that the adapter does not offer is reported on
+stderr and the adapter's own default is kept; it never fails the run.
 
 Credentials, the executable and the working directory come only from this trusted
 launch configuration. A task document cannot change them.";
@@ -206,6 +217,8 @@ fn parse_launch(
         runner: env("LAPIS_ACP_RUNNER"),
         catalog: env("LAPIS_ACP_CATALOG"),
         model: env("LAPIS_ACP_MODEL"),
+        effort: env("LAPIS_ACP_EFFORT"),
+        mode: env("LAPIS_ACP_MODE"),
         idle_timeout: optional_duration(env, "LAPIS_ACP_IDLE_TIMEOUT", "--idle-timeout")?
             .unwrap_or(DEFAULT_IDLE_TIMEOUT),
         max_turn_duration: optional_duration(
@@ -236,6 +249,8 @@ fn parse_launch(
             "--runner" => launch.runner = Some(next_value(items, "--runner")?),
             "--catalog" => launch.catalog = Some(next_value(items, "--catalog")?),
             "--model" => launch.model = Some(next_value(items, "--model")?),
+            "--effort" => launch.effort = Some(next_value(items, "--effort")?),
+            "--mode" => launch.mode = Some(next_value(items, "--mode")?),
             "--cwd" => launch.cwd = Some(PathBuf::from(next_value(items, "--cwd")?)),
             "--idle-timeout" => {
                 launch.idle_timeout =

@@ -14,11 +14,13 @@
 
 #![forbid(unsafe_code)]
 
+pub mod configuration;
 pub mod launch;
 pub mod outcome;
 pub mod process;
 pub mod turn;
 
+pub use configuration::{ConfigurationReport, SessionConfiguration, SettingOutcome, apply};
 pub use launch::{LaunchSpec, describe, spawn};
 pub use outcome::{Failure, FailureKind, TimeoutKind, TurnOutcome, TurnStatus};
 pub use process::{ProcessGuard, Termination};

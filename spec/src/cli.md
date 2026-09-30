@@ -102,3 +102,17 @@ for this class of bug: a catalog file that silently does nothing.
 Arguments that no subcommand would read are refused rather than ignored.
 `--help --catalog x` is a mistake, and accepting it teaches an operator that
 unparsed flags are harmless.
+
+## Session configuration flags
+
+`--model`, `--effort` and `--mode` request session settings, each with a
+matching `LAPIS_ACP_MODEL`, `LAPIS_ACP_EFFORT` and `LAPIS_ACP_MODE` variable and
+the flag winning. All three are requests, not requirements: a value the adapter
+does not offer is reported on stderr and the adapter's own default is kept, and
+the run still completes normally with exit `0`.
+
+That asymmetry is intentional. Failing a task because an adapter lacks a
+preference would make the flags dangerous to pass, and a controlling application
+that targets several adapters could not set a preference at all. The record
+schema is unchanged by configuration, so shortfalls travel on stderr where an
+operator reads them and never in the record a machine parses.

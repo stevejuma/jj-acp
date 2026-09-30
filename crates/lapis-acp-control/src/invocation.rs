@@ -16,6 +16,7 @@ use lapis_acp_protocol::Connection;
 use lapis_acp_protocol::budget::TurnBudget;
 use lapis_acp_protocol::handler::RecordingHandler;
 use lapis_acp_protocol::session::SystemPromptTransport;
+use lapis_acp_runner::configuration::{SessionConfiguration, SettingOutcome};
 use lapis_acp_runner::launch::LaunchSpec;
 use lapis_acp_runner::outcome::{FailureKind, TurnOutcome, TurnStatus};
 use lapis_acp_runner::process::ProcessGuard;
@@ -42,8 +43,8 @@ pub struct InvocationConfig {
     pub cancel_grace: Duration,
     /// Reap bound after a kill.
     pub reap: Duration,
-    /// Model to request when the agent offers it.
-    pub model: Option<String>,
+    /// Model, reasoning effort and execution mode to request.
+    pub configuration: SessionConfiguration,
     /// Standing instructions, when configured.
     pub system_prompt: Option<String>,
     /// Where the adapter expects standing instructions.
@@ -212,7 +213,7 @@ pub async fn invoke_with_probe(
         mcp_servers: Vec::new(),
         budget: TurnBudget::new(config.idle, absolute),
         cancel_grace: config.cancel_grace,
-        model: config.model.as_deref(),
+        configuration: config.configuration.clone(),
     };
 
     let mut handler = RecordingHandler::default();
@@ -232,6 +233,9 @@ pub async fn invoke_with_probe(
     let termination = guard.terminate(config.cancel_grace, config.reap).await;
 
     let mut diagnostics = Vec::new();
+    for (setting, outcome) in outcome.configuration.shortfalls() {
+        diagnostics.push(describe_shortfall(setting, outcome));
+    }
     if !termination.confirmed_stopped() {
         diagnostics
             .push("agent process was not confirmed stopped; cleanup is best-effort".to_owned());
@@ -282,5 +286,42 @@ fn map_outcome(task_id: &str, outcome: &TurnOutcome, cancelled: bool) -> Termina
                 _ => code::PROTOCOL_ERROR,
             },
         ),
+    }
+}
+
+/// Describe a requested setting that did not land, without quoting the adapter.
+///
+/// An adapter's rejection text is untrusted and can quote prompt content, so only
+/// the classified outcome and its error code are reported. The distinction between
+/// unsupported and unavailable is kept because they send an operator looking in
+/// different places: one means the adapter has no such control, the other means it
+/// has one that does not offer this value.
+fn describe_shortfall(setting: &str, outcome: &SettingOutcome) -> String {
+    match outcome {
+        SettingOutcome::Rejected { code } => match code {
+            Some(code) => format!(
+                "the adapter refused the requested {setting} (error code {code}); its own default was kept"
+            ),
+            None => {
+                format!("the adapter refused the requested {setting}; its own default was kept")
+            }
+        },
+        SettingOutcome::Unsupported => {
+            format!("the adapter exposes no {setting} control; its own default was kept")
+        }
+        SettingOutcome::Unavailable => format!(
+            "the adapter does not offer the requested {setting} value; its own default was kept"
+        ),
+        SettingOutcome::NotThisSetting { offered_under } => match offered_under {
+            Some(category) => format!(
+                "the requested {setting} value is offered under the {category:?} category instead, so it was not applied as a {setting}"
+            ),
+            None => format!(
+                "the adapter does not list the requested {setting} among its available session modes; its own default was kept"
+            ),
+        },
+        SettingOutcome::Applied { .. } | SettingOutcome::NotRequested => {
+            format!("{setting} was not applied")
+        }
     }
 }

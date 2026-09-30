@@ -3,7 +3,6 @@
 use std::time::Duration;
 
 use lapis_acp_protocol::budget::TurnBudget;
-use lapis_acp_protocol::config_option::{self, ModelSwitch};
 use lapis_acp_protocol::content::McpServer;
 use lapis_acp_protocol::envelope::method;
 use lapis_acp_protocol::handler::SessionHandler;
@@ -14,7 +13,8 @@ use serde_json::Value;
 use tokio::process::{ChildStdin, ChildStdout};
 use tokio::sync::watch;
 
-use crate::outcome::{Failure, FailureKind, TurnOutcome};
+use crate::configuration::{self, SessionConfiguration};
+use crate::outcome::TurnOutcome;
 use crate::process::ProcessGuard;
 
 /// A launched agent: its protocol connection and the handle that stops it.
@@ -58,8 +58,8 @@ pub struct TurnRequest<'a> {
     pub budget: TurnBudget,
     /// How long to wait for a cooperative stop after requesting cancellation.
     pub cancel_grace: Duration,
-    /// Model to select when the agent offers it.
-    pub model: Option<&'a str>,
+    /// Model, reasoning effort and execution mode to request.
+    pub configuration: SessionConfiguration,
 }
 
 /// Wait until the cancellation signal is set, or forever if it never is.
@@ -136,9 +136,21 @@ pub async fn run_turn<H: SessionHandler>(
     };
     let session_id = session.id.clone();
 
-    if let Some(model) = request.model {
-        apply_model(agent, handler, &session_id, &session.raw, model).await;
-    }
+    // Configuration is applied before the turn and never fails it. An adapter
+    // that refuses a preference still has a usable session; only a transport-class
+    // failure, which means the stream itself may be corrupt, aborts.
+    let report = match configuration::apply(
+        &mut agent.connection,
+        handler,
+        &session_id,
+        &session.raw,
+        &request.configuration,
+    )
+    .await
+    {
+        Ok(report) => report,
+        Err(error) => return TurnOutcome::from_protocol(&error, Some(session_id)),
+    };
 
     let params = session::prompt_text_params(&session_id, request.prompt);
     let id = match agent
@@ -162,48 +174,9 @@ pub async fn run_turn<H: SessionHandler>(
         let _ = agent.connection.session_cancel(&session_id).await;
         let drain = TurnBudget::fixed(request.cancel_grace);
         return match agent.connection.await_response(handler, id, drain).await {
-            Ok(value) => classify(Ok(value), &session_id),
-            Err(_) => TurnOutcome::cancelled(Some(session_id)),
+            Ok(value) => classify(Ok(value), &session_id).with_configuration(report),
+            Err(_) => TurnOutcome::cancelled(Some(session_id)).with_configuration(report),
         };
     };
-    classify(result, &session_id)
-}
-
-/// Select a model when the session offers one, without failing the turn.
-async fn apply_model<H: SessionHandler>(
-    agent: &mut Agent,
-    handler: &mut H,
-    session_id: &str,
-    session_raw: &Value,
-    model: &str,
-) {
-    let Some(switch) = config_option::resolve_model_switch(session_raw, model) else {
-        eprintln!("lapis-acp: agent did not offer model {model:?}; keeping its own default");
-        return;
-    };
-    let result = match switch {
-        ModelSwitch::ConfigOption {
-            config_id,
-            option_value,
-        } => {
-            agent
-                .connection
-                .session_set_config_option(handler, session_id, &config_id, &option_value)
-                .await
-        }
-        ModelSwitch::SetModel { model_id } => {
-            agent
-                .connection
-                .session_set_model(handler, session_id, &model_id)
-                .await
-        }
-    };
-    if let Err(error) = result {
-        // Reported as a diagnostic only. The agent's own text is untrusted, so it
-        // is named by variant rather than echoed.
-        eprintln!(
-            "lapis-acp: model selection was refused ({:?}); keeping the agent default",
-            Failure::new(FailureKind::Protocol, error.to_string()).kind
-        );
-    }
+    classify(result, &session_id).with_configuration(report)
 }

@@ -41,13 +41,15 @@ pub mod initialize;
 pub mod permission;
 pub mod session;
 pub mod stop_reason;
+pub mod thinking;
 pub mod update;
 
 pub use budget::{Limits, TurnBudget};
 pub use client::Connection;
 pub use config_option::{
-    ModelSwitch, model_in_catalog, model_options, model_state, offers_model, resolve_model_switch,
-    thought_level_config_id,
+    EffortResolution, ModeResolution, ModelSwitch, available_modes, model_in_catalog,
+    model_options, model_state, offers_model, option_in_category, option_values, resolve_effort,
+    resolve_mode, resolve_model_switch, thought_level_config_id,
 };
 pub use content::{EnvVar, McpServer, text_block, text_blocks};
 pub use envelope::Inbound;
@@ -60,6 +62,10 @@ pub use initialize::{
 pub use permission::{PermissionDecision, PermissionOption, PermissionRequest};
 pub use session::{Session, SessionNewRequest, SystemPrompt, SystemPromptTransport};
 pub use stop_reason::StopReason;
+pub use thinking::{
+    EFFORT_KEYS, Thinking, advertised_effort, advertises_fast, badges, effort_matches,
+    model_id_attrs, model_id_base,
+};
 pub use update::SessionUpdate;
 
 /// The result type used throughout this crate.

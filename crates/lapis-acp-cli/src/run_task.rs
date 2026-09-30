@@ -15,6 +15,7 @@ use lapis_acp_control::record::{ExitCode, TerminalRecord, code as record_code};
 use lapis_acp_control::task::{TaskRejection, code};
 use lapis_acp_control::{TaskSource, input};
 use lapis_acp_protocol::session::SystemPromptTransport;
+use lapis_acp_runner::configuration::SessionConfiguration;
 use tokio::sync::watch;
 
 use crate::args::LaunchOptions;
@@ -155,7 +156,11 @@ pub async fn execute(
         absolute_cap: options.max_turn_duration,
         cancel_grace: options.cancel_grace,
         reap: options.reap_timeout,
-        model: options.model.clone(),
+        configuration: SessionConfiguration {
+            model: options.model.clone(),
+            effort: options.effort.clone(),
+            mode: options.mode.clone(),
+        },
         system_prompt,
         prompt_transport: options.prompt_transport,
         inherited_env: std::env::vars().collect(),

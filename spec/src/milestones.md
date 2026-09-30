@@ -17,7 +17,7 @@ in its enclosing Jujutsu change.
 | M4          | Done     | M3        | LAC-CTRL-002,LAC-CTRL-003,LAC-CTRL-004,LAC-CTRL-005,LAC-CTRL-006,LAC-CTRL-007,LAC-CLI-001,LAC-CLI-002,LAC-CLI-003,LAC-CLI-004,LAC-CLI-005,LAC-CLI-006,LAC-RUN-001,LAC-RUN-002,LAC-RUN-003,LAC-RUN-004,LAC-ARCH-005,LAC-ARCH-006,LAC-SEC-002,LAC-SEC-003,LAC-SEC-004,LAC-SEC-005,LAC-SEC-006,LAC-SEC-007 | One-shot prepared task runner with sanitized record, published exit codes, signal cleanup and clean stdout                   | Qualify M5 process-group containment       | E-M4-001          |
 | M5          | Done     | M4        | LAC-RUN-005,LAC-RUN-007                                                                                                                                                                                                                                                                                 | Descendant containment on both the forced and the graceful path, crash reporting distinct from a timeout, and no re-dispatch | Qualify M6 against a real installed runner | E-M5-001          |
 | M6          | Done     | M5        | LAC-COMPAT-006,LAC-PROTO-002                                                                                                                                                                                                                                                                            | Real installed-runner qualification against cursor-agent acp recorded separately from fixture evidence                       | Implement M7 session configuration         | E-M6-001,E-M6-002 |
-| M7          | Planned  | M6        | LAC-RUN-006                                                                                                                                                                                                                                                                                             | Model, reasoning-effort and execution-mode application against a real adapter catalogue                                      | Implement M8 persistent transport          | -                 |
+| M7          | Done     | M6        | LAC-RUN-006                                                                                                                                                                                                                                                                                             | Model, effort and mode resolved per session with transport-versus-rejection classification, qualified live on two adapters   | Implement M8 persistent transport          | E-M7-001          |
 | M8          | Deferred | M4        | LAC-CTRL-001                                                                                                                                                                                                                                                                                            | Persistent control transport and standing session pool                                                                       | Future controlling-application integration | -                 |
 | M9          | Planned  | M8        | LAC-ARCH-005,LAC-CTRL-001                                                                                                                                                                                                                                                                               | Controlling-application consumer acceptance in a real host                                                                   | Future release                             | -                 |
 
@@ -649,6 +649,102 @@ coexist with an acknowledged gap.
     "versions": "@agentclientprotocol/codex-acp 1.13.1 resolved from the local npx cache; codex-cli 0.156.1 present but not an ACP agent; ACP protocolVersion 1 negotiated from a request for 2; ChatGPT login reused from ~/.codex/auth.json",
     "formats": "captured initialize and session/new payloads; bare model values such as gpt-6-astra; configOption categories mode, collaboration_mode, model, thought_level and model_config; _auth/status_update notification",
     "note": "One real read-only turn completed with status completed, stopReason end_turn and exit 0; notes.md was unmodified and no file was created. The codex CLI itself has no acp subcommand, so the ACP path is the adapter that acpx launches through npx on demand and that never appears on PATH. This adapter does expose a thought_level option with the adapter-defined identifier reasoning_effort, which Cursor does not, so LAC-RUN-006 stays Planned and the discovery helper is proven against real data rather than implemented end to end. No permission request was raised, so the default deny policy was not exercised against this adapter."
+  },
+  {
+    "id": "E-M7-001",
+    "tasks": ["M7"],
+    "date": "2026-09-30",
+    "kind": "real-runner",
+    "files": [
+      "crates/lapis-acp-protocol/src/thinking.rs",
+      "crates/lapis-acp-protocol/src/config_option.rs",
+      "crates/lapis-acp-protocol/src/lib.rs",
+      "crates/lapis-acp-protocol/tests/session_config.rs",
+      "crates/lapis-acp-runner/src/configuration.rs",
+      "crates/lapis-acp-runner/src/outcome.rs",
+      "crates/lapis-acp-runner/src/turn.rs",
+      "crates/lapis-acp-runner/src/lib.rs",
+      "crates/lapis-acp-control/src/invocation.rs",
+      "crates/lapis-acp-cli/src/args.rs",
+      "crates/lapis-acp-cli/src/run_task.rs",
+      "crates/lapis-acp-cli/tests/args.rs",
+      "crates/lapis-acp-cli/tests/configuration.rs",
+      "tests/fixtures/fixture_agent.py",
+      "spec/src/protocol.md",
+      "spec/src/runner.md",
+      "spec/src/control.md",
+      "spec/src/cli.md",
+      "spec/src/compatibility.md"
+    ],
+    "tests": [
+      "crates/lapis-acp-protocol/tests/session_config.rs#effort_resolves_through_a_discovered_thought_level_option",
+      "crates/lapis-acp-protocol/tests/session_config.rs#effort_levels_outside_the_portable_vocabulary_stay_selectable",
+      "crates/lapis-acp-protocol/tests/session_config.rs#effort_resolves_through_parameterized_model_ids_when_no_option_exists",
+      "crates/lapis-acp-protocol/tests/session_config.rs#a_base_model_with_no_matching_effort_is_reported_honestly",
+      "crates/lapis-acp-protocol/tests/session_config.rs#a_bare_positional_bracket_is_not_read_as_an_effort",
+      "crates/lapis-acp-protocol/tests/session_config.rs#a_keyed_effort_wins_over_a_thinking_marker_on_the_same_identifier",
+      "crates/lapis-acp-protocol/tests/session_config.rs#mode_resolution_uses_both_advertised_surfaces",
+      "crates/lapis-acp-protocol/tests/session_config.rs#a_mode_offered_under_another_category_is_not_substituted",
+      "crates/lapis-acp-protocol/tests/session_config.rs#a_mode_present_in_the_option_but_not_in_available_modes_is_refused",
+      "crates/lapis-acp-cli/tests/configuration.rs#a_requested_model_effort_and_mode_all_reach_the_adapter",
+      "crates/lapis-acp-cli/tests/configuration.rs#configuration_is_applied_before_the_turn_is_dispatched",
+      "crates/lapis-acp-cli/tests/configuration.rs#a_value_offered_under_another_category_is_not_substituted",
+      "crates/lapis-acp-cli/tests/configuration.rs#an_unknown_model_is_reported_and_the_turn_still_completes",
+      "crates/lapis-acp-cli/tests/configuration.rs#configuration_arrives_by_environment_variable_too",
+      "crates/lapis-acp-cli/tests/args.rs#every_option_is_settable_by_environment"
+    ],
+    "runs": [
+      {
+        "command": "lapis-acp run --runner cursor --effort high (live; effort resolved through a parameterized model identifier and accepted)",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "lapis-acp run --runner cursor --mode plan (live; applied with no shortfall)",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "lapis-acp run --runner cursor --model composer-2.5 --effort high (live; both reported unavailable, exit 0)",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "lapis-acp run --runner codex --mode read-only (live; applied)",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "lapis-acp run --runner codex --mode plan (live; refused naming collaboration_mode)",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "lapis-acp run --runner codex --effort high (live; reported unsupported because the adapter no longer advertises thought_level for the current model)",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "cargo test --workspace --locked",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "cargo clippy --workspace --all-targets --locked -- -D warnings",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "node --test scripts/governance.test.mjs scripts/rust-architecture.test.mjs scripts/upstream-lock.test.mjs",
+        "result": "pass",
+        "failures": 0
+      }
+    ],
+    "result": "pass",
+    "remaining": [],
+    "versions": "cursor-agent 2026.09.26-dd393fe; @agentclientprotocol/codex-acp 1.13.1; Rust 1.98.1; macOS ARM64",
+    "formats": "normalized thinking levels off/low/medium/high/xhigh for matching only; effort attribute keys effort, reasoning_effort, variant, thinking; parameterized model identifiers",
+    "note": "Three defects were found by asserting against real captures rather than synthetic payloads: advertised_effort returned the first attribute in document order so a thinking marker masked a level, the effort-surface decision was made after narrowing to one model so a model without effort reported the adapter as having no effort control at all, and the configuration tests initially resolved against the fixture envelope instead of its session/new result. A live codex session also stopped advertising thought_level between captures at the same adapter version, which corrected an earlier claim in compatibility.md; the thought_level path is fixture-proven but not live-proven. A bare positional bracket such as [medium] is deliberately not read as an effort."
   }
 ]
 ```
@@ -673,12 +769,17 @@ reached, because the leader is reaped by then and the group id is no longer
 safely ours. Containment is guaranteed for the fatal path and best-effort for
 the cooperative one.
 
-Model selection is implemented but reasoning effort and execution mode are not
-applied at all, so LAC-RUN-006 stays Planned and now owns M7. The captured
-Cursor payload shows the generic shape does not transfer: effort travels inside
-parameterized model values and mode is its own option, while upstream discovered
-a separate `thought_level` option for a different adapter. Neither is a superset
-of the other.
+Model, reasoning effort and execution mode are all applied, but only against
+what the current session advertises. Two gaps remain in that area. The
+`thought_level` configuration path is proven against a committed capture and not
+against a live adapter, because the adapter stopped advertising that option
+between captures at the same version. And a bare positional bracket such as
+`gpt-6.1-sol[medium]` is deliberately not read as an effort, so an adapter that
+encodes effort that way reports no effort control rather than being guessed at.
+
+Advertised configuration surfaces are not stable across sessions. A committed
+capture is evidence about one session rather than a property of an adapter
+version, so no test asserts that a live adapter will offer a given option.
 
 Two real adapters have been qualified: `cursor-agent acp` 2026.09.26-dd393fe and
 `@agentclientprotocol/codex-acp` 1.13.1, each driven through completed read-only

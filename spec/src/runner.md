@@ -12,15 +12,15 @@ treats it as an opaque key.
 
 ## Requirements
 
-| ID          | Requirement                                                                                                                                                                     |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| LAC-RUN-001 | The runner MUST execute one prepared turn per session scope with at most one turn in flight per scope.                                                                          |
-| LAC-RUN-002 | Cancellation MUST be cooperative and bounded: request cancellation, wait a bounded grace period, then kill the process group and reap within a bounded interval.                |
-| LAC-RUN-003 | An idle timeout reset by agent output and an absolute wall-clock turn deadline MUST both apply, and the shorter remaining bound MUST win.                                       |
-| LAC-RUN-004 | A timeout MUST be reported as an unknown outcome and MUST NOT be recorded as success or as a proven failure.                                                                    |
-| LAC-RUN-005 | A crashed agent MUST be reported as a distinct outcome from a bound that elapsed, and a restart MUST NOT silently re-dispatch a turn that was already sent.                     |
-| LAC-RUN-006 | Session creation MUST apply the configured model, effort and permission settings, and an unsupported setting MUST retain the adapter fallback rather than fail the turn.        |
-| LAC-RUN-007 | On Unix, cleanup MUST signal the whole process group before reaping its leader so ordinary descendants cannot outlive the turn, and MUST report whether the stop was confirmed. |
+| ID          | Requirement                                                                                                                                                                                                                                                                                                |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| LAC-RUN-001 | The runner MUST execute one prepared turn per session scope with at most one turn in flight per scope.                                                                                                                                                                                                     |
+| LAC-RUN-002 | Cancellation MUST be cooperative and bounded: request cancellation, wait a bounded grace period, then kill the process group and reap within a bounded interval.                                                                                                                                           |
+| LAC-RUN-003 | An idle timeout reset by agent output and an absolute wall-clock turn deadline MUST both apply, and the shorter remaining bound MUST win.                                                                                                                                                                  |
+| LAC-RUN-004 | A timeout MUST be reported as an unknown outcome and MUST NOT be recorded as success or as a proven failure.                                                                                                                                                                                               |
+| LAC-RUN-005 | A crashed agent MUST be reported as a distinct outcome from a bound that elapsed, and a restart MUST NOT silently re-dispatch a turn that was already sent.                                                                                                                                                |
+| LAC-RUN-006 | Session creation MUST apply a configured model, reasoning effort and execution mode where the adapter advertises them, MUST resolve each against the current session rather than a cached one, and MUST retain the adapter default rather than fail the turn when a setting is unsupported or unavailable. |
+| LAC-RUN-007 | On Unix, cleanup MUST signal the whole process group before reaping its leader so ordinary descendants cannot outlive the turn, and MUST report whether the stop was confirmed.                                                                                                                            |
 
 ## Deadline composition
 
@@ -160,3 +160,70 @@ count is exactly one rather than merely asserting the record.
 A crash during startup is reported the same way and is distinguishable by what
 never happened: no `session/new` and no `session/prompt` reached the agent, so
 nothing was dispatched and nothing can have partially executed.
+
+## Session configuration
+
+Three settings are applied after `session/new` and before the turn: model,
+reasoning effort and execution mode. Each is resolved against the current
+session's advertisement, never against a cached catalogue or a per-adapter
+table, because the surface a given adapter exposes varies — including between
+two sessions of the same adapter version.
+
+| Module          | Owns                                                                        |
+| --------------- | --------------------------------------------------------------------------- |
+| `configuration` | `SessionConfiguration`, `SettingOutcome`, `ConfigurationReport` and `apply` |
+
+Order matters. The model is selected first, because an adapter rebuilds its
+option catalogue for the new model and may expose a different reasoning-effort
+identifier afterwards; the capabilities used for effort and mode resolution are
+taken from the switch response when it carries any, and only fall back to the
+original session result. Applying effort before the model would resolve it
+against a catalogue the switch is about to invalidate.
+
+## Configuration error classification
+
+One distinction governs all three settings, and it is the reason a preference is
+safe to request at all.
+
+A **transport-class** failure — I/O, write timeout, request timeout, protocol
+violation, agent exit — aborts and propagates, because the stream may be corrupt
+and continuing to speak over it would produce nonsense that looks like a result.
+An **application-level** rejection, meaning the adapter answered with a JSON-RPC
+error, is recorded and the session continues on the adapter's own default.
+
+The distinction is what keeps a preference from being able to fail a task.
+Asking for a model an adapter does not have is a question, not a fault, and
+treating it as one would punish a caller for asking.
+
+Outcomes are classified rather than collapsed, because they send an operator
+looking in different places: `unsupported` means the adapter has no such
+control, `unavailable` means it has one that does not offer this value,
+`rejected` means it was asked and refused, and `not-this-setting` means the
+value exists under a different category so applying it here would have been a
+guess.
+
+## Effort has three encodings in the wild
+
+Reasoning effort is not one mechanism. Across two adapters and three observed
+sessions it appeared as:
+
+1. A separate configuration option in the `thought_level` category, with an
+   adapter-defined identifier that must be discovered.
+2. An attribute inside a parameterized model identifier, under any of `effort`,
+   `reasoning_effort` or `variant`, where applying it means selecting a
+   different model.
+3. A bare positional bracket token such as `[medium]`, which is **not** read as
+   an effort.
+
+The third is refused deliberately. The token usually is a reasoning level, so a
+closed vocabulary would make the inference mostly right — and mostly right is
+the worst possible property here, because the failure mode is silently selecting
+a model the operator never asked for. Matching only what an adapter explicitly
+keyed keeps the behaviour predictable, and the shortfall is reported so the
+operator learns the adapter has no settable effort rather than wondering why
+nothing changed.
+
+Matching is exact first and normalized second. Exact match is what keeps
+adapter-specific levels selectable when they exist in no portable vocabulary;
+normalization is what lets a caller asking for `off` reach an adapter that
+advertises `none`. The value sent is always the adapter's own spelling.

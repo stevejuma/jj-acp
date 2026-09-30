@@ -111,3 +111,16 @@ therefore owns the choice between `130` and `143`, because only it observed
 which signal arrived. Keeping that decision out of the control crate is what
 lets a controlling application drive the same invocation over a different
 transport and apply its own interruption semantics.
+
+## Configuration shortfalls are diagnostics, not record fields
+
+A setting that did not land is reported on stderr with its classified reason
+and, for an adapter rejection, the numeric error code. It is never added to the
+terminal record. Two reasons: the record schema is fixed so a controlling
+application can parse it unconditionally, and an adapter's own rejection text is
+untrusted and can quote prompt content, so only the classification and the code
+are safe to publish.
+
+The turn outcome still carries the full configuration report, so a caller
+embedding the crate can act on each setting individually. The one-shot CLI
+reduces it to diagnostics because its contract is one record and one exit code.

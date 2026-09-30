@@ -184,3 +184,24 @@ waited for — Codex sends `_auth/status_update` during the handshake. A client
 that read only responses would stall here, which is why unmodelled notifications
 are routed to the handler and skipped rather than treated as a protocol
 violation.
+
+## Normalized matching without a closed vocabulary
+
+The `thinking` module normalizes reasoning effort for _matching_ only. It
+defines a portable level set — `off`, `low`, `medium`, `high`, `xhigh` — plus
+the attribute keys that carry a level in real adapter output: `effort`,
+`reasoning_effort`, `variant`, and `thinking` as a weaker marker that reasoning
+happens without naming how much.
+
+It is deliberately not an enum that constrains what can be selected. A real
+adapter advertises `max` and `ultra`, which no portable vocabulary names, so a
+closed type would make them unreachable. `effort_matches` therefore tries an
+exact comparison first and falls back to normalization, and the value sent back
+is always the adapter's own spelling.
+
+Parameterized model identifiers are parsed rather than string-matched:
+`model_id_base` separates the name from its parameters, `model_id_attrs` reads
+the key-value pairs, and `advertised_effort` applies a fixed key precedence so
+`model[thinking=true,effort=high]` reports the level regardless of the order the
+adapter emitted the attributes. A malformed or keyless bracket yields nothing
+rather than a guess.

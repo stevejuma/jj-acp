@@ -238,3 +238,38 @@ option with `agent`, `plan` and `ask`, while the upstream harness discovered a
 separate `thought_level` option for a different adapter. Neither is a superset
 of the other, so LAC-RUN-006 stays Planned and owns its own milestone rather
 than being marked done on a model-only implementation.
+
+## Advertised surfaces are not stable across sessions
+
+Qualifying session configuration corrected a claim this chapter previously made.
+An earlier capture of `codex-acp` 1.13.1 recorded a `thought_level` option under
+the adapter-defined identifier `reasoning_effort`, and a `model_config` option
+for `fast-mode`. A later session with the same adapter version advertised
+neither, had one more model candidate, and reported a different current model.
+
+The cause is that the adapter's configuration surface depends on the selected
+model. With one model it exposes reasoning effort as a separate option; with
+another the effort is carried inside the model identifier itself. A committed
+capture is therefore evidence about one session, not a property of an adapter
+version, and the fixture is a snapshot whose authority expires.
+
+Two consequences are load-bearing. Resolution must happen against the current
+session's advertisement and never against a cached catalogue, which is what the
+runner does. And a test that asserts a specific adapter offers a specific option
+is asserting something that can stop being true without any code changing, so
+the committed fixtures are used to prove parsing behaviour against real shapes
+rather than to promise what a live adapter will advertise.
+
+### Live configuration qualification
+
+Effort applied through a parameterized model identifier, and mode application,
+were both qualified against a live adapter: `--effort high` and `--mode plan`
+each landed with no shortfall reported, and a narrowed request for a model that
+carries no effort reported both settings as unavailable rather than guessing. A
+live `--mode plan` against the other adapter was correctly refused with a
+diagnostic naming the `collaboration_mode` category that does offer it.
+
+The `thought_level` path is proven against the committed capture but was not
+reproduced live, because the adapter no longer advertises that option. It is
+recorded as fixture-proven rather than live-proven rather than being claimed
+outright.

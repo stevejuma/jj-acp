@@ -64,9 +64,15 @@ OPTIONS = [
     {"id": "effort", "name": "Effort", "category": "thought_level", "type": "select",
      "currentValue": "low",
      "options": [{"value": "low", "name": "Low"}, {"value": "high", "name": "High"}]},
-    {"id": "mode", "name": "Mode", "type": "select", "currentValue": "default",
-     "options": [{"value": "bypassPermissions", "name": "Bypass"},
-                 {"value": "default", "name": "Default"}]},
+    {"id": "mode", "name": "Mode", "category": "mode", "type": "select",
+     "currentValue": "default",
+     "options": [{"value": "default", "name": "Default"},
+                 {"value": "bypassPermissions", "name": "Bypass"},
+                 {"value": "unlisted", "name": "Not in availableModes"}]},
+    {"id": "collab", "name": "Collaboration", "category": "collaboration_mode",
+     "type": "select", "currentValue": "default",
+     "options": [{"value": "default", "name": "Default"},
+                 {"value": "plan", "name": "Plan"}]},
 ]
 
 session_id = None
@@ -95,7 +101,7 @@ for line in sys.stdin:
             time.sleep(HANG_SECONDS)
         session_id = "fixture-%d" % os.getpid()
         result = {"sessionId": session_id, "configOptions": OPTIONS,
-                  "modes": {"availableModes": [{"id": "bypassPermissions"}]}}
+                  "modes": {"availableModes": [{"id": "default"}, {"id": "bypassPermissions"}]}}
     elif method == "session/set_config_option":
         result = {"configOptions": OPTIONS}
     elif method == "session/set_model":
