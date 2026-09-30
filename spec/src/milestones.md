@@ -7,19 +7,20 @@ in its enclosing Jujutsu change.
 
 ## Tasks and gates
 
-| ID          | Status   | Depends   | Requirements                                                                                                                                                                                                                                                                                            | Gate                                                                                                                         | Next                                       | Evidence          |
-| ----------- | -------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ----------------- |
-| Bootstrap   | Done     | -         | LAC-GOV-001,LAC-GOV-002,LAC-GOV-003,LAC-GOV-005,LAC-GOV-006,LAC-ARCH-001,LAC-ARCH-002,LAC-COMPAT-004                                                                                                                                                                                                    | Canonical specification, ledger, crate skeleton, boundary gate and pinned toolchain green on an empty product                | Maintain governance each slice             | E-BOOT-001        |
-| Bootstrap.1 | Done     | -         | LAC-GOV-004,LAC-GOV-007,LAC-ARCH-003,LAC-ARCH-004                                                                                                                                                                                                                                                       | Boundary, counted-line and progress-checker negative tests pass                                                              | Maintain gates each slice                  | E-BOOT-002        |
-| M1          | Done     | Bootstrap | LAC-COMPAT-001,LAC-COMPAT-002,LAC-COMPAT-003,LAC-COMPAT-007,LAC-SEC-001                                                                                                                                                                                                                                 | Pinned upstream lock, attribution and digest-verified drift detection                                                        | Implement M2 protocol crate                | E-M1-001          |
-| M2          | Done     | Bootstrap | LAC-PROTO-001,LAC-PROTO-002,LAC-PROTO-003,LAC-PROTO-004,LAC-PROTO-005,LAC-PROTO-006                                                                                                                                                                                                                     | Bounded ACP framing, version negotiation and session methods under unit test                                                 | Implement M3 runner catalog                | E-M2-001          |
-| M3          | Done     | M2        | LAC-AGENT-001,LAC-AGENT-002,LAC-AGENT-003,LAC-AGENT-004,LAC-AGENT-005,LAC-AGENT-006,LAC-COMPAT-005                                                                                                                                                                                                      | Tiered runner catalog, reserved-key stripping and deterministic fixture peer                                                 | Implement M4 task runner                   | E-M3-001          |
-| M4          | Done     | M3        | LAC-CTRL-002,LAC-CTRL-003,LAC-CTRL-004,LAC-CTRL-005,LAC-CTRL-006,LAC-CTRL-007,LAC-CLI-001,LAC-CLI-002,LAC-CLI-003,LAC-CLI-004,LAC-CLI-005,LAC-CLI-006,LAC-RUN-001,LAC-RUN-002,LAC-RUN-003,LAC-RUN-004,LAC-ARCH-005,LAC-ARCH-006,LAC-SEC-002,LAC-SEC-003,LAC-SEC-004,LAC-SEC-005,LAC-SEC-006,LAC-SEC-007 | One-shot prepared task runner with sanitized record, published exit codes, signal cleanup and clean stdout                   | Qualify M5 process-group containment       | E-M4-001          |
-| M5          | Done     | M4        | LAC-RUN-005,LAC-RUN-007                                                                                                                                                                                                                                                                                 | Descendant containment on both the forced and the graceful path, crash reporting distinct from a timeout, and no re-dispatch | Qualify M6 against a real installed runner | E-M5-001          |
-| M6          | Done     | M5        | LAC-COMPAT-006,LAC-PROTO-002                                                                                                                                                                                                                                                                            | Real installed-runner qualification against cursor-agent acp recorded separately from fixture evidence                       | Implement M7 session configuration         | E-M6-001,E-M6-002 |
-| M7          | Done     | M6        | LAC-RUN-006                                                                                                                                                                                                                                                                                             | Model, effort and mode resolved per session with transport-versus-rejection classification, qualified live on two adapters   | Implement M8 persistent transport          | E-M7-001          |
-| M8          | Deferred | M4        | LAC-CTRL-001                                                                                                                                                                                                                                                                                            | Persistent control transport and standing session pool                                                                       | Future controlling-application integration | -                 |
-| M9          | Planned  | M8        | LAC-ARCH-005,LAC-CTRL-001                                                                                                                                                                                                                                                                               | Controlling-application consumer acceptance in a real host                                                                   | Future release                             | -                 |
+| ID          | Status  | Depends   | Requirements                                                                                                                                                                                                                                                                                            | Gate                                                                                                                                     | Next                                       | Evidence          |
+| ----------- | ------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ----------------- |
+| Bootstrap   | Done    | -         | LAC-GOV-001,LAC-GOV-002,LAC-GOV-003,LAC-GOV-005,LAC-GOV-006,LAC-ARCH-001,LAC-ARCH-002,LAC-COMPAT-004                                                                                                                                                                                                    | Canonical specification, ledger, crate skeleton, boundary gate and pinned toolchain green on an empty product                            | Maintain governance each slice             | E-BOOT-001        |
+| Bootstrap.1 | Done    | -         | LAC-GOV-004,LAC-GOV-007,LAC-ARCH-003,LAC-ARCH-004                                                                                                                                                                                                                                                       | Boundary, counted-line and progress-checker negative tests pass                                                                          | Maintain gates each slice                  | E-BOOT-002        |
+| M1          | Done    | Bootstrap | LAC-COMPAT-001,LAC-COMPAT-002,LAC-COMPAT-003,LAC-COMPAT-007,LAC-SEC-001                                                                                                                                                                                                                                 | Pinned upstream lock, attribution and digest-verified drift detection                                                                    | Implement M2 protocol crate                | E-M1-001          |
+| M2          | Done    | Bootstrap | LAC-PROTO-001,LAC-PROTO-002,LAC-PROTO-003,LAC-PROTO-004,LAC-PROTO-005,LAC-PROTO-006                                                                                                                                                                                                                     | Bounded ACP framing, version negotiation and session methods under unit test                                                             | Implement M3 runner catalog                | E-M2-001          |
+| M3          | Done    | M2        | LAC-AGENT-001,LAC-AGENT-002,LAC-AGENT-003,LAC-AGENT-004,LAC-AGENT-005,LAC-AGENT-006,LAC-COMPAT-005                                                                                                                                                                                                      | Tiered runner catalog, reserved-key stripping and deterministic fixture peer                                                             | Implement M4 task runner                   | E-M3-001          |
+| M4          | Done    | M3        | LAC-CTRL-002,LAC-CTRL-003,LAC-CTRL-004,LAC-CTRL-005,LAC-CTRL-006,LAC-CTRL-007,LAC-CLI-001,LAC-CLI-002,LAC-CLI-003,LAC-CLI-004,LAC-CLI-005,LAC-CLI-006,LAC-RUN-001,LAC-RUN-002,LAC-RUN-003,LAC-RUN-004,LAC-ARCH-005,LAC-ARCH-006,LAC-SEC-002,LAC-SEC-003,LAC-SEC-004,LAC-SEC-005,LAC-SEC-006,LAC-SEC-007 | One-shot prepared task runner with sanitized record, published exit codes, signal cleanup and clean stdout                               | Qualify M5 process-group containment       | E-M4-001          |
+| M5          | Done    | M4        | LAC-RUN-005,LAC-RUN-007                                                                                                                                                                                                                                                                                 | Descendant containment on both the forced and the graceful path, crash reporting distinct from a timeout, and no re-dispatch             | Qualify M6 against a real installed runner | E-M5-001          |
+| M6          | Done    | M5        | LAC-COMPAT-006,LAC-PROTO-002                                                                                                                                                                                                                                                                            | Real installed-runner qualification against cursor-agent acp recorded separately from fixture evidence                                   | Implement M7 session configuration         | E-M6-001,E-M6-002 |
+| M7          | Done    | M6        | LAC-RUN-006                                                                                                                                                                                                                                                                                             | Model, effort and mode resolved per session with transport-versus-rejection classification, qualified live on two adapters               | Implement M8 persistent transport          | E-M7-001          |
+| M8          | Done    | M7        | LAC-CTRL-001                                                                                                                                                                                                                                                                                            | Persistent versioned control protocol over stdio with concurrent cancellation, frame-level refusals and one shape for every task outcome | Implement M9 standing pool                 | E-M8-001          |
+| M9          | Planned | M8        | LAC-RUN-001,LAC-RUN-005                                                                                                                                                                                                                                                                                 | Standing session pool, caller-named scopes, inbound batching and crash respawn without re-dispatch                                       | Implement M10 consumer acceptance          | -                 |
+| M10         | Planned | M9        | LAC-ARCH-005                                                                                                                                                                                                                                                                                            | Controlling-application consumer acceptance in a real host                                                                               | Future release                             | -                 |
 
 ## Evidence
 
@@ -745,18 +746,81 @@ coexist with an acknowledged gap.
     "versions": "cursor-agent 2026.09.26-dd393fe; @agentclientprotocol/codex-acp 1.13.1; Rust 1.98.1; macOS ARM64",
     "formats": "normalized thinking levels off/low/medium/high/xhigh for matching only; effort attribute keys effort, reasoning_effort, variant, thinking; parameterized model identifiers",
     "note": "Three defects were found by asserting against real captures rather than synthetic payloads: advertised_effort returned the first attribute in document order so a thinking marker masked a level, the effort-surface decision was made after narrowing to one model so a model without effort reported the adapter as having no effort control at all, and the configuration tests initially resolved against the fixture envelope instead of its session/new result. A live codex session also stopped advertising thought_level between captures at the same adapter version, which corrected an earlier claim in compatibility.md; the thought_level path is fixture-proven but not live-proven. A bare positional bracket such as [medium] is deliberately not read as an effort."
+  },
+  {
+    "id": "E-M8-001",
+    "tasks": ["M8"],
+    "date": "2026-09-30",
+    "kind": "control-protocol",
+    "files": [
+      "crates/lapis-acp-control/src/protocol.rs",
+      "crates/lapis-acp-control/src/serve.rs",
+      "crates/lapis-acp-control/src/invocation.rs",
+      "crates/lapis-acp-control/src/lib.rs",
+      "crates/lapis-acp-cli/src/serve.rs",
+      "crates/lapis-acp-cli/src/args.rs",
+      "crates/lapis-acp-cli/src/lib.rs",
+      "crates/lapis-acp-cli/src/run_task.rs",
+      "crates/lapis-acp-cli/tests/serve.rs",
+      "crates/lapis-acp-cli/tests/signals.rs",
+      "spec/src/control.md",
+      "spec/src/cli.md"
+    ],
+    "tests": [
+      "crates/lapis-acp-cli/tests/serve.rs#startup_announces_the_resolved_runners",
+      "crates/lapis-acp-cli/tests/serve.rs#a_submitted_task_returns_exactly_one_record",
+      "crates/lapis-acp-cli/tests/serve.rs#a_second_submission_while_one_is_in_flight_is_refused",
+      "crates/lapis-acp-cli/tests/serve.rs#cancelling_a_submission_that_is_not_in_flight_is_refused",
+      "crates/lapis-acp-cli/tests/serve.rs#a_runner_listing_is_answered_without_starting_an_agent",
+      "crates/lapis-acp-cli/tests/serve.rs#malformed_and_unsupported_frames_are_refused_and_the_loop_continues",
+      "crates/lapis-acp-cli/tests/serve.rs#an_invalid_task_document_is_reported_as_a_record_not_an_error",
+      "crates/lapis-acp-cli/tests/serve.rs#end_of_input_ends_the_loop_cleanly"
+    ],
+    "runs": [
+      {
+        "command": "cargo test -p lapis-acp-cli --test serve --locked",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "cargo test --workspace --locked (three consecutive clean runs)",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "cargo clippy --workspace --all-targets --locked -- -D warnings",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "node --test scripts/governance.test.mjs scripts/rust-architecture.test.mjs scripts/upstream-lock.test.mjs",
+        "result": "pass",
+        "failures": 0
+      }
+    ],
+    "result": "pass",
+    "remaining": [],
+    "versions": "control protocol version 1; Rust 1.98.1; tokio 1.53.1",
+    "formats": "newline-delimited control frames; requests submit/cancel/runners/shutdown; responses ready/record/runners/ack/error/diagnostic",
+    "note": "The signals test was intermittently failing under parallel workspace load. The cause was the test, not the product: it raised the idle bound to 90 seconds but left the absolute cap at 60, so a deadline could end the turn before the signal arrived and report exit 124 instead of the signal code. Both bounds now exceed any plausible startup delay and three consecutive full workspace runs are clean. Execution is serial in this slice; a standing pool with caller-named scopes is M9."
   }
 ]
 ```
 
 ## Recorded gaps
 
-The one-shot task runner is delivered and exercised end to end through the real
-binary: a prepared document in, one sanitized terminal record out, and the
-published exit code. Concurrency and durability are not delivered. There is no
-standing pool, no persistent control transport, no inbound batching and no
-session rotation, so one process runs exactly one turn and then exits. That is
-M7 and it stays deferred.
+Both entry points are delivered: a one-shot `run --task` for a controlling
+application that wants one process per task, and a persistent `serve` for one
+that wants a single long-lived process. The persistent path executes one
+submission at a time and refuses a second with `busy`. A standing pool with
+caller-named scopes, inbound batching and crash respawn is M9, so a controlling
+application that needs concurrency must run several harnesses for now.
+
+`ControlTransport` remains unused by either path. It was drawn as the seam a
+non-stdio transport would implement, and `serve` currently reads and writes
+stdio directly rather than through it, so the abstraction is still unexercised.
+Wiring it in belongs with M9, where a second transport would give it something
+to prove.
 
 Descendant containment is proven on macOS ARM64 for both the forced and the
 graceful path, but only on Unix. On other platforms cleanup signals the direct

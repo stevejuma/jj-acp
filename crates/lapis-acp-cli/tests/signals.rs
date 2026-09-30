@@ -50,12 +50,18 @@ async fn interrupted(signal_name: &str, expected: i32) {
     let catalog = write_catalog(&scratch, "turn-hang", &[]);
     let path = write_task(&scratch, &task("task-signal", "never answer", 120_000));
     let mut arguments = run_args(&catalog, &path);
-    // Long bounds, so only the signal can end this turn.
-    let position = arguments
-        .iter()
-        .position(|item| item == "--idle-timeout")
-        .expect("flag");
-    arguments[position + 1] = "90".to_owned();
+    // Both bounds must be long, not just the idle one. The absolute cap is the
+    // shorter of the flag and the task document, so leaving it at the shared
+    // default let a deadline end the turn before the signal arrived under load and
+    // reported exit 124 instead of the signal's own code. The intent of this test
+    // is that only the signal can end the turn, so both bounds say so.
+    for (flag, value) in [("--idle-timeout", "240"), ("--max-turn-duration", "240")] {
+        let position = arguments
+            .iter()
+            .position(|item| item == flag)
+            .unwrap_or_else(|| panic!("{flag} is always present"));
+        arguments[position + 1] = value.to_owned();
+    }
     arguments.extend(["--cancel-grace".to_owned(), "5".to_owned()]);
     arguments.extend(["--reap-timeout".to_owned(), "5".to_owned()]);
 

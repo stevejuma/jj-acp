@@ -116,3 +116,21 @@ preference would make the flags dangerous to pass, and a controlling application
 that targets several adapters could not set a preference at all. The record
 schema is unchanged by configuration, so shortfalls travel on stderr where an
 operator reads them and never in the record a machine parses.
+
+## The serve command
+
+`lapis-acp serve` parses the same launch options as `run` and refuses `--task`,
+because a task arrives per control frame and a launch-time document would be
+meaningless. Sharing the option parser is what stops a flag from meaning one
+thing in `run` and something else in `serve`; the trusted launch configuration
+is built by one function both commands call.
+
+A signal ends the loop rather than cancelling one task. A controlling
+application that has stopped reading has nobody to receive a record, so the
+honest outcome is a bounded drain followed by the signal's own exit code.
+Reaching end of input is a clean exit `0`, because a closed stdin is how a
+controlling application says it is finished.
+
+Unusable launch configuration exits `2` with the reason on stderr and nothing on
+stdout. There is no loop to serve and no peer to frame a refusal for, so the
+exit code is the only machine-readable signal available.

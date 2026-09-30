@@ -107,6 +107,8 @@ pub enum Command {
     Run(Box<RunCommand>),
     /// List resolved runners with availability, honouring a catalog file.
     Agents(Box<LaunchOptions>),
+    /// Serve the persistent control protocol over stdio.
+    Serve(Box<LaunchOptions>),
     /// Print usage.
     Help,
     /// Print the version.
@@ -144,8 +146,13 @@ lapis-acp — run an Agent Client Protocol agent for a controlling application
 
 Usage:
   lapis-acp run --task <path|-> [options]
-  lapis-acp agents
+  lapis-acp serve [options]
+  lapis-acp agents [options]
   lapis-acp --help | --version
+
+Serve reads newline-delimited JSON control frames on stdin and writes frames on
+stdout: submit, cancel, runners and shutdown in; ready, record, runners, ack,
+error and diagnostic out. There is no listener, no port and no authentication.
 
 Run options:
   --task <path|->            prepared task document; '-' reads stdin
@@ -193,10 +200,19 @@ pub fn parse<I: IntoIterator<Item = String>>(arguments: I, env: &Env) -> Result<
             }
             return Ok(Command::Agents(Box::new(launch)));
         }
+        // `serve` takes a task per control frame, so a launch-time task document
+        // would be meaningless and is refused rather than ignored.
+        "serve" => {
+            let (launch, task) = parse_launch(&mut items, env)?;
+            if task.is_some() {
+                return Err(ArgError::Usage("serve does not take --task".to_owned()));
+            }
+            return Ok(Command::Serve(Box::new(launch)));
+        }
         "run" => {}
         other => {
             return Err(ArgError::Usage(format!(
-                "unknown command {other:?}; expected run, agents, --help or --version"
+                "unknown command {other:?}; expected run, serve, agents, --help or --version"
             )));
         }
     }

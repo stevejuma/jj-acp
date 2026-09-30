@@ -105,11 +105,15 @@ pub async fn invoke(
 }
 
 /// Execute one validated task document, with an injectable executable probe.
+///
+/// The probe is required to be `Sync` so a caller can run an invocation inside a
+/// spawned task, which is what the persistent control loop does in order to stay
+/// readable while a turn is in flight.
 pub async fn invoke_with_probe(
     config: &InvocationConfig,
     document: TaskDocument,
     cancel: &mut watch::Receiver<bool>,
-    probe: &dyn CommandProbe,
+    probe: &(dyn CommandProbe + Sync),
 ) -> Invocation {
     let task_id = document.task_id.clone();
 

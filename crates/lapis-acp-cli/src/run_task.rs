@@ -122,8 +122,8 @@ pub async fn execute(
         }
     };
 
-    let catalog = match build_catalog(options) {
-        Ok(catalog) => catalog,
+    let config = match invocation_config(options) {
+        Ok(config) => config,
         Err(rejection) => {
             return RunResult::refused(
                 TerminalRecord::invalid_with_id(document.task_id.clone(), rejection.code),
@@ -131,24 +131,25 @@ pub async fn execute(
             );
         }
     };
-    let system_prompt = match read_system_prompt(options) {
-        Ok(prompt) => prompt,
-        Err(rejection) => {
-            return RunResult::refused(
-                TerminalRecord::invalid_with_id(document.task_id.clone(), rejection.code),
-                vec![rejection.reason],
-            );
-        }
-    };
+    RunResult::from(invoke_with_probe(&config, document, cancel, &PathProbe).await)
+}
 
-    // The working directory is the launch directory unless trusted configuration
-    // overrides it. The task document is never consulted for it.
+/// Assemble the trusted launch configuration every entry point shares.
+///
+/// The one-shot runner and the persistent control loop build the same
+/// configuration, so a launch option cannot mean one thing in `run` and something
+/// else in `serve`. The working directory is the launch directory unless trusted
+/// configuration overrides it, and no task document is ever consulted for it.
+pub fn invocation_config(
+    options: &LaunchOptions,
+) -> std::result::Result<InvocationConfig, TaskRejection> {
+    let catalog = build_catalog(options)?;
+    let system_prompt = read_system_prompt(options)?;
     let cwd = match &options.cwd {
         Some(configured) => configured.clone(),
         None => std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")),
     };
-
-    let config = InvocationConfig {
+    Ok(InvocationConfig {
         catalog,
         configured_runner: options.runner.clone(),
         cwd,
@@ -164,8 +165,7 @@ pub async fn execute(
         system_prompt,
         prompt_transport: options.prompt_transport,
         inherited_env: std::env::vars().collect(),
-    };
-    RunResult::from(invoke_with_probe(&config, document, cancel, &PathProbe).await)
+    })
 }
 
 /// Report the prompt transport spelling, for diagnostics and tests.

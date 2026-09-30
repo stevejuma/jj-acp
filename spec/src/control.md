@@ -124,3 +124,51 @@ are safe to publish.
 The turn outcome still carries the full configuration report, so a caller
 embedding the crate can act on each setting individually. The one-shot CLI
 reduces it to diagnostics because its contract is one record and one exit code.
+
+## The persistent control protocol
+
+`lapis-acp serve` reads newline-delimited JSON frames on stdin and writes frames
+on stdout. Version 1 carries four requests and six responses.
+
+| Request    | Fields                | Answered by                                  |
+| ---------- | --------------------- | -------------------------------------------- |
+| `submit`   | `requestId`, `task`   | one `record` frame, plus `diagnostic` frames |
+| `cancel`   | `requestId`, `target` | `ack`, or `error` with `not_in_flight`       |
+| `runners`  | `requestId`           | `runners`                                    |
+| `shutdown` | `requestId`           | `ack`, then the loop drains and exits        |
+
+Every frame carries `version`, and the harness opens each session with a `ready`
+frame carrying the resolved runner list, so a controlling application learns
+what it can ask for before asking. An unsupported version is refused before any
+agent is started, which is what makes the version field meaningful rather than
+decorative.
+
+A refused task document is delivered as a `record` frame with `status: invalid`
+rather than as an `error` frame. One shape for every task outcome means a
+controlling application handles success, failure and refusal through the same
+code path, and cannot miss a refusal because it was only listening for records.
+Frame-level problems — bad JSON, a missing version, an unknown type — are
+`error` frames, because there is no task to report against.
+
+Diagnostics travel as `diagnostic` frames rather than stderr. The one-shot path
+writes them to stderr because a human is reading it; the persistent path has a
+machine on the other end, and a machine that has to watch two streams to know
+what happened will eventually miss one. Stdout still carries nothing but frames.
+
+## Concurrency in this slice
+
+One submission executes at a time and a second is refused with `busy`. That is a
+scope decision, not a limitation of the transport: a standing pool with
+caller-named scopes is the next milestone.
+
+Cancellation is nevertheless genuinely concurrent, because a controlling
+application that cannot interrupt a running task has no way to bound it. The
+read loop never blocks on a submission — work is spawned, and the loop stays
+available to accept a `cancel`, a `runners` listing or a `shutdown` while a turn
+is in flight. The cancel is delivered by signalling the same watch the one-shot
+path uses for SIGINT and SIGTERM, so both paths exercise one cancellation
+mechanism rather than two that can drift apart.
+
+The in-flight lock is released before a frame is written. The spawned task
+clears in-flight under the same lock, so holding it across a write would let two
+frames deadlock each other.

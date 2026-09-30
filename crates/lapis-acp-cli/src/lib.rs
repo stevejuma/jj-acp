@@ -18,6 +18,7 @@
 pub mod agents;
 pub mod args;
 pub mod run_task;
+pub mod serve;
 pub mod signals;
 
 use std::io::Write;
@@ -41,6 +42,7 @@ pub fn run() -> i32 {
             ExitCode::Ok.as_i32()
         }
         Ok(Command::Agents(launch)) => agents::execute(&launch),
+        Ok(Command::Serve(launch)) => serve_blocking(&launch),
         Ok(Command::Run(command)) => run_task_command(&command.task, &command.launch),
         Err(error) => {
             // Usage goes to stderr: stdout is reserved for records.
@@ -49,6 +51,21 @@ pub fn run() -> i32 {
             ExitCode::Invalid.as_i32()
         }
     }
+}
+
+/// Build a runtime for the persistent control loop.
+fn serve_blocking(launch: &LaunchOptions) -> i32 {
+    let runtime = match tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+    {
+        Ok(runtime) => runtime,
+        Err(error) => {
+            eprintln!("lapis-acp: cannot start the async runtime: {error}");
+            return ExitCode::Failure.as_i32();
+        }
+    };
+    runtime.block_on(serve::execute(launch))
 }
 
 /// Emit exactly one terminal record, then resolve the exit code.
