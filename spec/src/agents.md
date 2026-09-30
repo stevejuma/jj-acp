@@ -61,3 +61,56 @@ Identifiers are stable and reserved: a lower tier cannot shadow them.
 A runner that speaks ACP over stdio and satisfies the protocol requirements in
 [ACP wire protocol](protocol.md) works without being listed here. The catalog
 exists for discovery and labelling, not as an allowlist.
+
+## Implemented surface
+
+| Module         | Owns                                                                               |
+| -------------- | ---------------------------------------------------------------------------------- |
+| `definition`   | `RunnerDefinition`, `CommandSpec`, `McpTransport`, identifier and label validation |
+| `catalog`      | Tiers, collision rules, resolution and listing                                     |
+| `defaults`     | The compiled-in tier and its reserved identifiers                                  |
+| `config`       | Catalog document parsing                                                           |
+| `environment`  | Reserved-key stripping and three-layer merge                                       |
+| `availability` | The `CommandProbe` trait, a `PATH` probe, a fixed probe and availability reports   |
+| `error`        | Typed refusal reasons                                                              |
+
+A candidate argv is a `CommandSpec`, and a definition may list several in
+preference order. The first whose executable resolves wins, which is how one
+definition covers both a current and a legacy adapter command name without
+inventing two runners.
+
+Resolution refuses rather than substitutes. An unknown identifier and a disabled
+one are distinct errors, and neither falls back to a default, because silently
+running a different agent than the one requested would execute untrusted prompt
+content with capabilities the caller did not choose.
+
+Collisions are refused for the whole batch rather than skipping the offending
+entry. A catalog file that fails to load therefore cannot produce a quietly
+smaller runner set than the operator wrote.
+
+`CommandProbe` is a trait so availability is testable against a synthetic search
+path. The real probe only tests whether a file exists; it never executes the
+candidate to see whether it works, because executing an untrusted binary to
+probe it would be worse than not probing at all.
+
+## Environment precedence
+
+The three layers apply in order: the inherited environment, the definition
+floor, then caller overrides. A later layer replaces an earlier one for the same
+name, and the first appearance fixes its position so the result is
+deterministic.
+
+Every layer is stripped of names under the `LAPIS_ACP_` prefix before merging,
+and the stripped names are returned so an operator can see that a definition
+tried to claim harness identity. The harness then adds its own reserved
+variables through a separate function that no catalog file and no caller
+override can reach. The prefix is matched rather than an enumerated list, so a
+future harness variable is covered without a rule change.
+
+## Qualification status
+
+The compiled-in entrypoints are declared from the published adapter package
+names but are not yet qualified against installed adapters. Declaring an argv is
+not evidence that it launches, which is why the real installed-runner gate is a
+separate ledger task and why an unqualified default is a convenience rather than
+a claim.

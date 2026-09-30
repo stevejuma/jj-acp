@@ -303,3 +303,30 @@ test("every_declared_crate_dependency_survives_the_exclusion_list", () => {
   for (const name of declared)
     assert.ok(!excluded.test(name), `${name} is an excluded dependency`);
 });
+
+test("the_testkit_may_depend_on_the_layers_it_exercises", () => {
+  assert.deepEqual(
+    dependencyErrors([
+      {
+        name: "lapis-acp-testkit",
+        dependencies: [
+          { name: "lapis-acp-protocol" },
+          { name: "lapis-acp-agent" },
+          { name: "tokio", kind: "dev" },
+        ],
+      },
+    ]),
+    [],
+  );
+  // The testkit sits below nothing: it must not reach the runner, control or CLI
+  // layers, or a test helper would become a composition path around them.
+  assert.match(
+    dependencyErrors([
+      {
+        name: "lapis-acp-testkit",
+        dependencies: [{ name: "lapis-acp-runner" }],
+      },
+    ]).join(),
+    /invalid layer dependency lapis-acp-runner/,
+  );
+});

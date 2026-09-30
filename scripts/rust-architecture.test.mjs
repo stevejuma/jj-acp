@@ -146,6 +146,18 @@ test("allows_testkit_use_from_a_test_module", () => {
   rmSync(dir, { recursive: true, force: true });
 });
 
+test("allows_the_testkit_crate_to_name_itself", () => {
+  // The testkit's own documentation examples legitimately refer to it by crate
+  // name; the rule exists to keep production crates away from test helpers, not
+  // to stop the helper describing itself.
+  const dir = root({
+    "crates/lapis-acp-testkit/src/lib.rs":
+      "//! use lapis_acp_testkit::Fixture;\n",
+  });
+  assert.deepEqual(architectureErrors(dir, { files: {} }), []);
+  rmSync(dir, { recursive: true, force: true });
+});
+
 test("tolerates_absent_source_roots", () => {
   const dir = root({});
   for (const leaf of ["crates", "tests"])

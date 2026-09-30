@@ -21,7 +21,7 @@ export const layers = {
     "lapis-acp-runner",
     "lapis-acp-control",
   ],
-  "lapis-acp-testkit": [],
+  "lapis-acp-testkit": ["lapis-acp-protocol", "lapis-acp-agent"],
 };
 
 /**

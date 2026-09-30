@@ -206,7 +206,7 @@
     "tests/fixtures/task_agent.py": {
       "disposition": "ported-with-changes",
       "owner": "tests/fixtures",
-      "note": "Deterministic ACP peer retained; launch-log assertions retargeted from relay and keyfile variables."
+      "note": "Deterministic ACP peer retained with all ten failure modes; launch-log assertions retargeted from relay URL, agent key and Nostr git keyfile to the harness-reserved variables this repository injects."
     },
     "tests/git_bootstrap.rs": {
       "disposition": "dropped",

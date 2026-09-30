@@ -85,3 +85,24 @@ lane can invoke it directly.
 Tooling changes are protected and mapped to this chapter's governance owner, so
 a gate cannot be weakened without a same-change specification edit. Adding a
 checker means adding its decision function, its tests and its lane together.
+
+## Dependency declaration
+
+Third-party versions are declared once in the workspace dependency table and
+referenced by name from each crate, so a version change is one reviewed edit
+rather than a sweep across manifests. `Cargo.lock` is committed and every cargo
+invocation in a check lane passes `--locked`.
+
+Each crate enables only the facilities it owns. `lapis-acp-protocol` takes
+`io-util`, `sync` and `time` from the async runtime and nothing else, because it
+speaks over a caller-supplied byte stream and has no business spawning a process
+or opening a socket. `lapis-acp-agent` takes no async runtime at all: resolving
+a runner is a synchronous filesystem question. Process ownership, signal
+handling and scheduling arrive with the runner and CLI crates, which is where
+the corresponding facilities are enabled.
+
+That split is enforced rather than documented. A governance test reads the
+protocol crate's manifest and fails if a process or network facility appears in
+it, and the boundary checker fails on any crate absent from the layer matrix and
+on any excluded dependency, so a crate cannot quietly acquire a capability its
+layer does not own.

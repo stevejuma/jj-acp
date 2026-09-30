@@ -7,3 +7,15 @@ license.workspace = true
 publish = false
 
 [dependencies]
+lapis-acp-protocol.workspace = true
+lapis-acp-agent.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = [
+  "io-util",
+  "macros",
+  "process",
+  "rt",
+  "time",
+] }

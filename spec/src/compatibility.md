@@ -130,3 +130,26 @@ actually speaks, including capability negotiation and configuration options the
 fixture only approximates. That qualification is recorded as its own ledger task
 with its own evidence kind, and the progress checker refuses to mark it done on
 fixture evidence. A passing fixture suite is not a claim about any real agent.
+
+### The ported fixture peer
+
+The fixture is a Python script at `tests/fixtures/fixture_agent.py`, ported from
+upstream with all ten failure modes intact: normal, startup hang, session hang,
+turn hang, ignored cancellation, permission request, agent error, and three
+descendant-spawning variants. Its launch-record assertions are retargeted from
+the upstream relay URL, agent key and Nostr git keyfile to the harness-reserved
+variables this repository actually injects, so the record proves injection
+rather than identity.
+
+It advertises model and reasoning-effort catalogues, honours a protocol version
+override and a stop reason override, streams one content chunk per turn, and
+appends every frame it receives to a log a test can read back.
+`lapis-acp-testkit` owns locating it, building its argv and environment, and
+parsing that log.
+
+Two findings came from running it rather than from reading the port map. A
+permission request answered by semantic kind completes the turn, which exercises
+a path no in-memory pipe test reaches. And killing the fixture's direct child
+leaves its spawned descendant alive, which is the concrete hazard behind the
+process-group cleanup requirement in [session and turn lifecycle](runner.md)
+rather than an abstract precaution.

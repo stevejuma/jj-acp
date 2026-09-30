@@ -86,6 +86,11 @@ inline test module inflates a production file's counted lines with content that
 is not production, which would either force a spurious baseline exception or
 push real logic out of the file it belongs in.
 
+The gate exempts the testkit crate from the rule against importing the testkit,
+because its own documentation examples legitimately name it. The rule exists to
+keep production crates away from test helpers, not to stop a helper describing
+itself, and a gate that fires on its own subject teaches reviewers to ignore it.
+
 An over-budget file is extracted, never baselined. The baseline exists for a
 file whose extraction genuinely cannot lower its budget, and a stale entry whose
 file no longer exists is itself a failure, so exceptions cannot outlive their

@@ -29,6 +29,9 @@ name = "lapis-acp-agent"
 version = "0.1.0"
 dependencies = [
  "lapis-acp-protocol",
+ "serde",
+ "serde_json",
+ "thiserror",
 ]
 
 [[package]]
@@ -71,6 +74,12 @@ dependencies = [
 [[package]]
 name = "lapis-acp-testkit"
 version = "0.1.0"
+dependencies = [
+ "lapis-acp-agent",
+ "lapis-acp-protocol",
+ "serde_json",
+ "tokio",
+]
 
 [[package]]
 name = "libc"
