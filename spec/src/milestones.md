@@ -11,7 +11,7 @@ in its enclosing Jujutsu change.
 | ----------- | -------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ---------- |
 | Bootstrap   | Done     | -         | LAC-GOV-001,LAC-GOV-002,LAC-GOV-003,LAC-GOV-005,LAC-GOV-006,LAC-ARCH-001,LAC-ARCH-002,LAC-COMPAT-004                                                                                                                                                                | Canonical specification, ledger, crate skeleton, boundary gate and pinned toolchain green on an empty product | Maintain governance each slice             | E-BOOT-001 |
 | Bootstrap.1 | Done     | -         | LAC-GOV-004,LAC-GOV-007,LAC-ARCH-003,LAC-ARCH-004                                                                                                                                                                                                                   | Boundary, counted-line and progress-checker negative tests pass                                               | Maintain gates each slice                  | E-BOOT-002 |
-| M1          | Planned  | Bootstrap | LAC-COMPAT-001,LAC-COMPAT-002,LAC-COMPAT-003,LAC-COMPAT-007,LAC-SEC-001                                                                                                                                                                                             | Pinned upstream lock, attribution and digest-verified drift detection                                         | Implement M2 protocol crate                | -          |
+| M1          | Done     | Bootstrap | LAC-COMPAT-001,LAC-COMPAT-002,LAC-COMPAT-003,LAC-COMPAT-007,LAC-SEC-001                                                                                                                                                                                             | Pinned upstream lock, attribution and digest-verified drift detection                                         | Implement M2 protocol crate                | E-M1-001   |
 | M2          | Planned  | Bootstrap | LAC-PROTO-001,LAC-PROTO-002,LAC-PROTO-003,LAC-PROTO-004,LAC-PROTO-005,LAC-PROTO-006                                                                                                                                                                                 | Bounded ACP framing, version negotiation and session methods under unit test                                  | Implement M3 runner catalog                | -          |
 | M3          | Planned  | M2        | LAC-AGENT-001,LAC-AGENT-002,LAC-AGENT-003,LAC-AGENT-004,LAC-AGENT-005,LAC-AGENT-006,LAC-COMPAT-005                                                                                                                                                                  | Tiered runner catalog, reserved-key stripping and deterministic fixture peer                                  | Implement M4 task runner                   | -          |
 | M4          | Planned  | M3        | LAC-CTRL-002,LAC-CTRL-003,LAC-CTRL-004,LAC-CTRL-005,LAC-CTRL-006,LAC-CTRL-007,LAC-CLI-001,LAC-CLI-002,LAC-CLI-004,LAC-CLI-005,LAC-CLI-006,LAC-RUN-001,LAC-RUN-003,LAC-RUN-004,LAC-ARCH-005,LAC-ARCH-006,LAC-SEC-002,LAC-SEC-003,LAC-SEC-004,LAC-SEC-005,LAC-SEC-007 | One-shot prepared task runner with sanitized terminal record, published exit codes and clean stdout           | Qualify M4.1 lifecycle bounds              | -          |
@@ -138,6 +138,62 @@ coexist with an acknowledged gap.
     "remaining": [],
     "versions": "Node v24.10.0; cargo 1.98.1 for cargo metadata --no-deps --locked",
     "formats": "counted-line budget; crate dependency matrix; ledger JSON evidence"
+  },
+  {
+    "id": "E-M1-001",
+    "tasks": ["M1"],
+    "date": "2026-09-30",
+    "kind": "upstream-audit",
+    "files": [
+      "docs/upstream-lock.md",
+      "docs/licenses/NOTICE.md",
+      "docs/upstream/disposition.json",
+      "docs/upstream/lock.json",
+      "scripts/upstream-lock.mjs",
+      "scripts/upstream-sync.mjs",
+      "scripts/upstream-lock.test.mjs",
+      "spec/src/compatibility.md",
+      "spec/src/spec-governance.md",
+      "spec/src/architecture.md",
+      "spec-validator.config.mjs",
+      "package.json"
+    ],
+    "tests": [
+      "scripts/upstream-lock.test.mjs#the_curated_port_map_is_valid",
+      "scripts/upstream-lock.test.mjs#the_recorded_lock_matches_the_curated_map",
+      "scripts/upstream-lock.test.mjs#validate_lock_detects_drift_from_the_curated_map",
+      "scripts/upstream-lock.test.mjs#drift_report_classifies_every_observed_file",
+      "scripts/upstream-lock.test.mjs#build_lock_refuses_a_classified_region_without_a_digest",
+      "scripts/upstream-lock.test.mjs#dropped_regions_carry_a_reason_and_no_owner",
+      "scripts/upstream-lock.test.mjs#rejects_an_owner_disposition_mismatch",
+      "scripts/upstream-lock.test.mjs#scratch_materialization_stays_in_ignored_storage"
+    ],
+    "runs": [
+      {
+        "command": "node --test scripts/upstream-lock.test.mjs",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "node scripts/upstream-sync.mjs --self-test",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "node scripts/upstream-sync.mjs --write",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "node scripts/upstream-sync.mjs --fetch",
+        "result": "pass",
+        "failures": 0
+      }
+    ],
+    "result": "pass",
+    "remaining": [],
+    "versions": "block/buzz@2664d14316790a57ea44b3f97c57440b70e43436; Node v24.10.0; SHA-256",
+    "formats": "upstream disposition map; generated digest lock; drift report"
   }
 ]
 ```
@@ -150,9 +206,10 @@ surface, runner catalog, turn lifecycle, task document and control transport are
 specified but unimplemented, and their verification rows are Planned rather than
 Implemented.
 
-`docs/upstream-lock.md` and `docs/licenses/NOTICE.md` do not exist yet, so the
-port is not yet auditable against a pinned upstream commit. That is M1 and it is
-the next slice.
+The upstream pin is recorded and digest-verified, but no region has been ported
+yet. Every disposition in `docs/upstream/disposition.json` describes intent; the
+18 ported-with-changes regions and the single ported region are claims about
+work that M2 through M4 still have to do.
 
 No real installed runner has been exercised. Every gate so far is a governance
 or static-analysis gate; nothing here is evidence that a shipping ACP adapter

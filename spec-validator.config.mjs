@@ -123,12 +123,18 @@ export default defineConfig(tableRequirements(), {
         args: ["scripts/check-progress.mjs"],
       },
       {
+        name: "upstream-pin",
+        command: "node",
+        args: ["scripts/upstream-sync.mjs", "--self-test"],
+      },
+      {
         name: "governance-tests",
         command: "node",
         args: [
           "--test",
           "scripts/governance.test.mjs",
           "scripts/rust-architecture.test.mjs",
+          "scripts/upstream-lock.test.mjs",
         ],
       },
       {

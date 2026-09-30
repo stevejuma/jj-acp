@@ -61,3 +61,27 @@ against `scripts/rust-architecture-baseline.json`. The baseline ships empty. An
 entry may be added only when an extraction cannot lower a budget, and the gate
 reports a stale entry whose file no longer exists, so the baseline cannot
 quietly retain dead exceptions.
+
+## Repository tooling
+
+Validation is first-party Node automation under `scripts/`, not a crate. It sits
+outside the Cargo workspace on purpose: the gates must be able to inspect the
+workspace as data, read `cargo metadata`, and fail on a crate that does not
+exist yet. Each checker exports its decision function so a governance test can
+exercise it against synthetic input, and each has a thin command-line entry so a
+lane can invoke it directly.
+
+| Script                               | Owns                                                         |
+| ------------------------------------ | ------------------------------------------------------------ |
+| `scripts/check-boundaries.mjs`       | Crate layer matrix, excluded dependencies, testkit isolation |
+| `scripts/rust-architecture.mjs`      | Counted-line budget, test placement, testkit imports         |
+| `scripts/check-progress.mjs`         | Ledger parsing, evidence integrity, completion gates         |
+| `scripts/upstream-lock.mjs`          | Port map and lock validation, digests, drift classification  |
+| `scripts/upstream-sync.mjs`          | Pin self-test and the opt-in networked materialization       |
+| `scripts/governance.test.mjs`        | Ledger and boundary regressions                              |
+| `scripts/rust-architecture.test.mjs` | Budget and placement regressions                             |
+| `scripts/upstream-lock.test.mjs`     | Port map, lock and drift regressions                         |
+
+Tooling changes are protected and mapped to this chapter's governance owner, so
+a gate cannot be weakened without a same-change specification edit. Adding a
+checker means adding its decision function, its tests and its lane together.

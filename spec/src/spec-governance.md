@@ -50,3 +50,27 @@ Passing bookkeeping MUST NOT substitute for passing product tests. A ledger
 entry records the commands actually run and their real failure counts; it never
 converts a fixture-peer result into a real-runner qualification or a compile
 into a behavioral proof.
+
+## Check lanes
+
+`spec-validator.config.mjs` declares the lanes that `pnpm spec:check` runs, and
+`package.json` exposes the same checks as individual scripts so a narrowed slice
+can run one of them. The lanes are rustfmt, prettier, crate boundaries, the
+counted-line budget, the progress ledger, the upstream pin self-test, the
+governance and lock test suites, and the cargo workspace tests.
+
+The upstream pin lane is offline by design.
+`scripts/upstream-sync.mjs --self-test` validates the curated port map and
+reconciles it with the generated lock without touching the network, so a normal
+check run never depends on upstream availability. The two networked modes,
+`--write` and `--fetch`, are explicit opt-in lanes reached through
+`pnpm upstream:write` and `pnpm upstream:fetch`. This mirrors the sibling
+jj-store split between a harness self-test in the normal lane and a real-storage
+qualification that stays opt-in, and it preserves the rule that a self-test is
+not conformance evidence: passing `--self-test` proves the record is internally
+consistent, not that the pinned upstream source still matches it.
+
+A lane that needs the network, a credential or a model provider MUST NOT be part
+of the normal check run. It belongs in an explicitly named opt-in lane whose
+absent evidence is recorded in the ledger as a gap rather than inferred as a
+pass.
