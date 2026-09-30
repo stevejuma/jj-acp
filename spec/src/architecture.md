@@ -130,3 +130,11 @@ row: it depends on the protocol and agent crates because it configures a fixture
 through the same types a production caller uses, and it must never depend on the
 runner, control or CLI crates, or a test helper would become a composition path
 around them.
+
+Qualifying a real adapter exercised every layer at once and found three defects
+that no fixture test had reached, in the protocol crate's capability probing,
+the CLI's subcommand option handling and the compiled-in runner declarations.
+That is the argument for keeping the real-runner gate separate from the fixture
+suite rather than treating the fixture as sufficient: the fixture proves this
+code agrees with itself, and only a shipping adapter proves it agrees with
+anyone else.

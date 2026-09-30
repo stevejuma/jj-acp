@@ -18,16 +18,31 @@ fn signal(pid: u32, name: &str) {
 }
 
 /// Wait until the fixture has started, so the signal arrives mid-turn.
+///
+/// The bound is generous on purpose. Every test binary in the workspace spawns
+/// interpreter subprocesses and `cargo test` runs them in parallel, so startup can
+/// be far slower under load than in isolation. A short wait here would make this
+/// test flaky for a reason that has nothing to do with signal handling, and a
+/// flaky lifecycle test is worse than a slow one because it trains reviewers to
+/// re-run instead of investigate.
 fn await_agent_start(log: &std::path::Path) {
-    for _ in 0..400 {
+    const ATTEMPTS: u32 = 1200;
+    const INTERVAL: Duration = Duration::from_millis(25);
+    for attempt in 0..ATTEMPTS {
         if let Ok(text) = std::fs::read_to_string(log)
             && !text.trim().is_empty()
         {
             return;
         }
-        std::thread::sleep(Duration::from_millis(25));
+        std::thread::sleep(INTERVAL);
+        if attempt + 1 == ATTEMPTS {
+            panic!(
+                "the fixture agent wrote nothing to {} within {:?}",
+                log.display(),
+                INTERVAL * ATTEMPTS
+            );
+        }
     }
-    panic!("the fixture agent never started");
 }
 
 async fn interrupted(signal_name: &str, expected: i32) {

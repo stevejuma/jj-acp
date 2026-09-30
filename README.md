@@ -50,9 +50,10 @@ lapis-acp agents   # one JSON object per line: id, label, availability, install 
 | M3        | Runner catalog, launch environment and deterministic fixture peer     | Done     |
 | M4        | One-shot `run --task` with sanitized terminal record and exit codes   | Done     |
 | M5        | Descendant containment, crash reporting and no re-dispatch            | Done     |
-| M6        | Real installed-runner qualification, model and effort configuration   | Planned  |
-| M7        | Persistent control transport and standing session pool                | Deferred |
-| M8        | Controlling-application consumer acceptance                           | Planned  |
+| M6        | Real installed-runner qualification against `cursor-agent acp`        | Done     |
+| M7        | Model, reasoning-effort and execution-mode application                | Planned  |
+| M8        | Persistent control transport and standing session pool                | Deferred |
+| M9        | Controlling-application consumer acceptance                           | Planned  |
 
 ## Requirements
 

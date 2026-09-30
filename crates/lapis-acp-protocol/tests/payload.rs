@@ -100,6 +100,29 @@ fn capability_probing_treats_an_absent_path_as_false() {
 }
 
 #[test]
+fn an_explicit_false_capability_is_not_advertised() {
+    // Adapters send explicit false for facilities they do not support. Presence
+    // is not advertisement, and treating it as such would send content the agent
+    // has already refused.
+    let result = initialize::parse_result(&json!({
+        "protocolVersion": 2,
+        "agentCapabilities": {
+            "promptCapabilities": {"image": true, "audio": false, "embeddedContext": false},
+            "loadSession": false,
+            "mcpCapabilities": {"http": true, "stdio": false},
+        },
+    }))
+    .unwrap();
+    assert!(result.advertises(&["promptCapabilities", "image"]));
+    assert!(!result.advertises(&["promptCapabilities", "audio"]));
+    assert!(!result.advertises(&["promptCapabilities", "embeddedContext"]));
+    assert!(!result.advertises(&["loadSession"]));
+    assert!(result.advertises(&["mcpCapabilities", "http"]));
+    assert!(!result.advertises(&["mcpCapabilities", "stdio"]));
+    assert!(!result.advertises(&["mcpCapabilities", "sse"]));
+}
+
+#[test]
 fn mcp_servers_always_serialize_all_four_schema_fields() {
     let server = McpServer::new("tools", "/bin/echo")
         .arg("--json")

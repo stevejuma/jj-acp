@@ -86,9 +86,16 @@ pub struct InitializeResult {
 impl InitializeResult {
     /// Report whether the agent advertises a named capability path.
     ///
-    /// The path is a slice of object keys, so `&["promptCapabilities",
-    /// "image"]` probes a nested flag. A missing intermediate key is false
-    /// rather than an error.
+    /// The path is a slice of object keys, so `&["promptCapabilities", "image"]`
+    /// probes a nested flag. A missing intermediate key is false rather than an
+    /// error.
+    ///
+    /// A boolean leaf is honoured as a boolean. Presence alone is not
+    /// advertisement: adapters send explicit `false` for facilities they do not
+    /// support, and treating `"audio": false` as advertised would send content the
+    /// agent has already said it cannot take. A non-boolean, non-null leaf is an
+    /// object or a marker whose presence is the advertisement, as with
+    /// `loadSession: true` and `mcpCapabilities: { http: true }`.
     pub fn advertises(&self, path: &[&str]) -> bool {
         let mut cursor = &self.capabilities;
         for key in path {
@@ -97,7 +104,11 @@ impl InitializeResult {
                 None => return false,
             }
         }
-        !cursor.is_null()
+        match cursor {
+            Value::Null => false,
+            Value::Bool(advertised) => *advertised,
+            _ => true,
+        }
     }
 }
 

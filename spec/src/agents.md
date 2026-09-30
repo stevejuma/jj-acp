@@ -114,3 +114,27 @@ names but are not yet qualified against installed adapters. Declaring an argv is
 not evidence that it launches, which is why the real installed-runner gate is a
 separate ledger task and why an unqualified default is a convenience rather than
 a claim.
+
+## Qualified entrypoints
+
+The default catalog table above is a convenience, not a claim. This records
+which entrypoints have actually been launched and spoken to.
+
+| Identifier | Entrypoint         | Qualified against                         |
+| ---------- | ------------------ | ----------------------------------------- |
+| `cursor`   | `cursor-agent acp` | 2026.09.26-dd393fe, completed a real turn |
+| `codex`    | `codex-acp`        | not launched                              |
+| `claude`   | `claude-agent-acp` | not launched                              |
+| `opencode` | `opencode acp`     | executable present, entrypoint unverified |
+| `goose`    | `goose acp`        | executable present, entrypoint unverified |
+
+Qualifying Cursor corrected two declarations. Its `acp` subcommand is real but
+hidden from the adapter's own top-level help, so it cannot be discovered by
+reading `--help`. And it advertises MCP over http and sse only, so its transport
+is http rather than the stdio every other compiled-in runner declares; declaring
+stdio would hand it a server configuration it cannot use.
+
+`opencode` and `goose` report `available: true` on a machine that has them
+installed, and that means only that the executable exists. Probing never runs a
+candidate, because executing an untrusted binary to see whether it works is
+worse than not probing. Their ACP entrypoints remain unverified.

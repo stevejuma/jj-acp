@@ -16,9 +16,10 @@ in its enclosing Jujutsu change.
 | M3          | Done     | M2        | LAC-AGENT-001,LAC-AGENT-002,LAC-AGENT-003,LAC-AGENT-004,LAC-AGENT-005,LAC-AGENT-006,LAC-COMPAT-005                                                                                                                                                                                                      | Tiered runner catalog, reserved-key stripping and deterministic fixture peer                                                 | Implement M4 task runner                   | E-M3-001   |
 | M4          | Done     | M3        | LAC-CTRL-002,LAC-CTRL-003,LAC-CTRL-004,LAC-CTRL-005,LAC-CTRL-006,LAC-CTRL-007,LAC-CLI-001,LAC-CLI-002,LAC-CLI-003,LAC-CLI-004,LAC-CLI-005,LAC-CLI-006,LAC-RUN-001,LAC-RUN-002,LAC-RUN-003,LAC-RUN-004,LAC-ARCH-005,LAC-ARCH-006,LAC-SEC-002,LAC-SEC-003,LAC-SEC-004,LAC-SEC-005,LAC-SEC-006,LAC-SEC-007 | One-shot prepared task runner with sanitized record, published exit codes, signal cleanup and clean stdout                   | Qualify M5 process-group containment       | E-M4-001   |
 | M5          | Done     | M4        | LAC-RUN-005,LAC-RUN-007                                                                                                                                                                                                                                                                                 | Descendant containment on both the forced and the graceful path, crash reporting distinct from a timeout, and no re-dispatch | Qualify M6 against a real installed runner | E-M5-001   |
-| M6          | Planned  | M5        | LAC-COMPAT-006,LAC-RUN-006,LAC-PROTO-002                                                                                                                                                                                                                                                                | Real installed-runner qualification recorded separately from fixture evidence                                                | Implement M7 persistent transport          | -          |
-| M7          | Deferred | M4        | LAC-CTRL-001                                                                                                                                                                                                                                                                                            | Persistent control transport and standing session pool                                                                       | Future controlling-application integration | -          |
-| M8          | Planned  | M7        | LAC-ARCH-005,LAC-CTRL-001                                                                                                                                                                                                                                                                               | Controlling-application consumer acceptance in a real host                                                                   | Future release                             | -          |
+| M6          | Done     | M5        | LAC-COMPAT-006,LAC-PROTO-002                                                                                                                                                                                                                                                                            | Real installed-runner qualification against cursor-agent acp recorded separately from fixture evidence                       | Implement M7 session configuration         | E-M6-001   |
+| M7          | Planned  | M6        | LAC-RUN-006                                                                                                                                                                                                                                                                                             | Model, reasoning-effort and execution-mode application against a real adapter catalogue                                      | Implement M8 persistent transport          | -          |
+| M8          | Deferred | M4        | LAC-CTRL-001                                                                                                                                                                                                                                                                                            | Persistent control transport and standing session pool                                                                       | Future controlling-application integration | -          |
+| M9          | Planned  | M8        | LAC-ARCH-005,LAC-CTRL-001                                                                                                                                                                                                                                                                               | Controlling-application consumer acceptance in a real host                                                                   | Future release                             | -          |
 
 ## Evidence
 
@@ -529,6 +530,77 @@ coexist with an acknowledged gap.
     "versions": "Rust 1.98.1; nix 0.31; Python 3.14.7; tokio 1.53.1; macOS ARM64",
     "formats": "termination report fields group_signalled/group_killed/reaped; fixture crash markers; dispatch counts",
     "note": "The containment test for a gracefully completing turn failed before process.rs signalled the group ahead of the grace window, which is the fix this entry records. Descendant containment on non-Unix platforms is unqualified: the direct child is signalled and the reduced guarantee is reported rather than approximated."
+  },
+  {
+    "id": "E-M6-001",
+    "tasks": ["M6"],
+    "date": "2026-09-30",
+    "kind": "real-runner",
+    "files": [
+      "crates/lapis-acp-agent/src/defaults.rs",
+      "crates/lapis-acp-agent/tests/catalog.rs",
+      "crates/lapis-acp-cli/src/args.rs",
+      "crates/lapis-acp-cli/src/lib.rs",
+      "crates/lapis-acp-cli/tests/args.rs",
+      "crates/lapis-acp-protocol/src/initialize.rs",
+      "crates/lapis-acp-protocol/tests/payload.rs",
+      "crates/lapis-acp-protocol/tests/real_adapter.rs",
+      "crates/lapis-acp-protocol/tests/fixtures/cursor-acp-session.json",
+      "spec/src/agents.md",
+      "spec/src/protocol.md",
+      "spec/src/cli.md",
+      "spec/src/compatibility.md"
+    ],
+    "tests": [
+      "crates/lapis-acp-protocol/tests/real_adapter.rs#a_real_adapter_selects_protocol_version_one_and_is_accepted",
+      "crates/lapis-acp-protocol/tests/real_adapter.rs#a_real_adapter_names_its_option_id_rather_than_config_id",
+      "crates/lapis-acp-protocol/tests/real_adapter.rs#model_candidates_are_parameterized_and_matched_exactly",
+      "crates/lapis-acp-protocol/tests/real_adapter.rs#the_stable_surface_wins_when_both_surfaces_offer_the_model",
+      "crates/lapis-acp-protocol/tests/real_adapter.rs#a_model_only_on_the_unstable_surface_falls_back_to_set_model",
+      "crates/lapis-acp-protocol/tests/real_adapter.rs#this_adapter_exposes_no_reasoning_effort_option_of_its_own",
+      "crates/lapis-acp-protocol/tests/payload.rs#an_explicit_false_capability_is_not_advertised",
+      "crates/lapis-acp-agent/tests/catalog.rs#cursor_is_declared_with_the_transport_it_actually_advertises",
+      "crates/lapis-acp-cli/tests/args.rs#the_agents_command_parses_the_same_launch_options_as_run",
+      "crates/lapis-acp-cli/tests/args.rs#arguments_no_subcommand_would_read_are_refused",
+      "crates/lapis-acp-cli/tests/args.rs#agents_refuses_a_task_flag"
+    ],
+    "runs": [
+      {
+        "command": "cursor-agent acp \u2014 initialize and session/new handshake probe, no prompt",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "lapis-acp run --task <scratch>/task.json --runner cursor --idle-timeout 60 --max-turn-duration 180 (reply READY, no tools)",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "lapis-acp run --task <scratch>/task.json --runner cursor (read notes.md, report first line, no modification)",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "cargo test --workspace --locked",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "cargo clippy --workspace --all-targets --locked -- -D warnings",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "node --test scripts/governance.test.mjs scripts/rust-architecture.test.mjs scripts/upstream-lock.test.mjs",
+        "result": "pass",
+        "failures": 0
+      }
+    ],
+    "result": "pass",
+    "remaining": [],
+    "versions": "cursor-agent 2026.09.26-dd393fe; ACP protocolVersion 1 negotiated from a request for 2; Rust 1.98.1; macOS ARM64",
+    "formats": "captured initialize and session/new payloads; parameterized model values such as composer-2.5[fast=true]; configOption id rather than configId",
+    "note": "Two real turns completed with status completed and stopReason end_turn, exit 0, no stderr noise, and the read target left unmodified. Three defects were found by the real adapter and none by the fixture suite: advertises() treated an explicit false as advertised, agents ignored --catalog, and trailing arguments after help were silently dropped. Qualification covers cursor only; codex-acp, claude-agent-acp, opencode and goose remain unlaunched, and an adapter that cannot reuse an existing login cannot be driven because authentication is deliberately unimplemented."
   }
 ]
 ```
@@ -553,17 +625,29 @@ reached, because the leader is reaped by then and the group id is no longer
 safely ours. Containment is guaranteed for the fatal path and best-effort for
 the cooperative one.
 
-Model selection is best-effort and reasoning effort and permission mode are not
-applied at all. LAC-RUN-006 stays Planned until M6 exercises a real adapter's
-configuration surface rather than the fixture's approximation of it.
+Model selection is implemented but reasoning effort and execution mode are not
+applied at all, so LAC-RUN-006 stays Planned and now owns M7. The captured
+Cursor payload shows the generic shape does not transfer: effort travels inside
+parameterized model values and mode is its own option, while upstream discovered
+a separate `thought_level` option for a different adapter. Neither is a superset
+of the other.
 
-No real installed runner has been exercised. Every agent-facing result comes
-from the Python fixture peer, which is deterministic and model-free by design
-but is not a shipping adapter. The four compiled-in runner entrypoints are
-declared from published adapter package names and have not been launched. M6
-remains the gate that closes this, and the progress checker refuses to mark it
-done on fixture evidence.
+Exactly one real adapter has been qualified: `cursor-agent acp`
+2026.09.26-dd393fe, driven through two completed turns. `codex-acp`,
+`claude-agent-acp`, `opencode` and `goose` have never been launched, and for
+`opencode` and `goose` a reported availability means only that an executable
+with that name exists, not that its ACP entrypoint works.
 
-Nothing has consumed this harness. The `jj-store` agent-runner integration is M8
-and depends on M7, so no controlling application has yet driven a task document
-over a transport other than the one-shot stdio path.
+Authentication is deliberately unimplemented, so an adapter that cannot reuse an
+existing operator login cannot be driven at all. Cursor worked because
+`cursor-agent login` had already been run outside this harness. That is a
+consequence of the trust boundary rather than a defect, and it bounds which
+adapters are reachable without a controlling application supplying credentials
+its own way.
+
+Nothing has consumed this harness. The `jj-store` agent-runner integration is M9
+and depends on M8, so no controlling application has yet driven a task document
+over a transport other than the one-shot stdio path. Wiring it in is not a
+packaging change either: `jj-store` records controller dispatch as deferred in
+its own canonical specification, so that slice needs a spec change in that
+repository under its own governance.

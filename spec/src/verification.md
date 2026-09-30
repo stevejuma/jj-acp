@@ -55,7 +55,7 @@ passing concrete tests linked from the progress ledger.
 | LAC-COMPAT-003 | Implemented | `scripts/upstream-sync.mjs`; `scripts/upstream-lock.test.mjs`; [M1 evidence](milestones.md)                                                          |
 | LAC-COMPAT-004 | Implemented | `rust-toolchain.toml`; `rustfmt.toml`; `spec-validator.config.mjs`; [bootstrap evidence](milestones.md)                                              |
 | LAC-COMPAT-005 | Implemented | `tests/fixtures/fixture_agent.py`; `crates/lapis-acp-testkit/tests/fixture.rs`; [M3 evidence](milestones.md)                                         |
-| LAC-COMPAT-006 | Planned     | [Compatibility and upstream port](compatibility.md); [milestone gate](milestones.md)                                                                 |
+| LAC-COMPAT-006 | Implemented | `crates/lapis-acp-protocol/tests/real_adapter.rs`; `crates/lapis-acp-protocol/tests/fixtures/cursor-acp-session.json`; [M6 evidence](milestones.md)  |
 | LAC-COMPAT-007 | Implemented | `docs/upstream/disposition.json`; `scripts/upstream-lock.mjs`; `scripts/upstream-lock.test.mjs`; [M1 evidence](milestones.md)                        |
 | LAC-GOV-001    | Implemented | `scripts/governance.test.mjs`; `scripts/check-progress.mjs`; `spec-validator.config.mjs`; [bootstrap evidence](milestones.md)                        |
 | LAC-GOV-002    | Implemented | `scripts/governance.test.mjs`; `scripts/check-progress.mjs`; `spec-validator.config.mjs`; [bootstrap evidence](milestones.md)                        |

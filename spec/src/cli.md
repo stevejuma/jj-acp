@@ -91,3 +91,14 @@ resubmitted.
 `130` and `143` mean the run was interrupted and bounded cleanup ran. Cleanup
 being bounded is not the same as cleanup being complete, and the record says
 `cancelled` with `interrupted` rather than claiming the agent stopped.
+
+## Subcommand option handling
+
+`agents` parses the same launch options as `run`, because it inspects a catalog.
+Building it from defaults instead reported a smaller runner set than the
+operator configured and looked like a correct answer, which is the worst shape
+for this class of bug: a catalog file that silently does nothing.
+
+Arguments that no subcommand would read are refused rather than ignored.
+`--help --catalog x` is a mistake, and accepting it teaches an operator that
+unparsed flags are harmless.

@@ -94,11 +94,11 @@ fn labels_and_commands_are_validated() {
 #[test]
 fn the_compiled_in_tier_reserves_its_identifiers() {
     let catalog = Catalog::built_in().expect("built-in catalog");
-    for id in ["codex", "claude", "opencode", "goose"] {
+    for id in ["codex", "claude", "opencode", "goose", "cursor"] {
         assert!(catalog.resolve(id).is_ok(), "{id} must resolve");
         assert_eq!(catalog.tier_of(id), Some(Tier::Compiled));
     }
-    assert_eq!(catalog.list().len(), 4);
+    assert_eq!(catalog.list().len(), 5);
 
     let mut extended = Catalog::built_in().unwrap();
     assert!(matches!(
@@ -147,8 +147,8 @@ fn unknown_and_disabled_runners_fail_without_a_default_fallback() {
     ));
     // A disabled runner is still listed as an entry, so an operator can see why
     // it was refused rather than wondering whether it exists.
-    assert_eq!(catalog.entries().len(), 5);
-    assert_eq!(catalog.list().len(), 4);
+    assert_eq!(catalog.entries().len(), 6);
+    assert_eq!(catalog.list().len(), 5);
 }
 
 #[test]
@@ -261,7 +261,7 @@ fn an_unavailable_runner_reports_guidance_rather_than_installing() {
 fn probing_a_whole_catalog_reports_every_enabled_runner() {
     let catalog = Catalog::built_in().unwrap();
     let reports = availability::probe_all(catalog.list(), &FixedProbe::new(["codex-acp", "goose"]));
-    assert_eq!(reports.len(), 4);
+    assert_eq!(reports.len(), 5);
     let available: Vec<&str> = reports
         .iter()
         .filter(|report| report.available())
@@ -320,7 +320,7 @@ fn a_catalog_document_declares_runners_without_executing_anything() {
     catalog
         .extend(Tier::ConfigFile, definitions)
         .expect("extends");
-    assert_eq!(catalog.list().len(), 7);
+    assert_eq!(catalog.list().len(), 8);
 }
 
 #[test]
@@ -371,6 +371,26 @@ fn catalog_parsing_rejects_malformed_declarations_explicitly() {
             "{document} produced {error}, expected {expected}"
         );
     }
+}
+
+#[test]
+fn cursor_is_declared_with_the_transport_it_actually_advertises() {
+    let catalog = Catalog::built_in().unwrap();
+    let cursor = catalog.resolve("cursor").expect("cursor is compiled in");
+    assert_eq!(
+        cursor.commands,
+        vec![CommandSpec::with_args("cursor-agent", &["acp"])]
+    );
+    // This adapter offers MCP over http and sse and not over stdio, so declaring
+    // stdio would hand it a server configuration it cannot use.
+    assert_eq!(cursor.mcp_transport, McpTransport::Http);
+    assert_eq!(catalog.tier_of("cursor"), Some(Tier::Compiled));
+    // Reserved like the others: a catalog file cannot redefine it.
+    let mut extended = Catalog::built_in().unwrap();
+    assert!(matches!(
+        extended.extend(Tier::ConfigFile, vec![runner("cursor")]),
+        Err(Error::Reserved(id)) if id == "cursor"
+    ));
 }
 
 #[test]

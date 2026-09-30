@@ -40,7 +40,7 @@ pub fn run() -> i32 {
             println!("lapis-acp {}", env!("CARGO_PKG_VERSION"));
             ExitCode::Ok.as_i32()
         }
-        Ok(Command::Agents) => agents::execute(&LaunchOptions::default()),
+        Ok(Command::Agents(launch)) => agents::execute(&launch),
         Ok(Command::Run(command)) => run_task_command(&command.task, &command.launch),
         Err(error) => {
             // Usage goes to stderr: stdout is reserved for records.

@@ -99,8 +99,8 @@ pub struct RunCommand {
 pub enum Command {
     /// Execute one prepared task.
     Run(Box<RunCommand>),
-    /// List resolved runners with availability.
-    Agents,
+    /// List resolved runners with availability, honouring a catalog file.
+    Agents(Box<LaunchOptions>),
     /// Print usage.
     Help,
     /// Print the version.
@@ -164,9 +164,24 @@ pub fn parse<I: IntoIterator<Item = String>>(arguments: I, env: &Env) -> Result<
         return Ok(Command::Help);
     };
     match first.as_str() {
-        "--help" | "-h" | "help" => return Ok(Command::Help),
-        "--version" | "-V" => return Ok(Command::Version),
-        "agents" => return Ok(Command::Agents),
+        "--help" | "-h" | "help" => {
+            reject_trailing(&mut items)?;
+            return Ok(Command::Help);
+        }
+        "--version" | "-V" => {
+            reject_trailing(&mut items)?;
+            return Ok(Command::Version);
+        }
+        // `agents` inspects a catalog, so it parses the same launch options as
+        // `run` rather than falling back to defaults and silently reporting a
+        // smaller runner set than the operator configured.
+        "agents" => {
+            let (launch, task) = parse_launch(&mut items, env)?;
+            if task.is_some() {
+                return Err(ArgError::Usage("agents does not take --task".to_owned()));
+            }
+            return Ok(Command::Agents(Box::new(launch)));
+        }
         "run" => {}
         other => {
             return Err(ArgError::Usage(format!(
@@ -175,6 +190,18 @@ pub fn parse<I: IntoIterator<Item = String>>(arguments: I, env: &Env) -> Result<
         }
     }
 
+    let (launch, task) = parse_launch(&mut items, env)?;
+    let Some(task) = task else {
+        return Err(ArgError::Usage("run needs --task <path|->".to_owned()));
+    };
+    Ok(Command::Run(Box::new(RunCommand { task, launch })))
+}
+
+/// Launch options whose default is the environment, refined by flags.
+fn parse_launch(
+    items: &mut std::vec::IntoIter<String>,
+    env: &Env,
+) -> Result<(LaunchOptions, Option<TaskSource>), ArgError> {
     let mut launch = LaunchOptions {
         runner: env("LAPIS_ACP_RUNNER"),
         catalog: env("LAPIS_ACP_CATALOG"),
@@ -202,48 +229,56 @@ pub fn parse<I: IntoIterator<Item = String>>(arguments: I, env: &Env) -> Result<
     let mut task: Option<TaskSource> = None;
     while let Some(argument) = items.next() {
         match argument.as_str() {
-            "--task" => task = Some(TaskSource::parse(&next_value(&mut items, "--task")?)),
+            "--task" => task = Some(TaskSource::parse(&next_value(items, "--task")?)),
             flag if flag.starts_with("--task=") => {
                 task = Some(TaskSource::parse(&flag["--task=".len()..]));
             }
-            "--runner" => launch.runner = Some(next_value(&mut items, "--runner")?),
-            "--catalog" => launch.catalog = Some(next_value(&mut items, "--catalog")?),
-            "--model" => launch.model = Some(next_value(&mut items, "--model")?),
-            "--cwd" => launch.cwd = Some(PathBuf::from(next_value(&mut items, "--cwd")?)),
+            "--runner" => launch.runner = Some(next_value(items, "--runner")?),
+            "--catalog" => launch.catalog = Some(next_value(items, "--catalog")?),
+            "--model" => launch.model = Some(next_value(items, "--model")?),
+            "--cwd" => launch.cwd = Some(PathBuf::from(next_value(items, "--cwd")?)),
             "--idle-timeout" => {
                 launch.idle_timeout =
-                    duration(&next_value(&mut items, "--idle-timeout")?, "--idle-timeout")?;
+                    duration(&next_value(items, "--idle-timeout")?, "--idle-timeout")?;
             }
             "--max-turn-duration" => {
                 launch.max_turn_duration = duration(
-                    &next_value(&mut items, "--max-turn-duration")?,
+                    &next_value(items, "--max-turn-duration")?,
                     "--max-turn-duration",
                 )?;
             }
             "--cancel-grace" => {
                 launch.cancel_grace =
-                    duration(&next_value(&mut items, "--cancel-grace")?, "--cancel-grace")?;
+                    duration(&next_value(items, "--cancel-grace")?, "--cancel-grace")?;
             }
             "--reap-timeout" => {
                 launch.reap_timeout =
-                    duration(&next_value(&mut items, "--reap-timeout")?, "--reap-timeout")?;
+                    duration(&next_value(items, "--reap-timeout")?, "--reap-timeout")?;
             }
             "--system-prompt-file" => {
-                launch.system_prompt_file = Some(next_value(&mut items, "--system-prompt-file")?);
+                launch.system_prompt_file = Some(next_value(items, "--system-prompt-file")?);
             }
             "--prompt-transport" => {
-                launch.prompt_transport =
-                    transport(&next_value(&mut items, "--prompt-transport")?)?;
+                launch.prompt_transport = transport(&next_value(items, "--prompt-transport")?)?;
             }
             other => {
                 return Err(ArgError::Usage(format!("unknown option {other:?}")));
             }
         }
     }
-    let Some(task) = task else {
-        return Err(ArgError::Usage("run needs --task <path|->".to_owned()));
-    };
-    Ok(Command::Run(Box::new(RunCommand { task, launch })))
+    Ok((launch, task))
+}
+
+/// Refuse arguments that no subcommand would read.
+///
+/// Silently ignoring them is worse than refusing: `agents --catalog x` that drops
+/// the catalog reports a runner set the operator did not ask for, and looks like a
+/// correct answer.
+fn reject_trailing(items: &mut std::vec::IntoIter<String>) -> Result<(), ArgError> {
+    match items.next() {
+        Some(argument) => Err(ArgError::Usage(format!("unexpected argument {argument:?}"))),
+        None => Ok(()),
+    }
 }
 
 fn next_value(items: &mut std::vec::IntoIter<String>, flag: &str) -> Result<String, ArgError> {

@@ -141,9 +141,68 @@ fn subcommands_that_take_no_task_are_recognised() {
         parse(argv(&["--version"]), &env(&[])).expect("parse"),
         Command::Version
     );
-    assert_eq!(
-        parse(argv(&["agents"]), &env(&[])).expect("parse"),
-        Command::Agents
+    match parse(argv(&["agents"]), &env(&[])).expect("parse") {
+        Command::Agents(launch) => assert_eq!(*launch, LaunchOptions::default()),
+        other => panic!("expected the agents command, got {other:?}"),
+    }
+}
+
+#[test]
+fn the_agents_command_parses_the_same_launch_options_as_run() {
+    // A catalog the operator named must actually be inspected. Building this
+    // command from defaults reported a smaller runner set than configured and
+    // looked like a correct answer.
+    let command = parse(
+        argv(&["agents", "--catalog", "/etc/runners.json"]),
+        &env(&[("LAPIS_ACP_MODEL", "chosen")]),
+    )
+    .expect("parse");
+    match command {
+        Command::Agents(launch) => {
+            assert_eq!(launch.catalog.as_deref(), Some("/etc/runners.json"));
+            assert_eq!(launch.model.as_deref(), Some("chosen"));
+        }
+        other => panic!("expected the agents command, got {other:?}"),
+    }
+    // And from the environment alone.
+    match parse(
+        argv(&["agents"]),
+        &env(&[("LAPIS_ACP_CATALOG", "/env/runners.json")]),
+    )
+    .expect("parse")
+    {
+        Command::Agents(launch) => {
+            assert_eq!(launch.catalog.as_deref(), Some("/env/runners.json"))
+        }
+        other => panic!("expected the agents command, got {other:?}"),
+    }
+}
+
+#[test]
+fn arguments_no_subcommand_would_read_are_refused() {
+    for arguments in [
+        vec!["--help", "extra"],
+        vec!["--version", "--catalog", "x"],
+        vec!["help", "run"],
+    ] {
+        let error = parse(argv(&arguments), &env(&[])).expect_err("should refuse");
+        assert!(
+            error.to_string().contains("unexpected argument"),
+            "{arguments:?} produced {error}"
+        );
+    }
+    assert!(
+        parse(argv(&["--help"]), &env(&[])).is_ok(),
+        "help alone is still fine"
+    );
+}
+
+#[test]
+fn agents_refuses_a_task_flag() {
+    let error = parse(argv(&["agents", "--task", "-"]), &env(&[])).expect_err("should refuse");
+    assert!(
+        error.to_string().contains("does not take --task"),
+        "{error}"
     );
 }
 

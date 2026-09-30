@@ -124,3 +124,30 @@ still owes an answer for that id, and abandoning it would leave the answer
 unread. This is safe because the frame reader is resumable: bytes already
 consumed from the underlying reader survive a cancelled read and complete the
 same frame on the next one.
+
+## What a real adapter changed
+
+Qualification against `cursor-agent acp` corrected one behaviour and confirmed
+two design choices.
+
+The correction: `advertises` tested for presence, and adapters send an explicit
+`false` for facilities they do not support. `"audio": false` therefore read as
+advertised, which would have sent audio content to an agent that had already
+said it cannot take it. A boolean leaf is now honoured as a boolean; a
+non-boolean, non-null leaf is an object or marker whose presence is the
+advertisement, which is how `loadSession: true` and
+`mcpCapabilities: { http: true }` continue to read.
+
+The first confirmation is version negotiation. The client asks for protocol
+version 2 and this adapter answers 1. Supporting both is not defensive
+over-engineering; it is the only reason the exchange worked at all.
+
+The second is the dual option identifier. The ACP schema says `configId` and
+this adapter sends `id`, exactly as upstream recorded for a different adapter.
+Accepting both is what makes its 43 model candidates selectable rather than
+invisible.
+
+The captured `initialize` and `session/new` payloads are committed as a test
+fixture, so these assertions are re-checked against real adapter output on every
+run rather than against a synthetic payload that only proves the parser agrees
+with itself.
