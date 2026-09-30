@@ -1,0 +1,30 @@
+[workspace]
+members = [
+  "crates/lapis-acp-protocol",
+  "crates/lapis-acp-agent",
+  "crates/lapis-acp-runner",
+  "crates/lapis-acp-control",
+  "crates/lapis-acp-cli",
+  "crates/lapis-acp-testkit",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.98.1"
+license = "Apache-2.0"
+authors = ["LapisMD contributors"]
+
+[workspace.dependencies]
+lapis-acp-protocol = { path = "crates/lapis-acp-protocol" }
+lapis-acp-agent = { path = "crates/lapis-acp-agent" }
+lapis-acp-runner = { path = "crates/lapis-acp-runner" }
+lapis-acp-control = { path = "crates/lapis-acp-control" }
+lapis-acp-testkit = { path = "crates/lapis-acp-testkit" }
+
+[profile.dev]
+debug = 0
+
+[profile.test]
+debug = 0

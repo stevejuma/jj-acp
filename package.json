@@ -1,0 +1,33 @@
+{
+  "name": "@lapismd/lapis-acp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pluggable Agent Client Protocol harness for controlling applications",
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@10.34.5",
+  "engines": {
+    "node": ">=22"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "cargo build --workspace --locked",
+    "check": "pnpm spec:validate && pnpm check:boundaries && pnpm check:architecture && pnpm check:progress && pnpm format:check && cargo clippy --workspace --all-targets --locked -- -D warnings",
+    "check:boundaries": "node scripts/check-boundaries.mjs",
+    "check:architecture": "node scripts/rust-architecture.mjs",
+    "check:progress": "node scripts/check-progress.mjs",
+    "test": "pnpm test:governance && cargo test --workspace --locked",
+    "test:governance": "node --test scripts/governance.test.mjs scripts/rust-architecture.test.mjs",
+    "format": "cargo fmt --all && prettier --write .",
+    "format:rust": "cargo fmt --all",
+    "format:rust:check": "cargo fmt --all -- --check",
+    "format:check": "pnpm format:rust:check && prettier --check .",
+    "spec:build": "spec-validator build",
+    "spec:check": "spec-validator check",
+    "spec:first": "spec-validator first",
+    "spec:validate": "spec-validator validate"
+  },
+  "devDependencies": {
+    "@lapismd/spec-validator": "^0.1.0",
+    "prettier": "^3.6.2"
+  }
+}

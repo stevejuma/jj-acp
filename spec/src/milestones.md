@@ -1,0 +1,159 @@
+# Implementation progress
+
+This is the single status ledger. Done requires original-gate evidence; a
+fixture-peer result cannot satisfy a real installed-runner gate, and compilation
+cannot satisfy a behavioural gate. Every implementation slice adds evidence here
+in its enclosing Jujutsu change.
+
+## Tasks and gates
+
+| ID          | Status   | Depends   | Requirements                                                                                                                                                                                                                                                        | Gate                                                                                                          | Next                                       | Evidence   |
+| ----------- | -------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ---------- |
+| Bootstrap   | Done     | -         | LAC-GOV-001,LAC-GOV-002,LAC-GOV-003,LAC-GOV-005,LAC-GOV-006,LAC-ARCH-001,LAC-ARCH-002,LAC-COMPAT-004                                                                                                                                                                | Canonical specification, ledger, crate skeleton, boundary gate and pinned toolchain green on an empty product | Maintain governance each slice             | E-BOOT-001 |
+| Bootstrap.1 | Done     | -         | LAC-GOV-004,LAC-GOV-007,LAC-ARCH-003,LAC-ARCH-004                                                                                                                                                                                                                   | Boundary, counted-line and progress-checker negative tests pass                                               | Maintain gates each slice                  | E-BOOT-002 |
+| M1          | Planned  | Bootstrap | LAC-COMPAT-001,LAC-COMPAT-002,LAC-COMPAT-003,LAC-COMPAT-007,LAC-SEC-001                                                                                                                                                                                             | Pinned upstream lock, attribution and digest-verified drift detection                                         | Implement M2 protocol crate                | -          |
+| M2          | Planned  | Bootstrap | LAC-PROTO-001,LAC-PROTO-002,LAC-PROTO-003,LAC-PROTO-004,LAC-PROTO-005,LAC-PROTO-006                                                                                                                                                                                 | Bounded ACP framing, version negotiation and session methods under unit test                                  | Implement M3 runner catalog                | -          |
+| M3          | Planned  | M2        | LAC-AGENT-001,LAC-AGENT-002,LAC-AGENT-003,LAC-AGENT-004,LAC-AGENT-005,LAC-AGENT-006,LAC-COMPAT-005                                                                                                                                                                  | Tiered runner catalog, reserved-key stripping and deterministic fixture peer                                  | Implement M4 task runner                   | -          |
+| M4          | Planned  | M3        | LAC-CTRL-002,LAC-CTRL-003,LAC-CTRL-004,LAC-CTRL-005,LAC-CTRL-006,LAC-CTRL-007,LAC-CLI-001,LAC-CLI-002,LAC-CLI-004,LAC-CLI-005,LAC-CLI-006,LAC-RUN-001,LAC-RUN-003,LAC-RUN-004,LAC-ARCH-005,LAC-ARCH-006,LAC-SEC-002,LAC-SEC-003,LAC-SEC-004,LAC-SEC-005,LAC-SEC-007 | One-shot prepared task runner with sanitized terminal record, published exit codes and clean stdout           | Qualify M4.1 lifecycle bounds              | -          |
+| M4.1        | Planned  | M4        | LAC-RUN-002,LAC-RUN-005,LAC-RUN-007,LAC-CLI-003,LAC-SEC-006                                                                                                                                                                                                         | Bounded cancellation, process-group cleanup, crash reporting and signal handling                              | Qualify M4.2 real runner                   | -          |
+| M4.2        | Planned  | M4.1      | LAC-COMPAT-006,LAC-RUN-006,LAC-PROTO-002                                                                                                                                                                                                                            | Real installed-runner qualification recorded separately from fixture evidence                                 | Implement M5 persistent transport          | -          |
+| M5          | Deferred | M4        | LAC-CTRL-001                                                                                                                                                                                                                                                        | Persistent control transport and standing session pool                                                        | Future controlling-application integration | -          |
+| M6          | Planned  | M5        | LAC-ARCH-005,LAC-CTRL-001                                                                                                                                                                                                                                           | Controlling-application consumer acceptance in a real host                                                    | Future release                             | -          |
+
+## Evidence
+
+Each entry records the commands actually run, their real failure counts, the
+files touched, the named tests that prove the gate, the versions and formats in
+play, and the gaps that remain. An entry with `result: "pass"` and a non-empty
+`remaining` list is rejected by the progress checker, so a passing claim cannot
+coexist with an acknowledged gap.
+
+```json
+[
+  {
+    "id": "E-BOOT-001",
+    "tasks": ["Bootstrap"],
+    "date": "2026-09-30",
+    "kind": "governance",
+    "files": [
+      "spec-validator.config.mjs",
+      "spec/book.toml",
+      "spec/src/SUMMARY.md",
+      "spec/src/index.md",
+      "spec/src/architecture.md",
+      "spec/src/protocol.md",
+      "spec/src/agents.md",
+      "spec/src/runner.md",
+      "spec/src/control.md",
+      "spec/src/cli.md",
+      "spec/src/security.md",
+      "spec/src/compatibility.md",
+      "spec/src/spec-governance.md",
+      "spec/src/milestones.md",
+      "spec/src/verification.md",
+      "Cargo.toml",
+      "Cargo.lock",
+      "rust-toolchain.toml",
+      "rustfmt.toml",
+      "package.json",
+      "AGENTS.md",
+      "README.md",
+      "crates/lapis-acp-protocol/src/lib.rs",
+      "crates/lapis-acp-agent/src/lib.rs",
+      "crates/lapis-acp-runner/src/lib.rs",
+      "crates/lapis-acp-control/src/lib.rs",
+      "crates/lapis-acp-cli/src/lib.rs",
+      "crates/lapis-acp-testkit/src/lib.rs"
+    ],
+    "tests": ["scripts/governance.test.mjs#accepts_verified_task"],
+    "runs": [
+      {
+        "command": "cargo fmt --all -- --check",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "cargo clippy --workspace --all-targets --locked -- -D warnings",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "node scripts/check-boundaries.mjs",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "spec-validator validate",
+        "result": "pass",
+        "failures": 0
+      }
+    ],
+    "result": "pass",
+    "remaining": [],
+    "versions": "Rust 1.98.1; cargo 1.98.1; Node v24.10.0; pnpm 10.34.5; @lapismd/spec-validator 0.1.0",
+    "formats": "requirement table; verification table; ledger task table and JSON evidence"
+  },
+  {
+    "id": "E-BOOT-002",
+    "tasks": ["Bootstrap.1"],
+    "date": "2026-09-30",
+    "kind": "governance",
+    "files": [
+      "scripts/check-boundaries.mjs",
+      "scripts/check-progress.mjs",
+      "scripts/governance.test.mjs",
+      "scripts/rust-architecture.mjs",
+      "scripts/rust-architecture.test.mjs",
+      "scripts/rust-architecture-baseline.json"
+    ],
+    "tests": [
+      "scripts/governance.test.mjs#rejects_excluded_nostr_transport_and_database_dependencies",
+      "scripts/governance.test.mjs#testkit_is_dev_only",
+      "scripts/governance.test.mjs#rejects_crate_outside_the_boundary_matrix",
+      "scripts/governance.test.mjs#rejects_fixture_peer_qualification",
+      "scripts/governance.test.mjs#rejects_unchanged_ledger_for_code",
+      "scripts/rust-architecture.test.mjs#rejects_production_source_over_budget",
+      "scripts/rust-architecture.test.mjs#rejects_inline_tests_in_a_production_module",
+      "scripts/rust-architecture.test.mjs#rejects_production_import_of_the_testkit",
+      "scripts/rust-architecture.test.mjs#rejects_stale_baseline_entry"
+    ],
+    "runs": [
+      {
+        "command": "node --test scripts/governance.test.mjs scripts/rust-architecture.test.mjs",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "node scripts/rust-architecture.mjs",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "node scripts/check-progress.mjs",
+        "result": "pass",
+        "failures": 0
+      }
+    ],
+    "result": "pass",
+    "remaining": [],
+    "versions": "Node v24.10.0; cargo 1.98.1 for cargo metadata --no-deps --locked",
+    "formats": "counted-line budget; crate dependency matrix; ledger JSON evidence"
+  }
+]
+```
+
+## Recorded gaps
+
+No product behaviour exists yet. The `lapis-acp` binary returns exit code `2`
+for every invocation, and every crate is a documented skeleton. The ACP protocol
+surface, runner catalog, turn lifecycle, task document and control transport are
+specified but unimplemented, and their verification rows are Planned rather than
+Implemented.
+
+`docs/upstream-lock.md` and `docs/licenses/NOTICE.md` do not exist yet, so the
+port is not yet auditable against a pinned upstream commit. That is M1 and it is
+the next slice.
+
+No real installed runner has been exercised. Every gate so far is a governance
+or static-analysis gate; nothing here is evidence that a shipping ACP adapter
+interoperates with this port.

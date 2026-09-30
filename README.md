@@ -1,0 +1,78 @@
+# lapis-acp
+
+A pluggable [Agent Client Protocol](https://agentclientprotocol.com/) harness
+that runs coding agents on behalf of a controlling application.
+
+`lapis-acp` spawns an ACP-speaking agent subprocess, drives it over stdio
+JSON-RPC, and reports one sanitized terminal record per invocation. It has no
+message bus, no relay, no listener, no authentication and no durable state. The
+controlling application owns identity, authorization, storage and prompt policy;
+`lapis-acp` owns the protocol, the runner catalog and the turn lifecycle.
+
+```
+controlling app ──task document──▶ lapis-acp ──stdio JSON-RPC──▶ ACP agent
+       ▲                              │                              │
+       └──────terminal record─────────┘                              │
+                                             tools, files, side effects
+```
+
+## Provenance
+
+This repository is a derived work of the `buzz-acp` crate in
+[block/buzz](https://github.com/block/buzz), which is Apache-2.0. The ACP
+client, turn pool, session scoping, prompt framing and one-shot task runner are
+ported. The Nostr relay intake, author gating, owner resolution, key custody,
+commit and tag signing, relay publication and onboarding are not ported in any
+form. The pinned upstream commit and the per-region disposition of the port are
+recorded in `docs/upstream-lock.md`, and attribution lives in
+`docs/licenses/NOTICE.md`.
+
+## Status
+
+The governance regime, crate layering and validation gates are in place. No
+product behaviour is implemented yet: the binary currently exits `2` for every
+invocation. The roadmap and real evidence for each slice live in the
+[progress ledger](spec/src/milestones.md).
+
+| Slice     | Scope                                                                 | Status   |
+| --------- | --------------------------------------------------------------------- | -------- |
+| Bootstrap | Specification, ledger, crate skeleton, boundary and line-budget gates | Done     |
+| M1        | Pinned upstream lock, attribution and drift detection                 | Planned  |
+| M2        | ACP framing, negotiation and session methods                          | Planned  |
+| M3        | Runner catalog, launch environment and deterministic fixture peer     | Planned  |
+| M4        | One-shot `run --task` with sanitized terminal record and exit codes   | Planned  |
+| M4.1      | Deadline, cancellation, process-group cleanup and crash reporting     | Planned  |
+| M4.2      | Real installed-runner qualification                                   | Planned  |
+| M5        | Persistent control transport and standing session pool                | Deferred |
+| M6        | Controlling-application consumer acceptance                           | Planned  |
+
+## Requirements
+
+Rust 1.98.1 (pinned by `rust-toolchain.toml`), Node 22 or newer and pnpm.
+Integration tests need Python 3 for the deterministic fixture agent, and never
+need a model provider, a network endpoint or a credential.
+
+## Development
+
+```sh
+pnpm install
+pnpm check          # spec validation, boundaries, line budget, ledger, fmt, clippy
+pnpm test           # governance tests and cargo workspace tests
+pnpm build          # cargo build --workspace --locked
+pnpm spec:check     # canonical specification lanes
+```
+
+`pnpm format` runs `cargo fmt --all` and Prettier. Cargo work always passes
+`--locked`; a dependency change is an explicit reviewed edit to `Cargo.lock`.
+
+## Specification
+
+Canonical behaviour lives in [`spec/src`](spec/src). Read
+[architecture](spec/src/architecture.md),
+[governance](spec/src/spec-governance.md) and
+[verification](spec/src/verification.md) before implementing a slice. Build the
+book with `pnpm spec:build`; generated output is ignored and non-normative.
+
+## License
+
+Apache-2.0. See [LICENSE.md](LICENSE.md).

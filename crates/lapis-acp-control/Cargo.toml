@@ -1,0 +1,12 @@
+[package]
+name = "lapis-acp-control"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+lapis-acp-protocol.workspace = true
+lapis-acp-agent.workspace = true
+lapis-acp-runner.workspace = true
