@@ -134,3 +134,158 @@ fn this_adapter_exposes_no_reasoning_effort_option_of_its_own() {
         Some("mode")
     );
 }
+
+// The second captured adapter: @agentclientprotocol/codex-acp 1.13.1, launched the
+// way ai-host launches it through acpx. It differs from Cursor in almost every
+// respect that matters, which is why both are committed rather than one.
+fn codex() -> Value {
+    serde_json::from_str(include_str!("fixtures/codex-acp-session.json"))
+        .expect("captured codex fixture parses")
+}
+
+#[test]
+fn a_second_adapter_also_selects_version_one_but_does_report_agent_info() {
+    let result = initialize::parse_result(&codex()["initialize"]).expect("parses");
+    assert_eq!(result.protocol_version, 1);
+    // Cursor sends no agentInfo at all; this one sends name, title and version.
+    // Both shapes have to parse, so the field stays optional rather than assumed.
+    assert_eq!(
+        result.agent_name.as_deref(),
+        Some("@agentclientprotocol/codex-acp")
+    );
+    assert_eq!(result.agent_version.as_deref(), Some("1.13.1"));
+    assert!(result.advertises(&["loadSession"]));
+    assert!(result.advertises(&["promptCapabilities", "image"]));
+    assert!(result.advertises(&["promptCapabilities", "embeddedContext"]));
+    assert!(result.advertises(&["mcpCapabilities", "http"]));
+}
+
+#[test]
+fn explicit_false_capabilities_are_not_advertised_by_a_real_adapter() {
+    // This is the regression the Cursor capture exposed, asserted against an
+    // adapter that really sends false rather than a synthetic payload. Sending
+    // either of these would have been a request the agent already refused.
+    let result = initialize::parse_result(&codex()["initialize"]).expect("parses");
+    assert!(!result.advertises(&["mcpCapabilities", "acp"]));
+    assert!(!result.advertises(&["mcpCapabilities", "sse"]));
+    assert!(!result.advertises(&["promptCapabilities", "audio"]));
+    // An object-valued capability is advertised by presence.
+    assert!(result.advertises(&["sessionCapabilities", "resume"]));
+    assert!(result.advertises(&["sessionCapabilities", "fork"]));
+    assert!(!result.advertises(&["sessionCapabilities", "teleport"]));
+}
+
+#[test]
+fn adapters_disagree_about_whether_model_values_are_parameterized() {
+    let codex_session = &codex()["sessionNew"];
+    let cursor_session = &captured()["sessionNew"];
+    // Codex offers bare model names.
+    assert_eq!(
+        config_option::resolve_model_switch(codex_session, "gpt-6-astra"),
+        Some(ModelSwitch::ConfigOption {
+            config_id: "model".to_owned(),
+            option_value: "gpt-6-astra".to_owned(),
+        })
+    );
+    // Cursor embeds its overrides in the value, and the bare name is not a
+    // candidate there. Neither shape is a superset of the other, so matching has
+    // to be exact against what the session actually advertised.
+    assert!(!config_option::offers_model(
+        codex_session,
+        "composer-2.5[fast=true]"
+    ));
+    assert!(!config_option::offers_model(cursor_session, "gpt-6-astra"));
+    assert!(config_option::offers_model(
+        cursor_session,
+        "composer-2.5[fast=true]"
+    ));
+}
+
+#[test]
+fn a_real_adapter_does_expose_a_reasoning_effort_option() {
+    // Cursor carries effort inside the model value and exposes no thought_level
+    // option. Codex exposes one directly, with an adapter-defined identifier that
+    // must be discovered rather than hardcoded.
+    let session = &codex()["sessionNew"];
+    assert_eq!(
+        config_option::thought_level_config_id(session).as_deref(),
+        Some("reasoning_effort")
+    );
+    assert_eq!(
+        config_option::options_in_category(session, "thought_level").len(),
+        1
+    );
+    // And the categories neither adapter shares with the other still resolve.
+    assert_eq!(
+        config_option::options_in_category(session, "model").len(),
+        1
+    );
+    assert_eq!(
+        config_option::options_in_category(session, "model_config").len(),
+        1
+    );
+    assert!(config_option::options_in_category(session, "nonsense").is_empty());
+}
+
+#[test]
+fn adapters_emit_notifications_that_are_not_part_of_the_exchange() {
+    // Both captures recorded a notification arriving before the reply we asked
+    // for. A client that only read responses would deadlock or mis-frame here, so
+    // unknown notifications must be routed to the handler and skipped.
+    let fixture = codex();
+    let codex_notices = fixture["notificationsDuringHandshake"]
+        .as_array()
+        .expect("notifications recorded");
+    assert!(
+        codex_notices
+            .iter()
+            .any(|value| value.as_str() == Some("_auth/status_update")),
+        "{codex_notices:?}"
+    );
+    // It is not an ACP method this crate models, so it must not be mistaken for
+    // a session update or an agent request.
+    let classified = lapis_acp_protocol::envelope::classify(&serde_json::json!({
+        "jsonrpc": "2.0", "method": "_auth/status_update", "params": {}
+    }));
+    assert!(matches!(
+        classified,
+        lapis_acp_protocol::Inbound::Notification { ref method, .. } if method == "_auth/status_update"
+    ));
+}
+
+#[test]
+fn both_adapters_expose_modes_this_crate_does_not_yet_model() {
+    let cursor = captured();
+    let codex = codex();
+
+    fn mode_ids(fixture: &Value) -> Vec<String> {
+        fixture["sessionNew"]["modes"]["availableModes"]
+            .as_array()
+            .expect("availableModes array")
+            .iter()
+            .map(|mode| {
+                mode.get("id")
+                    .and_then(Value::as_str)
+                    .expect("every mode entry carries an id")
+                    .to_owned()
+            })
+            .collect()
+    }
+
+    let cursor_modes = mode_ids(&cursor);
+    let codex_modes = mode_ids(&codex);
+    assert!(!cursor_modes.is_empty() && !codex_modes.is_empty());
+
+    // Cursor offers agent/plan/ask; Codex offers read-only among others. Selecting
+    // one is LAC-RUN-006 and stays unimplemented, so this only records that the
+    // surface exists and differs per adapter.
+    assert!(
+        cursor_modes.iter().any(|mode| mode == "plan"),
+        "{cursor_modes:?}"
+    );
+    assert!(
+        codex_modes.iter().any(|mode| mode == "read-only"),
+        "{codex_modes:?}"
+    );
+    assert_ne!(cursor_modes, codex_modes);
+}

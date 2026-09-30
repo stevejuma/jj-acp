@@ -151,3 +151,36 @@ The captured `initialize` and `session/new` payloads are committed as a test
 fixture, so these assertions are re-checked against real adapter output on every
 run rather than against a synthetic payload that only proves the parser agrees
 with itself.
+
+## Two adapters, two shapes
+
+Both captured payloads are committed as fixtures, and they disagree in ways that
+matter. Neither is a superset of the other, so parsing has to be driven by what
+a session actually advertises rather than by an expected shape.
+
+| Surface                     | `cursor-agent acp`         | `codex-acp` 1.13.1                                                      |
+| --------------------------- | -------------------------- | ----------------------------------------------------------------------- |
+| Negotiated protocol version | 1                          | 1                                                                       |
+| `agentInfo`                 | absent                     | name, title and version                                                 |
+| Option identifier key       | `id`                       | `id`                                                                    |
+| Model values                | parameterized, bracketed   | bare names                                                              |
+| `thought_level` option      | absent                     | present, as `reasoning_effort`                                          |
+| Session modes               | `agent`, `plan`, `ask`     | `read-only`, `agent` and others                                         |
+| MCP transports              | http and sse               | http only                                                               |
+| Extra capabilities          | `sessionCapabilities.list` | `auth.logout`, `providers`, `_meta.authStatus`, resume, fork, subagents |
+
+Three consequences are load-bearing.
+
+Capability flags must be read as booleans, not as presence, because both
+adapters send explicit `false` for facilities they do not support and one of
+them sends it for an MCP transport. Option identifiers must be discovered per
+session, because `reasoning_effort` is a name no parser would guess and Cursor
+has no equivalent option at all. Model values must be matched exactly against
+the advertised candidates, because a bare name is valid for one adapter and
+meaningless for the other.
+
+Both adapters also emitted a notification that is not part of the exchange being
+waited for — Codex sends `_auth/status_update` during the handshake. A client
+that read only responses would stall here, which is why unmodelled notifications
+are routed to the handler and skipped rather than treated as a protocol
+violation.

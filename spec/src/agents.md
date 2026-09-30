@@ -122,17 +122,21 @@ which entrypoints have actually been launched and spoken to.
 
 | Identifier | Entrypoint         | Qualified against                         |
 | ---------- | ------------------ | ----------------------------------------- |
-| `cursor`   | `cursor-agent acp` | 2026.09.26-dd393fe, completed a real turn |
-| `codex`    | `codex-acp`        | not launched                              |
+| `cursor`   | `cursor-agent acp` | 2026.09.26-dd393fe, two completed turns   |
+| `codex`    | `codex-acp`        | 1.13.1, one completed read-only turn      |
 | `claude`   | `claude-agent-acp` | not launched                              |
 | `opencode` | `opencode acp`     | executable present, entrypoint unverified |
 | `goose`    | `goose acp`        | executable present, entrypoint unverified |
 
-Qualifying Cursor corrected two declarations. Its `acp` subcommand is real but
-hidden from the adapter's own top-level help, so it cannot be discovered by
-reading `--help`. And it advertises MCP over http and sse only, so its transport
-is http rather than the stdio every other compiled-in runner declares; declaring
-stdio would hand it a server configuration it cannot use.
+The `codex` entry needs a qualification of its own. The `codex` CLI is not an
+ACP agent and has no `acp` subcommand; the ACP surface is a separate adapter
+package, `@agentclientprotocol/codex-acp`, which is how `ai-host` reaches it
+through `acpx`. That launcher uses `npx -y`, which fetches the package into the
+npm cache on demand and never puts it on `PATH`. So `codex-acp` can be present
+and working on a machine where `command -v codex-acp` finds nothing, and this
+harness's compiled-in declaration resolves only when the binary really is on
+`PATH`. A catalog entry naming `npx` with the adapter in its arguments is the
+portable form.
 
 `opencode` and `goose` report `available: true` on a machine that has them
 installed, and that means only that the executable exists. Probing never runs a

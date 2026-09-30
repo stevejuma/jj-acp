@@ -7,19 +7,19 @@ in its enclosing Jujutsu change.
 
 ## Tasks and gates
 
-| ID          | Status   | Depends   | Requirements                                                                                                                                                                                                                                                                                            | Gate                                                                                                                         | Next                                       | Evidence   |
-| ----------- | -------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ---------- |
-| Bootstrap   | Done     | -         | LAC-GOV-001,LAC-GOV-002,LAC-GOV-003,LAC-GOV-005,LAC-GOV-006,LAC-ARCH-001,LAC-ARCH-002,LAC-COMPAT-004                                                                                                                                                                                                    | Canonical specification, ledger, crate skeleton, boundary gate and pinned toolchain green on an empty product                | Maintain governance each slice             | E-BOOT-001 |
-| Bootstrap.1 | Done     | -         | LAC-GOV-004,LAC-GOV-007,LAC-ARCH-003,LAC-ARCH-004                                                                                                                                                                                                                                                       | Boundary, counted-line and progress-checker negative tests pass                                                              | Maintain gates each slice                  | E-BOOT-002 |
-| M1          | Done     | Bootstrap | LAC-COMPAT-001,LAC-COMPAT-002,LAC-COMPAT-003,LAC-COMPAT-007,LAC-SEC-001                                                                                                                                                                                                                                 | Pinned upstream lock, attribution and digest-verified drift detection                                                        | Implement M2 protocol crate                | E-M1-001   |
-| M2          | Done     | Bootstrap | LAC-PROTO-001,LAC-PROTO-002,LAC-PROTO-003,LAC-PROTO-004,LAC-PROTO-005,LAC-PROTO-006                                                                                                                                                                                                                     | Bounded ACP framing, version negotiation and session methods under unit test                                                 | Implement M3 runner catalog                | E-M2-001   |
-| M3          | Done     | M2        | LAC-AGENT-001,LAC-AGENT-002,LAC-AGENT-003,LAC-AGENT-004,LAC-AGENT-005,LAC-AGENT-006,LAC-COMPAT-005                                                                                                                                                                                                      | Tiered runner catalog, reserved-key stripping and deterministic fixture peer                                                 | Implement M4 task runner                   | E-M3-001   |
-| M4          | Done     | M3        | LAC-CTRL-002,LAC-CTRL-003,LAC-CTRL-004,LAC-CTRL-005,LAC-CTRL-006,LAC-CTRL-007,LAC-CLI-001,LAC-CLI-002,LAC-CLI-003,LAC-CLI-004,LAC-CLI-005,LAC-CLI-006,LAC-RUN-001,LAC-RUN-002,LAC-RUN-003,LAC-RUN-004,LAC-ARCH-005,LAC-ARCH-006,LAC-SEC-002,LAC-SEC-003,LAC-SEC-004,LAC-SEC-005,LAC-SEC-006,LAC-SEC-007 | One-shot prepared task runner with sanitized record, published exit codes, signal cleanup and clean stdout                   | Qualify M5 process-group containment       | E-M4-001   |
-| M5          | Done     | M4        | LAC-RUN-005,LAC-RUN-007                                                                                                                                                                                                                                                                                 | Descendant containment on both the forced and the graceful path, crash reporting distinct from a timeout, and no re-dispatch | Qualify M6 against a real installed runner | E-M5-001   |
-| M6          | Done     | M5        | LAC-COMPAT-006,LAC-PROTO-002                                                                                                                                                                                                                                                                            | Real installed-runner qualification against cursor-agent acp recorded separately from fixture evidence                       | Implement M7 session configuration         | E-M6-001   |
-| M7          | Planned  | M6        | LAC-RUN-006                                                                                                                                                                                                                                                                                             | Model, reasoning-effort and execution-mode application against a real adapter catalogue                                      | Implement M8 persistent transport          | -          |
-| M8          | Deferred | M4        | LAC-CTRL-001                                                                                                                                                                                                                                                                                            | Persistent control transport and standing session pool                                                                       | Future controlling-application integration | -          |
-| M9          | Planned  | M8        | LAC-ARCH-005,LAC-CTRL-001                                                                                                                                                                                                                                                                               | Controlling-application consumer acceptance in a real host                                                                   | Future release                             | -          |
+| ID          | Status   | Depends   | Requirements                                                                                                                                                                                                                                                                                            | Gate                                                                                                                         | Next                                       | Evidence          |
+| ----------- | -------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ----------------- |
+| Bootstrap   | Done     | -         | LAC-GOV-001,LAC-GOV-002,LAC-GOV-003,LAC-GOV-005,LAC-GOV-006,LAC-ARCH-001,LAC-ARCH-002,LAC-COMPAT-004                                                                                                                                                                                                    | Canonical specification, ledger, crate skeleton, boundary gate and pinned toolchain green on an empty product                | Maintain governance each slice             | E-BOOT-001        |
+| Bootstrap.1 | Done     | -         | LAC-GOV-004,LAC-GOV-007,LAC-ARCH-003,LAC-ARCH-004                                                                                                                                                                                                                                                       | Boundary, counted-line and progress-checker negative tests pass                                                              | Maintain gates each slice                  | E-BOOT-002        |
+| M1          | Done     | Bootstrap | LAC-COMPAT-001,LAC-COMPAT-002,LAC-COMPAT-003,LAC-COMPAT-007,LAC-SEC-001                                                                                                                                                                                                                                 | Pinned upstream lock, attribution and digest-verified drift detection                                                        | Implement M2 protocol crate                | E-M1-001          |
+| M2          | Done     | Bootstrap | LAC-PROTO-001,LAC-PROTO-002,LAC-PROTO-003,LAC-PROTO-004,LAC-PROTO-005,LAC-PROTO-006                                                                                                                                                                                                                     | Bounded ACP framing, version negotiation and session methods under unit test                                                 | Implement M3 runner catalog                | E-M2-001          |
+| M3          | Done     | M2        | LAC-AGENT-001,LAC-AGENT-002,LAC-AGENT-003,LAC-AGENT-004,LAC-AGENT-005,LAC-AGENT-006,LAC-COMPAT-005                                                                                                                                                                                                      | Tiered runner catalog, reserved-key stripping and deterministic fixture peer                                                 | Implement M4 task runner                   | E-M3-001          |
+| M4          | Done     | M3        | LAC-CTRL-002,LAC-CTRL-003,LAC-CTRL-004,LAC-CTRL-005,LAC-CTRL-006,LAC-CTRL-007,LAC-CLI-001,LAC-CLI-002,LAC-CLI-003,LAC-CLI-004,LAC-CLI-005,LAC-CLI-006,LAC-RUN-001,LAC-RUN-002,LAC-RUN-003,LAC-RUN-004,LAC-ARCH-005,LAC-ARCH-006,LAC-SEC-002,LAC-SEC-003,LAC-SEC-004,LAC-SEC-005,LAC-SEC-006,LAC-SEC-007 | One-shot prepared task runner with sanitized record, published exit codes, signal cleanup and clean stdout                   | Qualify M5 process-group containment       | E-M4-001          |
+| M5          | Done     | M4        | LAC-RUN-005,LAC-RUN-007                                                                                                                                                                                                                                                                                 | Descendant containment on both the forced and the graceful path, crash reporting distinct from a timeout, and no re-dispatch | Qualify M6 against a real installed runner | E-M5-001          |
+| M6          | Done     | M5        | LAC-COMPAT-006,LAC-PROTO-002                                                                                                                                                                                                                                                                            | Real installed-runner qualification against cursor-agent acp recorded separately from fixture evidence                       | Implement M7 session configuration         | E-M6-001,E-M6-002 |
+| M7          | Planned  | M6        | LAC-RUN-006                                                                                                                                                                                                                                                                                             | Model, reasoning-effort and execution-mode application against a real adapter catalogue                                      | Implement M8 persistent transport          | -                 |
+| M8          | Deferred | M4        | LAC-CTRL-001                                                                                                                                                                                                                                                                                            | Persistent control transport and standing session pool                                                                       | Future controlling-application integration | -                 |
+| M9          | Planned  | M8        | LAC-ARCH-005,LAC-CTRL-001                                                                                                                                                                                                                                                                               | Controlling-application consumer acceptance in a real host                                                                   | Future release                             | -                 |
 
 ## Evidence
 
@@ -601,6 +601,54 @@ coexist with an acknowledged gap.
     "versions": "cursor-agent 2026.09.26-dd393fe; ACP protocolVersion 1 negotiated from a request for 2; Rust 1.98.1; macOS ARM64",
     "formats": "captured initialize and session/new payloads; parameterized model values such as composer-2.5[fast=true]; configOption id rather than configId",
     "note": "Two real turns completed with status completed and stopReason end_turn, exit 0, no stderr noise, and the read target left unmodified. Three defects were found by the real adapter and none by the fixture suite: advertises() treated an explicit false as advertised, agents ignored --catalog, and trailing arguments after help were silently dropped. Qualification covers cursor only; codex-acp, claude-agent-acp, opencode and goose remain unlaunched, and an adapter that cannot reuse an existing login cannot be driven because authentication is deliberately unimplemented."
+  },
+  {
+    "id": "E-M6-002",
+    "tasks": ["M6"],
+    "date": "2026-09-30",
+    "kind": "real-runner",
+    "files": [
+      "crates/lapis-acp-protocol/tests/real_adapter.rs",
+      "crates/lapis-acp-protocol/tests/fixtures/codex-acp-session.json",
+      "spec/src/agents.md",
+      "spec/src/protocol.md",
+      "spec/src/compatibility.md"
+    ],
+    "tests": [
+      "crates/lapis-acp-protocol/tests/real_adapter.rs#a_second_adapter_also_selects_version_one_but_does_report_agent_info",
+      "crates/lapis-acp-protocol/tests/real_adapter.rs#explicit_false_capabilities_are_not_advertised_by_a_real_adapter",
+      "crates/lapis-acp-protocol/tests/real_adapter.rs#adapters_disagree_about_whether_model_values_are_parameterized",
+      "crates/lapis-acp-protocol/tests/real_adapter.rs#a_real_adapter_does_expose_a_reasoning_effort_option",
+      "crates/lapis-acp-protocol/tests/real_adapter.rs#adapters_emit_notifications_that_are_not_part_of_the_exchange",
+      "crates/lapis-acp-protocol/tests/real_adapter.rs#both_adapters_expose_modes_this_crate_does_not_yet_model"
+    ],
+    "runs": [
+      {
+        "command": "codex-acp 1.13.1 handshake probe (initialize + session/new), no prompt",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "PATH=<npx cache bin>:$PATH lapis-acp run --task <scratch>/task.json --runner codex --idle-timeout 150 --max-turn-duration 240 (read notes.md, report first line, no modification)",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "cargo test -p lapis-acp-protocol --test real_adapter --locked",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "cargo test --workspace --locked",
+        "result": "pass",
+        "failures": 0
+      }
+    ],
+    "result": "pass",
+    "remaining": [],
+    "versions": "@agentclientprotocol/codex-acp 1.13.1 resolved from the local npx cache; codex-cli 0.156.1 present but not an ACP agent; ACP protocolVersion 1 negotiated from a request for 2; ChatGPT login reused from ~/.codex/auth.json",
+    "formats": "captured initialize and session/new payloads; bare model values such as gpt-6-astra; configOption categories mode, collaboration_mode, model, thought_level and model_config; _auth/status_update notification",
+    "note": "One real read-only turn completed with status completed, stopReason end_turn and exit 0; notes.md was unmodified and no file was created. The codex CLI itself has no acp subcommand, so the ACP path is the adapter that acpx launches through npx on demand and that never appears on PATH. This adapter does expose a thought_level option with the adapter-defined identifier reasoning_effort, which Cursor does not, so LAC-RUN-006 stays Planned and the discovery helper is proven against real data rather than implemented end to end. No permission request was raised, so the default deny policy was not exercised against this adapter."
   }
 ]
 ```
@@ -632,11 +680,21 @@ parameterized model values and mode is its own option, while upstream discovered
 a separate `thought_level` option for a different adapter. Neither is a superset
 of the other.
 
-Exactly one real adapter has been qualified: `cursor-agent acp`
-2026.09.26-dd393fe, driven through two completed turns. `codex-acp`,
-`claude-agent-acp`, `opencode` and `goose` have never been launched, and for
-`opencode` and `goose` a reported availability means only that an executable
+Two real adapters have been qualified: `cursor-agent acp` 2026.09.26-dd393fe and
+`@agentclientprotocol/codex-acp` 1.13.1, each driven through completed read-only
+turns. `claude-agent-acp`, `opencode` and `goose` have never been launched, and
+for `opencode` and `goose` a reported availability means only that an executable
 with that name exists, not that its ACP entrypoint works.
+
+Neither qualified run raised a permission request, so the default deny policy
+has not been exercised against a real adapter. An adapter that does ask will be
+refused and the turn will end cancelled, which is the intended safe default but
+is not yet proven outside the fixture peer.
+
+Codex was reached through an adapter already in the local npx cache rather than
+a fresh download. The `codex` CLI itself is not an ACP agent and has no `acp`
+subcommand, so a machine without a cached or globally installed `codex-acp`
+needs one before the compiled-in `codex` runner resolves.
 
 Authentication is deliberately unimplemented, so an adapter that cannot reuse an
 existing operator login cannot be driven at all. Cursor worked because

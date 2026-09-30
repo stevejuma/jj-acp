@@ -197,12 +197,12 @@ which is the part of the requirement a record assertion alone cannot prove.
 
 ## Real installed-runner qualification
 
-One adapter has been qualified: `cursor-agent acp` version 2026.09.26-dd393fe,
-authenticated through the operator's existing `cursor-agent login` session. The
-harness performed no authentication and never called the `authenticate` method
-the adapter offers, which is the boundary LAC-SEC-001 states and the reason an
-adapter that requires interactive login is usable here only when the operator
-has already logged in.
+Two adapters have been qualified. The first is `cursor-agent acp` version
+2026.09.26-dd393fe, authenticated through the operator's existing
+`cursor-agent login` session. The harness performed no authentication and never
+called the `authenticate` method the adapter offers, which is the boundary
+LAC-SEC-001 states and the reason an adapter that requires interactive login is
+usable here only when the operator has already logged in.
 
 Two real turns completed, both reporting `status: completed` with
 `stopReason: end_turn` and exit `0`, one of them reading a file in the working
@@ -210,12 +210,25 @@ directory and leaving it unmodified. The adapter's `initialize` and
 `session/new` payloads are committed as a fixture under the protocol crate's
 tests.
 
-This closes the fixture-versus-real gap for one adapter only. It is not evidence
-about `codex-acp`, `claude-agent-acp`, `opencode` or `goose`, and the four
-remain unlaunched. It is also not evidence about an adapter that is not logged
-in: the authentication path is deliberately unimplemented, so an adapter that
-cannot reuse an existing login cannot be driven at all, and that limitation is a
-consequence of the trust boundary rather than a defect to fix here.
+The second is `@agentclientprotocol/codex-acp` version 1.13.1, resolved from the
+local npm cache and launched the way `ai-host` launches it through `acpx`. One
+read-only turn completed with the target file unmodified and no file created.
+Its captured payload is committed alongside Cursor's, and the two are
+deliberately different: Codex reports `agentInfo` where Cursor reports none,
+offers bare model values where Cursor embeds parameterized overrides, exposes a
+`thought_level` option under the adapter-defined identifier `reasoning_effort`
+where Cursor exposes none, and emits an `_auth/status_update` notification
+during the handshake that is not part of the exchange being waited for.
+
+Asserting against both is what makes the capability-parsing tests meaningful. An
+explicit `false` capability is only a real regression risk because a shipping
+adapter sends one, and discovery of an adapter-defined option identifier is only
+proven by an adapter whose name for it nobody would have guessed.
+
+This closes the fixture-versus-real gap for two adapters. It is not evidence
+about `claude-agent-acp`, `opencode` or `goose`, which remain unlaunched, and
+neither run raised a permission request, so the default deny policy is still
+proven only against the fixture peer.
 
 Reasoning effort and execution mode are still not applied. The captured payload
 shows why the generic shape does not transfer: this adapter carries effort
