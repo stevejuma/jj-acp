@@ -121,3 +121,12 @@ is the testkit's. It depends on the protocol and agent crates because it
 configures a fixture through the same types a production caller uses, and it
 must never depend on the runner, control or CLI crates, or a test helper would
 become a composition path around them.
+
+The layering held under implementation without amendment. Five crates were
+filled with real code across four slices and the dependency matrix recorded at
+bootstrap needed no new edge, which is the evidence that the decomposition was
+adequate rather than merely tidy. The one refinement was to the testkit's own
+row: it depends on the protocol and agent crates because it configures a fixture
+through the same types a production caller uses, and it must never depend on the
+runner, control or CLI crates, or a test helper would become a composition path
+around them.

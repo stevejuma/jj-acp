@@ -78,3 +78,16 @@ A record is emitted on every path that reaches an invocation, including a spawn
 failure and an agent error. A broken stdout is the one case with no record, and
 it exits `1`; the record is not a durable ledger and a killed harness can leave
 none.
+
+## Failure classification
+
+The exit code distinguishes causes a controlling application must treat
+differently. `1` with `agent_exited` means the agent is gone and a new one can
+safely be started. `124` means a bound elapsed and the agent's state is unknown,
+so starting another one risks two agents working the same task. `2` means
+nothing was started at all, so the same document can be corrected and
+resubmitted.
+
+`130` and `143` mean the run was interrupted and bounded cleanup ran. Cleanup
+being bounded is not the same as cleanup being complete, and the record says
+`cancelled` with `interrupted` rather than claiming the agent stopped.

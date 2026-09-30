@@ -16,6 +16,8 @@ Modes are selected with LAPIS_ACP_FIXTURE_MODE:
   descendant         spawn a long-lived child at startup
   descendant-startup spawn a long-lived child, then never answer initialize
   descendant-turn    spawn a long-lived child, then never answer the turn
+  crash-startup      exit abruptly instead of answering initialize
+  crash-turn         exit abruptly instead of answering session/prompt
 """
 
 import json
@@ -80,6 +82,9 @@ for line in sys.stdin:
     result = {}
 
     if method == "initialize":
+        if MODE == "crash-startup":
+            record({"crashed": "startup"})
+            sys.exit(3)
         if MODE in ("startup-hang", "descendant-startup"):
             time.sleep(HANG_SECONDS)
         result = {"protocolVersion": PROTOCOL,
@@ -98,6 +103,11 @@ for line in sys.stdin:
                              "availableModels": [{"modelId": "chosen"}]}}
     elif method == "session/prompt":
         prompt_id = message["id"]
+        if MODE == "crash-turn":
+            # Record first, so a test can prove the turn was dispatched exactly
+            # once and never re-sent after the crash.
+            record({"crashed": "turn", "promptId": prompt_id})
+            sys.exit(4)
         if MODE in ("turn-hang", "descendant-turn", "ignore-cancel"):
             continue
         if MODE == "permission":

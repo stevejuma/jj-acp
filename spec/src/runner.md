@@ -12,15 +12,15 @@ treats it as an opaque key.
 
 ## Requirements
 
-| ID          | Requirement                                                                                                                                                              |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| LAC-RUN-001 | The runner MUST execute one prepared turn per session scope with at most one turn in flight per scope.                                                                   |
-| LAC-RUN-002 | Cancellation MUST be cooperative and bounded: request cancellation, wait a bounded grace period, then kill the process group and reap within a bounded interval.         |
-| LAC-RUN-003 | An idle timeout reset by agent output and an absolute wall-clock turn deadline MUST both apply, and the shorter remaining bound MUST win.                                |
-| LAC-RUN-004 | A timeout MUST be reported as an unknown outcome and MUST NOT be recorded as success or as a proven failure.                                                             |
-| LAC-RUN-005 | A crashed agent subprocess MUST be reported as a distinct outcome, and a restart MUST NOT silently re-dispatch a turn that was already sent.                             |
-| LAC-RUN-006 | Session creation MUST apply the configured model, effort and permission settings, and an unsupported setting MUST retain the adapter fallback rather than fail the turn. |
-| LAC-RUN-007 | On Unix, cleanup MUST kill the process group so ordinary descendants cannot outlive a cancelled turn.                                                                    |
+| ID          | Requirement                                                                                                                                                                     |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| LAC-RUN-001 | The runner MUST execute one prepared turn per session scope with at most one turn in flight per scope.                                                                          |
+| LAC-RUN-002 | Cancellation MUST be cooperative and bounded: request cancellation, wait a bounded grace period, then kill the process group and reap within a bounded interval.                |
+| LAC-RUN-003 | An idle timeout reset by agent output and an absolute wall-clock turn deadline MUST both apply, and the shorter remaining bound MUST win.                                       |
+| LAC-RUN-004 | A timeout MUST be reported as an unknown outcome and MUST NOT be recorded as success or as a proven failure.                                                                    |
+| LAC-RUN-005 | A crashed agent MUST be reported as a distinct outcome from a bound that elapsed, and a restart MUST NOT silently re-dispatch a turn that was already sent.                     |
+| LAC-RUN-006 | Session creation MUST apply the configured model, effort and permission settings, and an unsupported setting MUST retain the adapter fallback rather than fail the turn.        |
+| LAC-RUN-007 | On Unix, cleanup MUST signal the whole process group before reaping its leader so ordinary descendants cannot outlive the turn, and MUST report whether the stop was confirmed. |
 
 ## Deadline composition
 
@@ -112,3 +112,51 @@ would train an operator to ignore it.
 
 Releasing the connection also means the process guard is the only remaining
 owner, so the cleanup sequence cannot race against a further protocol write.
+
+## Signal ordering and why it is not interchangeable
+
+A process group id is only unambiguously ours while the group leader is
+unreaped, because a pid cannot be recycled while its process is still a zombie.
+Both group signals are therefore sent before, or in the absence of, any
+successful reap: a cooperative `SIGTERM` to the group first, then a bounded
+wait, then `SIGKILL` to the group only when the leader is still outstanding.
+Reaping first and signalling after would risk killing an unrelated group whose
+leader happens to have taken the recycled pid.
+
+The cooperative group signal is what makes containment hold on the graceful path
+too. Closing an agent's stdin lets it exit on its own, but a child it spawned
+has no reason to notice, and an agent that exits voluntarily leaves that child
+running. Signalling the group before the grace window means a descendant is
+stopped whether the agent cooperated or had to be killed.
+
+The residual case is stated rather than hidden: a descendant that ignores
+`SIGTERM`, whose leader then exits voluntarily inside the grace window, is not
+reached, because at that point the leader is reaped and the group id is no
+longer safely ours. Containment is guaranteed for the fatal path and best-effort
+for the cooperative one. `Termination` reports which happened through
+`group_signalled`, `group_killed` and `escalated`, so a caller can tell them
+apart instead of assuming.
+
+A side benefit is speed. Agents that previously sat out the whole grace window
+after a completed turn now stop on the cooperative signal, which cut the task
+contract suite's wall clock by roughly a factor of six without weakening any
+assertion.
+
+## Crash is not a timeout
+
+An agent that exits mid-turn and an agent that stops answering are different
+facts with different consequences, and they get different records. A crash is
+`failed` with `agent_exited` and exit `1`: the agent is gone, so its state is
+knowable and a caller may decide to start a new one. A bound that elapsed is
+`timed_out` with exit `124`: the agent may still be running and still producing
+side effects, so its state is unknown.
+
+Neither is retried. The distinction exists so a controlling application can make
+that decision itself with its own durable state, not so this harness can make it
+automatically. Re-dispatching a turn whose outcome is unknown can execute its
+side effects twice, which is why the crash tests assert the dispatched prompt
+count is exactly one rather than merely asserting the record.
+
+A crash during startup is reported the same way and is distinguishable by what
+never happened: no `session/new` and no `session/prompt` reached the agent, so
+nothing was dispatched and nothing can have partially executed.

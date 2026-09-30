@@ -27,9 +27,9 @@ passing concrete tests linked from the progress ledger.
 | LAC-RUN-002    | Implemented | `crates/lapis-acp-runner/src/process.rs`; `crates/lapis-acp-cli/tests/signals.rs`; [M4 evidence](milestones.md)                                      |
 | LAC-RUN-003    | Implemented | `crates/lapis-acp-protocol/tests/bounds.rs`; `crates/lapis-acp-cli/tests/run_task.rs`; [M4 evidence](milestones.md)                                  |
 | LAC-RUN-004    | Implemented | `crates/lapis-acp-runner/src/outcome.rs`; `crates/lapis-acp-cli/tests/run_task.rs`; [M4 evidence](milestones.md)                                     |
-| LAC-RUN-005    | Planned     | [Session and turn lifecycle](runner.md); [milestone gate](milestones.md)                                                                             |
+| LAC-RUN-005    | Implemented | `crates/lapis-acp-cli/tests/cleanup.rs`; `crates/lapis-acp-runner/src/outcome.rs`; [M5 evidence](milestones.md)                                      |
 | LAC-RUN-006    | Planned     | [Session and turn lifecycle](runner.md); [milestone gate](milestones.md)                                                                             |
-| LAC-RUN-007    | Planned     | [Session and turn lifecycle](runner.md); [milestone gate](milestones.md)                                                                             |
+| LAC-RUN-007    | Implemented | `crates/lapis-acp-runner/src/process.rs`; `crates/lapis-acp-cli/tests/cleanup.rs`; [M5 evidence](milestones.md)                                      |
 | LAC-CTRL-001   | Planned     | [Controlling application boundary](control.md); [milestone gate](milestones.md)                                                                      |
 | LAC-CTRL-002   | Implemented | `crates/lapis-acp-control/src/task.rs`; `crates/lapis-acp-cli/tests/run_task.rs`; [M4 evidence](milestones.md)                                       |
 | LAC-CTRL-003   | Implemented | `crates/lapis-acp-control/src/record.rs`; `crates/lapis-acp-cli/tests/run_task.rs`; [M4 evidence](milestones.md)                                     |

@@ -7,18 +7,18 @@ in its enclosing Jujutsu change.
 
 ## Tasks and gates
 
-| ID          | Status   | Depends   | Requirements                                                                                                                                                                                                                                                                                            | Gate                                                                                                          | Next                                       | Evidence   |
-| ----------- | -------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ---------- |
-| Bootstrap   | Done     | -         | LAC-GOV-001,LAC-GOV-002,LAC-GOV-003,LAC-GOV-005,LAC-GOV-006,LAC-ARCH-001,LAC-ARCH-002,LAC-COMPAT-004                                                                                                                                                                                                    | Canonical specification, ledger, crate skeleton, boundary gate and pinned toolchain green on an empty product | Maintain governance each slice             | E-BOOT-001 |
-| Bootstrap.1 | Done     | -         | LAC-GOV-004,LAC-GOV-007,LAC-ARCH-003,LAC-ARCH-004                                                                                                                                                                                                                                                       | Boundary, counted-line and progress-checker negative tests pass                                               | Maintain gates each slice                  | E-BOOT-002 |
-| M1          | Done     | Bootstrap | LAC-COMPAT-001,LAC-COMPAT-002,LAC-COMPAT-003,LAC-COMPAT-007,LAC-SEC-001                                                                                                                                                                                                                                 | Pinned upstream lock, attribution and digest-verified drift detection                                         | Implement M2 protocol crate                | E-M1-001   |
-| M2          | Done     | Bootstrap | LAC-PROTO-001,LAC-PROTO-002,LAC-PROTO-003,LAC-PROTO-004,LAC-PROTO-005,LAC-PROTO-006                                                                                                                                                                                                                     | Bounded ACP framing, version negotiation and session methods under unit test                                  | Implement M3 runner catalog                | E-M2-001   |
-| M3          | Done     | M2        | LAC-AGENT-001,LAC-AGENT-002,LAC-AGENT-003,LAC-AGENT-004,LAC-AGENT-005,LAC-AGENT-006,LAC-COMPAT-005                                                                                                                                                                                                      | Tiered runner catalog, reserved-key stripping and deterministic fixture peer                                  | Implement M4 task runner                   | E-M3-001   |
-| M4          | Done     | M3        | LAC-CTRL-002,LAC-CTRL-003,LAC-CTRL-004,LAC-CTRL-005,LAC-CTRL-006,LAC-CTRL-007,LAC-CLI-001,LAC-CLI-002,LAC-CLI-003,LAC-CLI-004,LAC-CLI-005,LAC-CLI-006,LAC-RUN-001,LAC-RUN-002,LAC-RUN-003,LAC-RUN-004,LAC-ARCH-005,LAC-ARCH-006,LAC-SEC-002,LAC-SEC-003,LAC-SEC-004,LAC-SEC-005,LAC-SEC-006,LAC-SEC-007 | One-shot prepared task runner with sanitized record, published exit codes, signal cleanup and clean stdout    | Qualify M5 process-group containment       | E-M4-001   |
-| M5          | Planned  | M4        | LAC-RUN-005,LAC-RUN-007                                                                                                                                                                                                                                                                                 | Process-group descendant containment and crash reporting without re-dispatch                                  | Qualify M6 real runner                     | -          |
-| M6          | Planned  | M5        | LAC-COMPAT-006,LAC-RUN-006,LAC-PROTO-002                                                                                                                                                                                                                                                                | Real installed-runner qualification recorded separately from fixture evidence                                 | Implement M7 persistent transport          | -          |
-| M7          | Deferred | M4        | LAC-CTRL-001                                                                                                                                                                                                                                                                                            | Persistent control transport and standing session pool                                                        | Future controlling-application integration | -          |
-| M8          | Planned  | M7        | LAC-ARCH-005,LAC-CTRL-001                                                                                                                                                                                                                                                                               | Controlling-application consumer acceptance in a real host                                                    | Future release                             | -          |
+| ID          | Status   | Depends   | Requirements                                                                                                                                                                                                                                                                                            | Gate                                                                                                                         | Next                                       | Evidence   |
+| ----------- | -------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ---------- |
+| Bootstrap   | Done     | -         | LAC-GOV-001,LAC-GOV-002,LAC-GOV-003,LAC-GOV-005,LAC-GOV-006,LAC-ARCH-001,LAC-ARCH-002,LAC-COMPAT-004                                                                                                                                                                                                    | Canonical specification, ledger, crate skeleton, boundary gate and pinned toolchain green on an empty product                | Maintain governance each slice             | E-BOOT-001 |
+| Bootstrap.1 | Done     | -         | LAC-GOV-004,LAC-GOV-007,LAC-ARCH-003,LAC-ARCH-004                                                                                                                                                                                                                                                       | Boundary, counted-line and progress-checker negative tests pass                                                              | Maintain gates each slice                  | E-BOOT-002 |
+| M1          | Done     | Bootstrap | LAC-COMPAT-001,LAC-COMPAT-002,LAC-COMPAT-003,LAC-COMPAT-007,LAC-SEC-001                                                                                                                                                                                                                                 | Pinned upstream lock, attribution and digest-verified drift detection                                                        | Implement M2 protocol crate                | E-M1-001   |
+| M2          | Done     | Bootstrap | LAC-PROTO-001,LAC-PROTO-002,LAC-PROTO-003,LAC-PROTO-004,LAC-PROTO-005,LAC-PROTO-006                                                                                                                                                                                                                     | Bounded ACP framing, version negotiation and session methods under unit test                                                 | Implement M3 runner catalog                | E-M2-001   |
+| M3          | Done     | M2        | LAC-AGENT-001,LAC-AGENT-002,LAC-AGENT-003,LAC-AGENT-004,LAC-AGENT-005,LAC-AGENT-006,LAC-COMPAT-005                                                                                                                                                                                                      | Tiered runner catalog, reserved-key stripping and deterministic fixture peer                                                 | Implement M4 task runner                   | E-M3-001   |
+| M4          | Done     | M3        | LAC-CTRL-002,LAC-CTRL-003,LAC-CTRL-004,LAC-CTRL-005,LAC-CTRL-006,LAC-CTRL-007,LAC-CLI-001,LAC-CLI-002,LAC-CLI-003,LAC-CLI-004,LAC-CLI-005,LAC-CLI-006,LAC-RUN-001,LAC-RUN-002,LAC-RUN-003,LAC-RUN-004,LAC-ARCH-005,LAC-ARCH-006,LAC-SEC-002,LAC-SEC-003,LAC-SEC-004,LAC-SEC-005,LAC-SEC-006,LAC-SEC-007 | One-shot prepared task runner with sanitized record, published exit codes, signal cleanup and clean stdout                   | Qualify M5 process-group containment       | E-M4-001   |
+| M5          | Done     | M4        | LAC-RUN-005,LAC-RUN-007                                                                                                                                                                                                                                                                                 | Descendant containment on both the forced and the graceful path, crash reporting distinct from a timeout, and no re-dispatch | Qualify M6 against a real installed runner | E-M5-001   |
+| M6          | Planned  | M5        | LAC-COMPAT-006,LAC-RUN-006,LAC-PROTO-002                                                                                                                                                                                                                                                                | Real installed-runner qualification recorded separately from fixture evidence                                                | Implement M7 persistent transport          | -          |
+| M7          | Deferred | M4        | LAC-CTRL-001                                                                                                                                                                                                                                                                                            | Persistent control transport and standing session pool                                                                       | Future controlling-application integration | -          |
+| M8          | Planned  | M7        | LAC-ARCH-005,LAC-CTRL-001                                                                                                                                                                                                                                                                               | Controlling-application consumer acceptance in a real host                                                                   | Future release                             | -          |
 
 ## Evidence
 
@@ -478,6 +478,57 @@ coexist with an acknowledged gap.
     "remaining": [],
     "versions": "Rust 1.98.1; Python 3.14.7; tokio 1.53.1; nix 0.31; serde_json 1.0.151",
     "formats": "task document version 1; terminal record version 1; exit codes 0/1/2/124/130/143"
+  },
+  {
+    "id": "E-M5-001",
+    "tasks": ["M5"],
+    "date": "2026-09-30",
+    "kind": "lifecycle",
+    "files": [
+      "crates/lapis-acp-runner/src/process.rs",
+      "crates/lapis-acp-cli/tests/cleanup.rs",
+      "crates/lapis-acp-testkit/src/fixture.rs",
+      "crates/lapis-acp-testkit/src/log.rs",
+      "tests/fixtures/fixture_agent.py",
+      "spec/src/runner.md",
+      "spec/src/cli.md",
+      "spec/src/compatibility.md"
+    ],
+    "tests": [
+      "crates/lapis-acp-cli/tests/cleanup.rs#a_forced_termination_takes_the_agents_descendant_with_it",
+      "crates/lapis-acp-cli/tests/cleanup.rs#a_completed_turn_still_does_not_leave_a_descendant_behind",
+      "crates/lapis-acp-cli/tests/cleanup.rs#an_agent_that_crashes_mid_turn_is_reported_and_never_re_dispatched",
+      "crates/lapis-acp-cli/tests/cleanup.rs#an_agent_that_crashes_during_startup_never_opens_a_session",
+      "crates/lapis-acp-cli/tests/cleanup.rs#a_crash_is_distinguished_from_a_bound_that_elapsed",
+      "crates/lapis-acp-cli/tests/cleanup.rs#the_helpers_resolve_the_real_fixture_paths"
+    ],
+    "runs": [
+      {
+        "command": "cargo test -p lapis-acp-cli --test cleanup --locked",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "cargo test --workspace --locked",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "cargo clippy --workspace --all-targets --locked -- -D warnings",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "node --test scripts/governance.test.mjs scripts/rust-architecture.test.mjs scripts/upstream-lock.test.mjs",
+        "result": "pass",
+        "failures": 0
+      }
+    ],
+    "result": "pass",
+    "remaining": [],
+    "versions": "Rust 1.98.1; nix 0.31; Python 3.14.7; tokio 1.53.1; macOS ARM64",
+    "formats": "termination report fields group_signalled/group_killed/reaped; fixture crash markers; dispatch counts",
+    "note": "The containment test for a gracefully completing turn failed before process.rs signalled the group ahead of the grace window, which is the fix this entry records. Descendant containment on non-Unix platforms is unqualified: the direct child is signalled and the reduced guarantee is reported rather than approximated."
   }
 ]
 ```
@@ -491,11 +542,16 @@ standing pool, no persistent control transport, no inbound batching and no
 session rotation, so one process runs exactly one turn and then exits. That is
 M7 and it stays deferred.
 
-Process-group containment is implemented but not yet proven against a spawned
-descendant. `killing_the_agent_alone_leaves_its_descendant_running` proves the
-hazard is real; M5 owes the test that cleanup removes it. Crash reporting and
-the guarantee that a restart never re-dispatches an already-sent turn are also
-M5, and LAC-RUN-005 and LAC-RUN-007 stay Planned until then.
+Descendant containment is proven on macOS ARM64 for both the forced and the
+graceful path, but only on Unix. On other platforms cleanup signals the direct
+child and reports the reduced guarantee rather than approximating containment,
+and no non-Unix platform has been qualified at all.
+
+One residual case is documented rather than closed: a descendant that ignores
+`SIGTERM`, whose leader then exits voluntarily inside the grace window, is not
+reached, because the leader is reaped by then and the group id is no longer
+safely ours. Containment is guaranteed for the fatal path and best-effort for
+the cooperative one.
 
 Model selection is best-effort and reasoning effort and permission mode are not
 applied at all. LAC-RUN-006 stays Planned until M6 exercises a real adapter's

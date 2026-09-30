@@ -173,3 +173,24 @@ way and neither would have been caught by reading the port map: reserving the
 whole `LAPIS_ACP_` environment namespace stripped legitimate launch options, and
 letting `initialize` keep a fixed request timeout gave a hung adapter an
 unbounded startup phase that the lifecycle chapter explicitly forbids.
+
+## Failure modes the fixture must cover
+
+The fixture's value is the range of ways an agent can misbehave, so its mode
+list grows when a requirement needs evidence rather than when a test is
+convenient. Alongside the ten ported modes it now provides two crash modes: one
+that exits abruptly instead of answering `initialize`, and one that exits
+instead of answering `session/prompt`. Each records a marker before exiting, so
+a test can distinguish "the agent crashed here" from "the agent never got that
+far".
+
+The three descendant modes exist to make process-group containment observable.
+Without them a cleanup bug is invisible, because killing the direct child always
+appears to succeed and the orphaned grandchild is nobody's problem until it
+holds a port or a file lock. The containment tests read the recorded descendant
+pid, confirm it is alive mid-run, and confirm it is gone afterwards, which is a
+stronger claim than asserting the harness exited cleanly.
+
+The log reader also counts dispatched methods. That count is what turns "the
+crash was reported" into "the crash was reported and the turn was not re-sent",
+which is the part of the requirement a record assertion alone cannot prove.

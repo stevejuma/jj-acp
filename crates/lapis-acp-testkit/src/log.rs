@@ -86,6 +86,28 @@ impl FixtureLog {
             .cloned())
     }
 
+    /// How many times a given method reached the fixture.
+    ///
+    /// Counting dispatches is how a test proves a crashed turn was never
+    /// silently re-sent: the harness must report the crash, not retry it.
+    pub fn method_count(&self, method: &str) -> io::Result<usize> {
+        Ok(self
+            .records()?
+            .iter()
+            .filter(|record| record.get("method").and_then(Value::as_str) == Some(method))
+            .count())
+    }
+
+    /// The crash marker the fixture recorded, when it crashed on purpose.
+    pub fn crashed(&self) -> io::Result<Option<String>> {
+        Ok(self
+            .records()?
+            .iter()
+            .find_map(|record| record.get("crashed"))
+            .and_then(Value::as_str)
+            .map(str::to_owned))
+    }
+
     /// Report whether any record contains `needle` in its serialized form.
     ///
     /// This is how a test proves that a secret marker never reached the agent, or

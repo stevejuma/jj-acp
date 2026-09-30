@@ -29,20 +29,28 @@ recorded in `docs/upstream-lock.md`, and attribution lives in
 
 ## Status
 
-The governance regime, crate layering and validation gates are in place. No
-product behaviour is implemented yet: the binary currently exits `2` for every
-invocation. The roadmap and real evidence for each slice live in the
-[progress ledger](spec/src/milestones.md).
+The one-shot task runner is implemented and exercised end to end against a
+deterministic fixture agent: a prepared task document in, one sanitized terminal
+record out, and a published exit code. What is not implemented is concurrency
+and durability — one process runs exactly one turn — and no real installed
+adapter has been qualified yet. The roadmap and the real evidence for each slice
+live in the [progress ledger](spec/src/milestones.md).
+
+```sh
+lapis-acp run --task task.json --catalog runners.json --runner codex
+# {"version":1,"taskId":"task-001","status":"completed","stopReason":"end_turn"}
+lapis-acp agents   # one JSON object per line: id, label, availability, install hint
+```
 
 | Slice     | Scope                                                                 | Status   |
 | --------- | --------------------------------------------------------------------- | -------- |
 | Bootstrap | Specification, ledger, crate skeleton, boundary and line-budget gates | Done     |
-| M1        | Pinned upstream lock, attribution and drift detection                 | Planned  |
-| M2        | ACP framing, negotiation and session methods                          | Planned  |
-| M3        | Runner catalog, launch environment and deterministic fixture peer     | Planned  |
-| M4        | One-shot `run --task` with sanitized terminal record and exit codes   | Planned  |
-| M5        | Deadline, cancellation, process-group cleanup and crash reporting     | Planned  |
-| M6        | Real installed-runner qualification                                   | Planned  |
+| M1        | Pinned upstream lock, attribution and drift detection                 | Done     |
+| M2        | ACP framing, negotiation and session methods                          | Done     |
+| M3        | Runner catalog, launch environment and deterministic fixture peer     | Done     |
+| M4        | One-shot `run --task` with sanitized terminal record and exit codes   | Done     |
+| M5        | Descendant containment, crash reporting and no re-dispatch            | Done     |
+| M6        | Real installed-runner qualification, model and effort configuration   | Planned  |
 | M7        | Persistent control transport and standing session pool                | Deferred |
 | M8        | Controlling-application consumer acceptance                           | Planned  |
 

@@ -66,6 +66,10 @@ pub enum Mode {
     DescendantStartup,
     /// Spawn a long-lived child, then never answer the turn.
     DescendantTurn,
+    /// Exit abruptly instead of answering `initialize`.
+    CrashStartup,
+    /// Exit abruptly instead of answering `session/prompt`.
+    CrashTurn,
 }
 
 impl Mode {
@@ -82,6 +86,8 @@ impl Mode {
             Self::Descendant => "descendant",
             Self::DescendantStartup => "descendant-startup",
             Self::DescendantTurn => "descendant-turn",
+            Self::CrashStartup => "crash-startup",
+            Self::CrashTurn => "crash-turn",
         }
     }
 
