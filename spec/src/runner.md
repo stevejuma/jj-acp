@@ -59,3 +59,56 @@ what it observed and stops. It does not retry, because a retry can execute the
 same side effects twice, and it does not fabricate a terminal state to make the
 record tidier. Recovery from an unknown outcome is the controlling application's
 decision, made with its own durable state.
+
+## Implemented surface
+
+| Module    | Owns                                                                               |
+| --------- | ---------------------------------------------------------------------------------- |
+| `launch`  | `LaunchSpec`, spawning with piped stdio, inherited stderr and a Unix process group |
+| `process` | `ProcessGuard`, bounded grace, process-group kill, bounded reap, `Termination`     |
+| `turn`    | `Agent`, `TurnRequest`, and `run_turn` for one negotiated, prompted, stopped turn  |
+| `outcome` | `TurnOutcome`, `TurnStatus`, `Failure` and the protocol error classification       |
+
+The child's stderr is inherited rather than piped, so agent diagnostics reach
+the operator directly and can never be mistaken for protocol frames on stdout.
+
+`Failure` carries a classified `kind` and an untrusted `detail`. Only the kind
+and the agent's numeric error code may be published; the detail is diagnostic
+text for stderr and can quote prompt content or a credential the agent was
+given. The split is structural, so sanitization cannot be forgotten by a later
+caller.
+
+A timeout is classified by which bound elapsed, because the two mean different
+things. An idle timeout says the agent went silent. An absolute timeout says the
+cap was reached, possibly while the agent was still visibly working. Both are
+unknown outcomes, and neither is retried.
+
+## The descendant hazard
+
+Killing the agent's direct child does not stop a child the agent spawned. The
+fixture peer's descendant mode proves this rather than asserting it: after the
+direct child is killed the recorded descendant pid is still alive. That is why
+`ProcessGuard` kills the process group on Unix, and why `Termination` reports
+whether the stop was confirmed instead of assuming it.
+
+`Termination::confirmed_stopped` is false when the reap bound elapsed first. A
+caller that needs certainty must treat that as an unknown outcome and report it,
+which is what the control layer does through its diagnostics rather than through
+the terminal record.
+
+## Orderly shutdown before a kill
+
+Termination is the fallback, not the first move. When a turn ends the agent's
+stdin is released before the grace window starts, because closing a pipe write
+end is what produces the end of input a well-behaved agent waits for. Flushing
+is not sufficient: an async shutdown on a child's stdin leaves the descriptor
+open, so an agent blocked reading it never learns the exchange is over.
+
+The observable difference is that a completed turn now stops its agent without a
+kill. That matters for a real adapter that flushes session state on exit, and it
+removes a misleading diagnostic from the normal path: a group kill is reported
+because it is worth knowing about, and reporting it after every successful task
+would train an operator to ignore it.
+
+Releasing the connection also means the process guard is the only remaining
+owner, so the cleanup sequence cannot race against a further protocol write.

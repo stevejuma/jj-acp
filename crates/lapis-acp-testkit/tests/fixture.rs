@@ -76,7 +76,7 @@ async fn launch(fixture: &Fixture) -> (Connection<ChildStdout, ChildStdin>, Chil
         command.env(&variable.name, &variable.value);
     }
     command
-        .env("LAPIS_ACP_RUNNER", "fixture")
+        .env("LAPIS_ACP_TASK_RUNNER", "fixture")
         .env("LAPIS_ACP_TASK_ID", "task-42");
     let mut child = command.spawn().expect("fixture agent spawns");
     let stdout = child.stdout.take().expect("fixture stdout");
@@ -176,7 +176,7 @@ async fn the_fixture_completes_a_turn_without_a_model_provider() {
         .map(|value| value.as_str().unwrap().to_owned())
         .collect();
     assert!(
-        reserved.contains(&"LAPIS_ACP_RUNNER".to_owned()),
+        reserved.contains(&"LAPIS_ACP_TASK_RUNNER".to_owned()),
         "{reserved:?}"
     );
     assert!(

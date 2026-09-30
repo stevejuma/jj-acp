@@ -9,8 +9,8 @@ passing concrete tests linked from the progress ledger.
 | LAC-ARCH-002   | Implemented | `scripts/check-boundaries.mjs`; `scripts/governance.test.mjs`; [bootstrap evidence](milestones.md)                                                   |
 | LAC-ARCH-003   | Implemented | `scripts/rust-architecture.mjs`; `scripts/rust-architecture.test.mjs`; [bootstrap evidence](milestones.md)                                           |
 | LAC-ARCH-004   | Implemented | `scripts/rust-architecture.mjs`; `scripts/rust-architecture.test.mjs`; [bootstrap evidence](milestones.md)                                           |
-| LAC-ARCH-005   | Planned     | [Architecture](architecture.md); [milestone gate](milestones.md)                                                                                     |
-| LAC-ARCH-006   | Planned     | [Architecture](architecture.md); [milestone gate](milestones.md)                                                                                     |
+| LAC-ARCH-005   | Implemented | `crates/lapis-acp-control/src/invocation.rs`; `crates/lapis-acp-cli/tests/run_task.rs`; [M4 evidence](milestones.md)                                 |
+| LAC-ARCH-006   | Implemented | `crates/lapis-acp-cli/src/lib.rs`; `scripts/check-boundaries.mjs`; [M4 evidence](milestones.md)                                                      |
 | LAC-PROTO-001  | Implemented | `crates/lapis-acp-protocol/src/frame.rs`; `crates/lapis-acp-protocol/tests/bounds.rs`; [M2 evidence](milestones.md)                                  |
 | LAC-PROTO-002  | Implemented | `crates/lapis-acp-protocol/tests/wire.rs`; [M2 evidence](milestones.md)                                                                              |
 | LAC-PROTO-003  | Implemented | `crates/lapis-acp-protocol/tests/wire.rs`; `crates/lapis-acp-protocol/tests/inbound.rs`; [M2 evidence](milestones.md)                                |
@@ -23,33 +23,33 @@ passing concrete tests linked from the progress ledger.
 | LAC-AGENT-004  | Implemented | `crates/lapis-acp-agent/src/catalog.rs`; `crates/lapis-acp-agent/tests/catalog.rs`; [M3 evidence](milestones.md)                                     |
 | LAC-AGENT-005  | Implemented | `crates/lapis-acp-agent/src/definition.rs`; `crates/lapis-acp-agent/tests/catalog.rs`; [M3 evidence](milestones.md)                                  |
 | LAC-AGENT-006  | Implemented | `crates/lapis-acp-agent/src/environment.rs`; `crates/lapis-acp-agent/tests/catalog.rs`; [M3 evidence](milestones.md)                                 |
-| LAC-RUN-001    | Planned     | [Session and turn lifecycle](runner.md); [milestone gate](milestones.md)                                                                             |
-| LAC-RUN-002    | Planned     | [Session and turn lifecycle](runner.md); [milestone gate](milestones.md)                                                                             |
-| LAC-RUN-003    | Planned     | [Session and turn lifecycle](runner.md); [milestone gate](milestones.md)                                                                             |
-| LAC-RUN-004    | Planned     | [Session and turn lifecycle](runner.md); [milestone gate](milestones.md)                                                                             |
+| LAC-RUN-001    | Implemented | `crates/lapis-acp-runner/src/turn.rs`; `crates/lapis-acp-cli/tests/run_task.rs`; [M4 evidence](milestones.md)                                        |
+| LAC-RUN-002    | Implemented | `crates/lapis-acp-runner/src/process.rs`; `crates/lapis-acp-cli/tests/signals.rs`; [M4 evidence](milestones.md)                                      |
+| LAC-RUN-003    | Implemented | `crates/lapis-acp-protocol/tests/bounds.rs`; `crates/lapis-acp-cli/tests/run_task.rs`; [M4 evidence](milestones.md)                                  |
+| LAC-RUN-004    | Implemented | `crates/lapis-acp-runner/src/outcome.rs`; `crates/lapis-acp-cli/tests/run_task.rs`; [M4 evidence](milestones.md)                                     |
 | LAC-RUN-005    | Planned     | [Session and turn lifecycle](runner.md); [milestone gate](milestones.md)                                                                             |
 | LAC-RUN-006    | Planned     | [Session and turn lifecycle](runner.md); [milestone gate](milestones.md)                                                                             |
 | LAC-RUN-007    | Planned     | [Session and turn lifecycle](runner.md); [milestone gate](milestones.md)                                                                             |
 | LAC-CTRL-001   | Planned     | [Controlling application boundary](control.md); [milestone gate](milestones.md)                                                                      |
-| LAC-CTRL-002   | Planned     | [Controlling application boundary](control.md); [milestone gate](milestones.md)                                                                      |
-| LAC-CTRL-003   | Planned     | [Controlling application boundary](control.md); [milestone gate](milestones.md)                                                                      |
-| LAC-CTRL-004   | Planned     | [Controlling application boundary](control.md); [milestone gate](milestones.md)                                                                      |
-| LAC-CTRL-005   | Planned     | [Controlling application boundary](control.md); [milestone gate](milestones.md)                                                                      |
-| LAC-CTRL-006   | Planned     | [Controlling application boundary](control.md); [milestone gate](milestones.md)                                                                      |
-| LAC-CTRL-007   | Planned     | [Controlling application boundary](control.md); [milestone gate](milestones.md)                                                                      |
-| LAC-CLI-001    | Planned     | [CLI and exit codes](cli.md); [milestone gate](milestones.md)                                                                                        |
-| LAC-CLI-002    | Planned     | [CLI and exit codes](cli.md); [milestone gate](milestones.md)                                                                                        |
-| LAC-CLI-003    | Planned     | [CLI and exit codes](cli.md); [milestone gate](milestones.md)                                                                                        |
-| LAC-CLI-004    | Planned     | [CLI and exit codes](cli.md); [milestone gate](milestones.md)                                                                                        |
-| LAC-CLI-005    | Planned     | [CLI and exit codes](cli.md); [milestone gate](milestones.md)                                                                                        |
-| LAC-CLI-006    | Planned     | [CLI and exit codes](cli.md); [milestone gate](milestones.md)                                                                                        |
+| LAC-CTRL-002   | Implemented | `crates/lapis-acp-control/src/task.rs`; `crates/lapis-acp-cli/tests/run_task.rs`; [M4 evidence](milestones.md)                                       |
+| LAC-CTRL-003   | Implemented | `crates/lapis-acp-control/src/record.rs`; `crates/lapis-acp-cli/tests/run_task.rs`; [M4 evidence](milestones.md)                                     |
+| LAC-CTRL-004   | Implemented | `crates/lapis-acp-cli/tests/stdio_contract.rs`; [M4 evidence](milestones.md)                                                                         |
+| LAC-CTRL-005   | Implemented | `crates/lapis-acp-control/src/invocation.rs`; `crates/lapis-acp-cli/tests/run_task.rs`; [M4 evidence](milestones.md)                                 |
+| LAC-CTRL-006   | Implemented | `crates/lapis-acp-control/src/task.rs`; `crates/lapis-acp-cli/tests/run_task.rs`; [M4 evidence](milestones.md)                                       |
+| LAC-CTRL-007   | Implemented | `crates/lapis-acp-control/src/input.rs`; `crates/lapis-acp-cli/tests/run_task.rs`; [M4 evidence](milestones.md)                                      |
+| LAC-CLI-001    | Implemented | `crates/lapis-acp-cli/src/run_task.rs`; `crates/lapis-acp-cli/tests/run_task.rs`; [M4 evidence](milestones.md)                                       |
+| LAC-CLI-002    | Implemented | `crates/lapis-acp-cli/tests/run_task.rs`; `crates/lapis-acp-cli/tests/signals.rs`; [M4 evidence](milestones.md)                                      |
+| LAC-CLI-003    | Implemented | `crates/lapis-acp-cli/src/signals.rs`; `crates/lapis-acp-cli/tests/signals.rs`; [M4 evidence](milestones.md)                                         |
+| LAC-CLI-004    | Implemented | `crates/lapis-acp-cli/src/args.rs`; `crates/lapis-acp-cli/tests/args.rs`; [M4 evidence](milestones.md)                                               |
+| LAC-CLI-005    | Implemented | `crates/lapis-acp-cli/tests/stdio_contract.rs`; `crates/lapis-acp-cli/tests/signals.rs`; [M4 evidence](milestones.md)                                |
+| LAC-CLI-006    | Implemented | `crates/lapis-acp-cli/src/lib.rs`; `crates/lapis-acp-cli/tests/stdio_contract.rs`; [M4 evidence](milestones.md)                                      |
 | LAC-SEC-001    | Implemented | `scripts/check-boundaries.mjs`; `scripts/governance.test.mjs`; `docs/upstream/disposition.json`; [M1 evidence](milestones.md)                        |
-| LAC-SEC-002    | Planned     | [Security and trust](security.md); [milestone gate](milestones.md)                                                                                   |
-| LAC-SEC-003    | Planned     | [Security and trust](security.md); [milestone gate](milestones.md)                                                                                   |
-| LAC-SEC-004    | Planned     | [Security and trust](security.md); [milestone gate](milestones.md)                                                                                   |
-| LAC-SEC-005    | Planned     | [Security and trust](security.md); [milestone gate](milestones.md)                                                                                   |
-| LAC-SEC-006    | Planned     | [Security and trust](security.md); [milestone gate](milestones.md)                                                                                   |
-| LAC-SEC-007    | Planned     | [Security and trust](security.md); [milestone gate](milestones.md)                                                                                   |
+| LAC-SEC-002    | Implemented | `crates/lapis-acp-runner/src/launch.rs`; `crates/lapis-acp-cli/tests/run_task.rs`; [M4 evidence](milestones.md)                                      |
+| LAC-SEC-003    | Implemented | `crates/lapis-acp-control/src/invocation.rs`; `crates/lapis-acp-cli/tests/run_task.rs`; [M4 evidence](milestones.md)                                 |
+| LAC-SEC-004    | Implemented | `scripts/check-boundaries.mjs`; `crates/lapis-acp-runner/src/launch.rs`; [M4 evidence](milestones.md)                                                |
+| LAC-SEC-005    | Implemented | `crates/lapis-acp-runner/src/turn.rs`; `crates/lapis-acp-cli/tests/run_task.rs`; [M4 evidence](milestones.md)                                        |
+| LAC-SEC-006    | Implemented | `crates/lapis-acp-cli/tests/run_task.rs`; `crates/lapis-acp-protocol/tests/inbound.rs`; [M4 evidence](milestones.md)                                 |
+| LAC-SEC-007    | Implemented | `crates/lapis-acp-control/src/input.rs`; `crates/lapis-acp-cli/tests/run_task.rs`; [M4 evidence](milestones.md)                                      |
 | LAC-COMPAT-001 | Implemented | `docs/upstream-lock.md`; `docs/upstream/disposition.json`; `docs/upstream/lock.json`; `scripts/upstream-lock.test.mjs`; [M1 evidence](milestones.md) |
 | LAC-COMPAT-002 | Implemented | `docs/licenses/NOTICE.md`; `docs/upstream-lock.md`; `scripts/upstream-lock.test.mjs`; [M1 evidence](milestones.md)                                   |
 | LAC-COMPAT-003 | Implemented | `scripts/upstream-sync.mjs`; `scripts/upstream-lock.test.mjs`; [M1 evidence](milestones.md)                                                          |

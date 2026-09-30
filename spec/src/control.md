@@ -77,3 +77,37 @@ application that wants a Unix socket, a local HTTP endpoint or an in-process
 link adds a transport rather than editing the runner. The trait boundary is the
 reason the one-shot task runner and a future persistent service can share the
 same session and turn machinery.
+
+## Implemented surface
+
+| Module       | Owns                                                                                  |
+| ------------ | ------------------------------------------------------------------------------------- |
+| `task`       | Document version 1, strict validation, the stable rejection code vocabulary           |
+| `input`      | Bounded reads from a path or stdin, capped while reading rather than after            |
+| `record`     | `TerminalRecord`, `Status`, `ExitCode` and the record-level outcome codes             |
+| `invocation` | Resolving a runner, launching, executing one turn, stopping, and reducing to a record |
+| `transport`  | The `ControlTransport` trait and the stdio implementation                             |
+
+Rejection happens before any agent is spawned. A document that names an unknown
+runner, a version this build does not accept, or a runner other than the one
+this process was launched as never reaches a launch attempt, and the fixture log
+stays empty for every refusal case.
+
+## Reserved namespace
+
+Only the task identity the harness injects is reserved, under the
+`LAPIS_ACP_TASK_` prefix. An earlier design reserved the whole `LAPIS_ACP_` tree
+and the fixture peer caught the consequence: it also stripped the launch options
+an operator sets on purpose, such as `LAPIS_ACP_RUNNER` and `LAPIS_ACP_MODEL`,
+breaking configuration in the name of protecting identity. Reserving narrowly is
+still sufficient, because the only thing a runner definition must not be able to
+forge is which task the harness says it is running.
+
+## Exit code resolution
+
+The invocation reports the exit code for every outcome except a signal-driven
+cancellation, where it sets a flag instead. The CLI owns signal handling and
+therefore owns the choice between `130` and `143`, because only it observed
+which signal arrived. Keeping that decision out of the control crate is what
+lets a controlling application drive the same invocation over a different
+transport and apply its own interruption semantics.

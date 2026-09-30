@@ -103,3 +103,24 @@ separator and is not counted; an unparseable line is counted and exposed through
 diagnostics from one that emits nothing but noise. Skipping is tolerance, not
 acceptance: a stream of only garbage yields no frames and eventually trips the
 idle bound.
+
+## Budget-scoped negotiation
+
+`initialize` and `session/new` each have a `_within` variant taking an explicit
+turn budget. A caller executing one prepared turn passes the turn's own budget,
+so adapter startup and session setup share the idle and absolute bounds with the
+turn instead of getting a separate unbounded phase. A hung adapter is then
+reported as the bound that actually elapsed: an adapter that emits nothing trips
+the idle window, and one that streams without answering trips the absolute cap.
+
+The default variants keep a fixed request limit for callers that have no turn
+budget yet. This distinction was not free: until it existed, a hanging adapter
+consumed a fixed 60 second request timeout and reported a deadline rather than
+silence, which is a different diagnosis and a much slower one.
+
+`send_request` and `await_response` are separate operations so a caller can race
+the wait against a cancellation signal without abandoning the request. The agent
+still owes an answer for that id, and abandoning it would leave the answer
+unread. This is safe because the frame reader is resumable: bytes already
+consumed from the underlying reader survive a cancelled read and complete the
+same frame on the next one.

@@ -6,13 +6,19 @@
 
 use lapis_acp_protocol::EnvVar;
 
-/// Prefix every harness-owned variable carries.
-pub const RESERVED_PREFIX: &str = "LAPIS_ACP_";
+/// Prefix of the namespace the harness injects into a spawned agent.
+///
+/// This is deliberately narrow. It reserves only the task identity the harness
+/// itself sets, not the whole `LAPIS_ACP_` tree: that wider tree also carries
+/// launch options an operator sets on purpose, such as `LAPIS_ACP_RUNNER` and
+/// `LAPIS_ACP_MODEL`, and stripping those would break configuration rather than
+/// protect identity.
+pub const RESERVED_PREFIX: &str = "LAPIS_ACP_TASK_";
 
 /// Report whether a variable name is owned by the harness.
 ///
 /// Matching is case-sensitive and prefix-based, so `LAPIS_ACP_TASK_ID` and any
-/// future harness variable are covered without enumerating them.
+/// future task-scoped harness variable are covered without enumerating them.
 pub fn is_reserved_env(name: &str) -> bool {
     name.starts_with(RESERVED_PREFIX)
 }
@@ -91,7 +97,7 @@ pub fn plan(
 pub fn harness_variables(task_id: Option<&str>, runner_id: &str) -> Vec<EnvVar> {
     let mut variables = vec![EnvVar::new(format!("{RESERVED_PREFIX}RUNNER"), runner_id)];
     if let Some(task_id) = task_id {
-        variables.push(EnvVar::new(format!("{RESERVED_PREFIX}TASK_ID"), task_id));
+        variables.push(EnvVar::new(format!("{RESERVED_PREFIX}ID"), task_id));
     }
     variables
 }

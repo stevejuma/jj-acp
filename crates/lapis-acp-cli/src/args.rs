@@ -1,0 +1,265 @@
+//! Argument and environment parsing.
+//!
+//! Every launch option is settable by a flag and by a matching environment
+//! variable, with the flag winning, so a controlling application can configure a
+//! run either way. Parsing is hand-rolled: the surface is small, and depending on
+//! a parser would not reduce it.
+
+use std::path::PathBuf;
+use std::time::Duration;
+
+use lapis_acp_control::TaskSource;
+use lapis_acp_protocol::session::SystemPromptTransport;
+
+/// Default idle window, matching the upstream harness.
+pub const DEFAULT_IDLE_TIMEOUT: Duration = Duration::from_secs(620);
+
+/// Default absolute turn cap, matching the upstream harness.
+pub const DEFAULT_MAX_TURN_DURATION: Duration = Duration::from_secs(7200);
+
+/// Default cooperative cancellation grace.
+pub const DEFAULT_CANCEL_GRACE: Duration = Duration::from_secs(5);
+
+/// Default reap bound after a kill.
+pub const DEFAULT_REAP_TIMEOUT: Duration = Duration::from_secs(5);
+
+/// A parsing refusal.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ArgError {
+    /// The command line was malformed; no work was attempted.
+    Usage(String),
+    /// A value was present but unusable.
+    Invalid(String),
+}
+
+impl std::fmt::Display for ArgError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Usage(message) | Self::Invalid(message) => formatter.write_str(message),
+        }
+    }
+}
+
+/// Trusted launch configuration assembled from flags and environment.
+#[derive(Debug, Clone, PartialEq)]
+pub struct LaunchOptions {
+    /// The runner this process acts as, pinning which tasks it will accept.
+    pub runner: Option<String>,
+    /// Path to a catalog file supplying additional runners.
+    pub catalog: Option<String>,
+    /// Model to request when the agent offers it.
+    pub model: Option<String>,
+    /// Idle window reset by agent output.
+    pub idle_timeout: Duration,
+    /// Absolute cap a task document can lower but never raise.
+    pub max_turn_duration: Duration,
+    /// Cooperative cancellation grace before a kill.
+    pub cancel_grace: Duration,
+    /// Reap bound after a kill.
+    pub reap_timeout: Duration,
+    /// File holding standing instructions.
+    pub system_prompt_file: Option<String>,
+    /// Where the adapter expects standing instructions.
+    pub prompt_transport: SystemPromptTransport,
+    /// Working directory; defaults to the launch directory.
+    pub cwd: Option<PathBuf>,
+}
+
+impl Default for LaunchOptions {
+    fn default() -> Self {
+        Self {
+            runner: None,
+            catalog: None,
+            model: None,
+            idle_timeout: DEFAULT_IDLE_TIMEOUT,
+            max_turn_duration: DEFAULT_MAX_TURN_DURATION,
+            cancel_grace: DEFAULT_CANCEL_GRACE,
+            reap_timeout: DEFAULT_REAP_TIMEOUT,
+            system_prompt_file: None,
+            prompt_transport: SystemPromptTransport::Field,
+            cwd: None,
+        }
+    }
+}
+
+/// A parsed `run` invocation.
+///
+/// Boxed inside [`Command`] so the small variants do not pay for the launch
+/// configuration's size on every match.
+#[derive(Debug, Clone, PartialEq)]
+pub struct RunCommand {
+    /// Where the task document comes from.
+    pub task: TaskSource,
+    /// Trusted launch configuration.
+    pub launch: LaunchOptions,
+}
+
+/// A parsed command.
+#[derive(Debug, Clone, PartialEq)]
+pub enum Command {
+    /// Execute one prepared task.
+    Run(Box<RunCommand>),
+    /// List resolved runners with availability.
+    Agents,
+    /// Print usage.
+    Help,
+    /// Print the version.
+    Version,
+}
+
+/// Read one environment variable, injectable so parsing is testable.
+pub type Env = dyn Fn(&str) -> Option<String>;
+
+fn duration(value: &str, option: &str) -> Result<Duration, ArgError> {
+    let seconds: u64 = value
+        .trim()
+        .parse()
+        .map_err(|_| ArgError::Invalid(format!("{option} must be a whole number of seconds")))?;
+    if seconds == 0 {
+        return Err(ArgError::Invalid(format!("{option} must be positive")));
+    }
+    Ok(Duration::from_secs(seconds))
+}
+
+fn transport(value: &str) -> Result<SystemPromptTransport, ArgError> {
+    match value {
+        "field" => Ok(SystemPromptTransport::Field),
+        "meta" => Ok(SystemPromptTransport::Meta),
+        "meta-append" => Ok(SystemPromptTransport::MetaAppend),
+        other => Err(ArgError::Invalid(format!(
+            "--prompt-transport must be field, meta or meta-append, not {other:?}"
+        ))),
+    }
+}
+
+/// The usage text, printed to stdout for `--help` and stderr for a refusal.
+pub const USAGE: &str = "\
+lapis-acp — run an Agent Client Protocol agent for a controlling application
+
+Usage:
+  lapis-acp run --task <path|-> [options]
+  lapis-acp agents
+  lapis-acp --help | --version
+
+Run options:
+  --task <path|->            prepared task document; '-' reads stdin
+  --runner <id>              runner this process acts as (LAPIS_ACP_RUNNER)
+  --catalog <path>           additional runner catalog (LAPIS_ACP_CATALOG)
+  --model <id>               model to request (LAPIS_ACP_MODEL)
+  --cwd <path>               working directory (LAPIS_ACP_CWD)
+  --idle-timeout <secs>      idle bound (LAPIS_ACP_IDLE_TIMEOUT)
+  --max-turn-duration <secs> absolute cap (LAPIS_ACP_MAX_TURN_DURATION)
+  --cancel-grace <secs>      cooperative grace (LAPIS_ACP_CANCEL_GRACE)
+  --reap-timeout <secs>      reap bound (LAPIS_ACP_REAP_TIMEOUT)
+  --system-prompt-file <p>   standing instructions (LAPIS_ACP_SYSTEM_PROMPT_FILE)
+  --prompt-transport <kind>  field | meta | meta-append (LAPIS_ACP_PROMPT_TRANSPORT)
+
+Credentials, the executable and the working directory come only from this trusted
+launch configuration. A task document cannot change them.";
+
+/// Parse a command line against an environment lookup.
+pub fn parse<I: IntoIterator<Item = String>>(arguments: I, env: &Env) -> Result<Command, ArgError> {
+    let mut items = arguments.into_iter().collect::<Vec<String>>().into_iter();
+    let Some(first) = items.next() else {
+        return Ok(Command::Help);
+    };
+    match first.as_str() {
+        "--help" | "-h" | "help" => return Ok(Command::Help),
+        "--version" | "-V" => return Ok(Command::Version),
+        "agents" => return Ok(Command::Agents),
+        "run" => {}
+        other => {
+            return Err(ArgError::Usage(format!(
+                "unknown command {other:?}; expected run, agents, --help or --version"
+            )));
+        }
+    }
+
+    let mut launch = LaunchOptions {
+        runner: env("LAPIS_ACP_RUNNER"),
+        catalog: env("LAPIS_ACP_CATALOG"),
+        model: env("LAPIS_ACP_MODEL"),
+        idle_timeout: optional_duration(env, "LAPIS_ACP_IDLE_TIMEOUT", "--idle-timeout")?
+            .unwrap_or(DEFAULT_IDLE_TIMEOUT),
+        max_turn_duration: optional_duration(
+            env,
+            "LAPIS_ACP_MAX_TURN_DURATION",
+            "--max-turn-duration",
+        )?
+        .unwrap_or(DEFAULT_MAX_TURN_DURATION),
+        cancel_grace: optional_duration(env, "LAPIS_ACP_CANCEL_GRACE", "--cancel-grace")?
+            .unwrap_or(DEFAULT_CANCEL_GRACE),
+        reap_timeout: optional_duration(env, "LAPIS_ACP_REAP_TIMEOUT", "--reap-timeout")?
+            .unwrap_or(DEFAULT_REAP_TIMEOUT),
+        system_prompt_file: env("LAPIS_ACP_SYSTEM_PROMPT_FILE"),
+        prompt_transport: match env("LAPIS_ACP_PROMPT_TRANSPORT") {
+            Some(value) => transport(&value)?,
+            None => SystemPromptTransport::Field,
+        },
+        cwd: env("LAPIS_ACP_CWD").map(PathBuf::from),
+    };
+
+    let mut task: Option<TaskSource> = None;
+    while let Some(argument) = items.next() {
+        match argument.as_str() {
+            "--task" => task = Some(TaskSource::parse(&next_value(&mut items, "--task")?)),
+            flag if flag.starts_with("--task=") => {
+                task = Some(TaskSource::parse(&flag["--task=".len()..]));
+            }
+            "--runner" => launch.runner = Some(next_value(&mut items, "--runner")?),
+            "--catalog" => launch.catalog = Some(next_value(&mut items, "--catalog")?),
+            "--model" => launch.model = Some(next_value(&mut items, "--model")?),
+            "--cwd" => launch.cwd = Some(PathBuf::from(next_value(&mut items, "--cwd")?)),
+            "--idle-timeout" => {
+                launch.idle_timeout =
+                    duration(&next_value(&mut items, "--idle-timeout")?, "--idle-timeout")?;
+            }
+            "--max-turn-duration" => {
+                launch.max_turn_duration = duration(
+                    &next_value(&mut items, "--max-turn-duration")?,
+                    "--max-turn-duration",
+                )?;
+            }
+            "--cancel-grace" => {
+                launch.cancel_grace =
+                    duration(&next_value(&mut items, "--cancel-grace")?, "--cancel-grace")?;
+            }
+            "--reap-timeout" => {
+                launch.reap_timeout =
+                    duration(&next_value(&mut items, "--reap-timeout")?, "--reap-timeout")?;
+            }
+            "--system-prompt-file" => {
+                launch.system_prompt_file = Some(next_value(&mut items, "--system-prompt-file")?);
+            }
+            "--prompt-transport" => {
+                launch.prompt_transport =
+                    transport(&next_value(&mut items, "--prompt-transport")?)?;
+            }
+            other => {
+                return Err(ArgError::Usage(format!("unknown option {other:?}")));
+            }
+        }
+    }
+    let Some(task) = task else {
+        return Err(ArgError::Usage("run needs --task <path|->".to_owned()));
+    };
+    Ok(Command::Run(Box::new(RunCommand { task, launch })))
+}
+
+fn next_value(items: &mut std::vec::IntoIter<String>, flag: &str) -> Result<String, ArgError> {
+    items
+        .next()
+        .ok_or_else(|| ArgError::Usage(format!("{flag} needs a value")))
+}
+
+fn optional_duration(env: &Env, name: &str, flag: &str) -> Result<Option<Duration>, ArgError> {
+    match env(name) {
+        Some(value) => Ok(Some(duration(&value, flag)?)),
+        None => Ok(None),
+    }
+}
+
+/// The environment lookup used in production.
+pub fn system_env(name: &str) -> Option<String> {
+    std::env::var(name).ok()
+}

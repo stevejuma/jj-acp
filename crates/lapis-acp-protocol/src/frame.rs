@@ -32,6 +32,7 @@ pub struct FrameReader<R> {
     buffer: Vec<u8>,
     limit: usize,
     skipped: u64,
+    partial: bool,
 }
 
 impl<R: AsyncBufRead + Unpin> FrameReader<R> {
@@ -47,6 +48,7 @@ impl<R: AsyncBufRead + Unpin> FrameReader<R> {
             buffer: Vec::new(),
             limit: limit.max(1),
             skipped: 0,
+            partial: false,
         }
     }
 
@@ -83,8 +85,16 @@ impl<R: AsyncBufRead + Unpin> FrameReader<R> {
     /// The cap is checked before bytes are appended, so the buffer can never
     /// exceed it even transiently. A trailing partial line at end of stream is
     /// still delivered, matching the upstream codec.
+    ///
+    /// The read is resumable. Bytes already consumed from the underlying reader
+    /// are held in the buffer across calls, so a caller that cancels a pending
+    /// read mid-frame and then reads again continues the same frame instead of
+    /// silently losing part of it. That is what makes racing a turn against a
+    /// cancellation signal safe.
     async fn fill(&mut self) -> Result<bool, Error> {
-        self.buffer.clear();
+        if !self.partial {
+            self.buffer.clear();
+        }
         let limit = self.limit;
         loop {
             let step = {
@@ -107,12 +117,19 @@ impl<R: AsyncBufRead + Unpin> FrameReader<R> {
                 }
             };
             match step {
-                Step::End => return Ok(!self.buffer.is_empty()),
+                Step::End => {
+                    self.partial = false;
+                    return Ok(!self.buffer.is_empty());
+                }
                 Step::Line(consume) => {
                     self.inner.consume(consume);
+                    self.partial = false;
                     return Ok(true);
                 }
-                Step::Partial(consume) => self.inner.consume(consume),
+                Step::Partial(consume) => {
+                    self.inner.consume(consume);
+                    self.partial = true;
+                }
             }
         }
     }
@@ -128,6 +145,18 @@ impl<W: AsyncWrite + Unpin> FrameWriter<W> {
     /// Wrap a byte sink.
     pub fn new(inner: W) -> Self {
         Self { inner }
+    }
+
+    /// Flush and close the write half.
+    ///
+    /// Closing stdin is how a client tells an agent the exchange is over: a
+    /// well-behaved agent sees end of input and exits on its own, which is a
+    /// cleaner stop than being killed and leaves no doubt about whether it
+    /// finished writing.
+    pub async fn close(&mut self) -> Result<(), Error> {
+        self.inner.flush().await?;
+        self.inner.shutdown().await?;
+        Ok(())
     }
 
     /// Serialize and flush one frame.

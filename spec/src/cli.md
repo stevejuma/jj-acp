@@ -44,3 +44,37 @@ The inherited environment is preserved and extended, never replaced. Existing
 variables that the harness needs to control are overridden deliberately and the
 override is recorded; everything else passes through so a controlling
 application can configure provider credentials the way it already does.
+
+## Implemented surface
+
+| Module     | Owns                                                                          |
+| ---------- | ----------------------------------------------------------------------------- |
+| `args`     | Flag and environment parsing, defaults, usage text, refusals                  |
+| `run_task` | Catalog assembly, prompt file read, launch configuration, one invocation      |
+| `agents`   | One JSON object per line describing each resolved runner and its availability |
+| `signals`  | SIGINT and SIGTERM installation and the cancellation watch                    |
+| `lib`      | Dispatch, runtime construction, emitting one record, resolving the exit code  |
+
+Every launch option has a flag and a matching `LAPIS_ACP_*` variable, and the
+flag wins. Defaults for the idle window and the absolute cap are 620 and 7200
+seconds, inherited from the upstream harness; the cancellation grace and reap
+bounds default to five seconds each.
+
+Installing a signal handler replaces the default terminate-immediately
+behaviour, so an interruption now produces bounded cleanup and a record instead
+of an orphaned agent and silence. A failure to install is reported rather than
+ignored, because running without cancellation handling would silently weaken
+that guarantee.
+
+## Stdout contract
+
+Stdout carries terminal records, and for `--help`, `--version` and `agents` the
+output those commands exist to produce. Nothing else is ever written there.
+Usage for a malformed command line goes to stderr, so a controlling application
+that mis-invokes the binary still sees empty stdout rather than prose it cannot
+parse.
+
+A record is emitted on every path that reaches an invocation, including a spawn
+failure and an agent error. A broken stdout is the one case with no record, and
+it exits `1`; the record is not a durable ledger and a killed harness can leave
+none.

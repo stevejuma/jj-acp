@@ -1,14 +1,25 @@
 //! ACP session and turn lifecycle.
 //!
-//! Owns agent subprocess launch with process-group ownership, `initialize`
-//! handshake, session creation and rotation, single-in-flight turn execution
-//! per scope, idle and absolute turn deadlines, cooperative cancellation,
-//! bounded kill and reap, stop-reason capture and crash respawn.
+//! Owns launching an agent subprocess with process-group ownership, negotiating a
+//! session, executing one prepared turn against a bound, and stopping the process
+//! within bounded grace and reap intervals.
 //!
-//! This crate MUST NOT know how work arrives. Intake, batching and controlling
-//! app transport belong to `lapis-acp-control`; this crate executes one prepared
-//! turn at a time and reports a terminal outcome.
+//! This crate does not know how work arrives. Intake, batching and the
+//! controlling-application transport belong to `lapis-acp-control`; this crate
+//! executes one prepared turn and reports what it observed.
 //!
-//! Cancellation is bounded and cleanup is best-effort: a killed harness or an
-//! unresponsive descendant cannot be guaranteed to stop. Timeouts are unknown
-//! outcomes, never proven success or proven failure.
+//! Cancellation is bounded and cleanup is best-effort. A timeout is an unknown
+//! outcome, never a proven success or a proven failure, and an unreaped child is
+//! reported rather than assumed gone.
+
+#![forbid(unsafe_code)]
+
+pub mod launch;
+pub mod outcome;
+pub mod process;
+pub mod turn;
+
+pub use launch::{LaunchSpec, describe, spawn};
+pub use outcome::{Failure, FailureKind, TimeoutKind, TurnOutcome, TurnStatus};
+pub use process::{ProcessGuard, Termination};
+pub use turn::{Agent, TurnRequest, run_turn};

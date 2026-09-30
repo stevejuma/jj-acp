@@ -100,12 +100,12 @@ floor, then caller overrides. A later layer replaces an earlier one for the same
 name, and the first appearance fixes its position so the result is
 deterministic.
 
-Every layer is stripped of names under the `LAPIS_ACP_` prefix before merging,
-and the stripped names are returned so an operator can see that a definition
-tried to claim harness identity. The harness then adds its own reserved
-variables through a separate function that no catalog file and no caller
-override can reach. The prefix is matched rather than an enumerated list, so a
-future harness variable is covered without a rule change.
+Every layer is stripped of names under the `LAPIS_ACP_TASK_` prefix before
+merging, and the stripped names are returned so an operator can see that a
+definition tried to claim harness identity. The harness then adds its own
+reserved variables through a separate function that no catalog file and no
+caller override can reach. The prefix is matched rather than an enumerated list,
+so a future harness variable is covered without a rule change.
 
 ## Qualification status
 

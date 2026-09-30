@@ -180,11 +180,8 @@ export function validateLedger({
       for (const child of tasks.filter((t) => t.id.startsWith(`${task.id}.`)))
         if (child.status !== "Done")
           errors.push(`${task.id}: incomplete child ${child.id}`);
-      if (
-        task.id === "M4.2" &&
-        !successful.some((e) => e.kind === "real-runner")
-      )
-        errors.push("M4.2: real installed-runner evidence required");
+      if (task.id === "M6" && !successful.some((e) => e.kind === "real-runner"))
+        errors.push("M6: real installed-runner evidence required");
     }
   }
   const visiting = new Set(),

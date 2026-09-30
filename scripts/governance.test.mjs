@@ -172,8 +172,8 @@ test("rejects_fixture_peer_qualification", () =>
   assert.match(
     validateLedger(
       fixture(
-        "| M4.2 | Done | - | LAC-GOV-001 | real runner | next | E-TEST-001 |",
-        [{ ...entry, tasks: ["M4.2"], kind: "fixture-peer" }],
+        "| M6 | Done | - | LAC-GOV-001 | real runner | next | E-TEST-001 |",
+        [{ ...entry, tasks: ["M6"], kind: "fixture-peer" }],
       ),
     ).join(),
     /real installed-runner/,

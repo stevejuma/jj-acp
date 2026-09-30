@@ -41,10 +41,10 @@ invocation. The roadmap and real evidence for each slice live in the
 | M2        | ACP framing, negotiation and session methods                          | Planned  |
 | M3        | Runner catalog, launch environment and deterministic fixture peer     | Planned  |
 | M4        | One-shot `run --task` with sanitized terminal record and exit codes   | Planned  |
-| M4.1      | Deadline, cancellation, process-group cleanup and crash reporting     | Planned  |
-| M4.2      | Real installed-runner qualification                                   | Planned  |
-| M5        | Persistent control transport and standing session pool                | Deferred |
-| M6        | Controlling-application consumer acceptance                           | Planned  |
+| M5        | Deadline, cancellation, process-group cleanup and crash reporting     | Planned  |
+| M6        | Real installed-runner qualification                                   | Planned  |
+| M7        | Persistent control transport and standing session pool                | Deferred |
+| M8        | Controlling-application consumer acceptance                           | Planned  |
 
 ## Requirements
 

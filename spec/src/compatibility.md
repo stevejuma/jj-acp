@@ -153,3 +153,23 @@ a path no in-memory pipe test reaches. And killing the fixture's direct child
 leaves its spawned descendant alive, which is the concrete hazard behind the
 process-group cleanup requirement in [session and turn lifecycle](runner.md)
 rather than an abstract precaution.
+
+## Ported regions as of this revision
+
+The ACP client region is ported and decomposed into twelve modules, the largest
+228 counted lines. The one-shot task runner region is ported with its document
+contract, terminal record, exit codes and bounded cleanup. The shared runtime,
+isolated execution and prompt framing regions are ported in the form the runner
+and control crates need, which is smaller than upstream because the
+relay-derived prompt assembly is gone.
+
+Session scoping is ported in reduced form: a one-shot invocation has exactly one
+scope and one turn, so the opaque-scope machinery upstream needs for channels
+and threads has no work to do yet and arrives with the persistent transport.
+
+The fixture peer is ported with all ten failure modes and is exercised through
+the real binary, not only through the protocol crate. Two defects surfaced that
+way and neither would have been caught by reading the port map: reserving the
+whole `LAPIS_ACP_` environment namespace stripped legitimate launch options, and
+letting `initialize` keep a fixed request timeout gave a hung adapter an
+unbounded startup phase that the lifecycle chapter explicitly forbids.

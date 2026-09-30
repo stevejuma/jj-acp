@@ -164,15 +164,17 @@ fn reserved_environment_keys_are_stripped_from_every_layer() {
     ];
     let overrides = vec![
         ("MODE".to_owned(), "override".to_owned()),
-        (format!("{RESERVED_PREFIX}TASK_ID"), "spoofed".to_owned()),
+        ("LAPIS_ACP_MODEL".to_owned(), "chosen".to_owned()),
+        (format!("{RESERVED_PREFIX}ID"), "spoofed".to_owned()),
     ];
     let plan = plan(&inherited, &floor, &overrides);
     assert_eq!(plan.get("PATH"), Some("/bin"));
     assert_eq!(plan.get("MODE"), Some("override"));
+    assert_eq!(plan.get("LAPIS_ACP_MODEL"), Some("chosen"));
     assert_eq!(plan.get(&reserved), None);
     assert_eq!(
         plan.stripped,
-        vec![reserved.clone(), format!("{RESERVED_PREFIX}TASK_ID")]
+        vec![reserved.clone(), format!("{RESERVED_PREFIX}ID")]
     );
 }
 
@@ -201,7 +203,7 @@ fn harness_variables_are_produced_only_by_the_harness() {
     assert_eq!(with_task.len(), 2);
     assert_eq!(with_task[0].name, format!("{RESERVED_PREFIX}RUNNER"));
     assert_eq!(with_task[0].value, "codex");
-    assert_eq!(with_task[1].name, format!("{RESERVED_PREFIX}TASK_ID"));
+    assert_eq!(with_task[1].name, format!("{RESERVED_PREFIX}ID"));
     assert_eq!(with_task[1].value, "task-1");
     assert_eq!(harness_variables(None, "codex").len(), 1);
     // Whatever the harness sets cannot be contradicted by a declaration, because

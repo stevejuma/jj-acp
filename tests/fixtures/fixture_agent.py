@@ -46,7 +46,7 @@ record({
     "pid": os.getpid(),
     "mode": MODE,
     "cwd": os.getcwd(),
-    "runner": os.environ.get("LAPIS_ACP_RUNNER"),
+    "runner": os.environ.get("LAPIS_ACP_TASK_RUNNER"),
     "taskId": os.environ.get("LAPIS_ACP_TASK_ID"),
     "reserved": sorted(k for k in os.environ if k.startswith("LAPIS_ACP_")),
 })

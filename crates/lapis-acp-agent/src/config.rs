@@ -120,12 +120,11 @@ pub fn parse_definition(value: &Value) -> Result<RunnerDefinition> {
     if value.get("enabled") == Some(&Value::Bool(false)) {
         definition = definition.disabled();
     }
-    if let (Some(hint), Some(url)) = (
-        string_field(value, "installHint"),
-        string_field(value, "installInstructionsUrl"),
-    ) {
-        definition = definition.with_install(hint, url);
-    }
+    // Each is honoured on its own: a definition with a hint and no link, or a
+    // link and no hint, is still useful guidance for an operator.
+    definition.install_hint = string_field(value, "installHint").or(definition.install_hint);
+    definition.install_instructions_url =
+        string_field(value, "installInstructionsUrl").or(definition.install_instructions_url);
     Ok(definition)
 }
 

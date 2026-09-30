@@ -64,28 +64,61 @@ impl<R: AsyncRead + Unpin, W: AsyncWrite + Unpin> Connection<R, W> {
         self.limits
     }
 
-    /// Negotiate the protocol version and read agent capabilities.
+    /// Negotiate the protocol version under the default request limit.
     pub async fn initialize<H: SessionHandler>(
         &mut self,
         handler: &mut H,
         info: &ClientInfo,
         capabilities: ClientCapabilities,
     ) -> Result<InitializeResult, Error> {
+        let budget = TurnBudget::fixed(self.limits.request_timeout);
+        self.initialize_within(handler, info, capabilities, budget)
+            .await
+    }
+
+    /// Negotiate the protocol version under an explicit budget.
+    ///
+    /// A caller executing one prepared turn passes the turn's own budget, so
+    /// adapter startup shares the idle and absolute bounds with the turn instead
+    /// of getting a separate unbounded phase. A hung adapter is then reported as
+    /// the bound that actually elapsed.
+    pub async fn initialize_within<H: SessionHandler>(
+        &mut self,
+        handler: &mut H,
+        info: &ClientInfo,
+        capabilities: ClientCapabilities,
+        budget: TurnBudget,
+    ) -> Result<InitializeResult, Error> {
         let params = initialize::params(info, capabilities);
-        let result = self.call(handler, m::INITIALIZE, params).await?;
+        let result = self
+            .call_within(handler, m::INITIALIZE, params, budget)
+            .await?;
         let negotiated = initialize::parse_result(&result)?;
         self.negotiated = Some(negotiated.protocol_version);
         Ok(negotiated)
     }
 
-    /// Open a session.
+    /// Open a session under the default request limit.
     pub async fn session_new<H: SessionHandler>(
         &mut self,
         handler: &mut H,
         request: &SessionNewRequest<'_>,
     ) -> Result<Session, Error> {
+        let budget = TurnBudget::fixed(self.limits.request_timeout);
+        self.session_new_within(handler, request, budget).await
+    }
+
+    /// Open a session under an explicit budget.
+    pub async fn session_new_within<H: SessionHandler>(
+        &mut self,
+        handler: &mut H,
+        request: &SessionNewRequest<'_>,
+        budget: TurnBudget,
+    ) -> Result<Session, Error> {
         let params = session::new_params(request);
-        let result = self.call(handler, m::SESSION_NEW, params).await?;
+        let result = self
+            .call_within(handler, m::SESSION_NEW, params, budget)
+            .await?;
         session::parse_new_result(&result)
     }
 
@@ -151,6 +184,11 @@ impl<R: AsyncRead + Unpin, W: AsyncWrite + Unpin> Connection<R, W> {
             .await
     }
 
+    /// Close the write half, signalling that no further request will arrive.
+    pub async fn close(&mut self) -> Result<(), Error> {
+        self.writer.close().await
+    }
+
     /// Answer a permission request outside the read loop.
     ///
     /// A caller that defers a decision past the turn it interrupted uses this,
@@ -174,6 +212,38 @@ impl<R: AsyncRead + Unpin, W: AsyncWrite + Unpin> Connection<R, W> {
         self.call_within(handler, method, params, budget).await
     }
 
+    /// The id the next request will carry.
+    ///
+    /// Exposed so a caller can send a request and await its response in two
+    /// steps, which is what racing a turn against a cancellation signal needs:
+    /// the wait must be interruptible without abandoning the request, because the
+    /// agent still owes an answer for that id.
+    pub fn next_request_id(&self) -> u64 {
+        self.next_id
+    }
+
+    /// Write a request without waiting, returning the id it used.
+    pub async fn send_request(&mut self, method: &str, params: Value) -> Result<u64, Error> {
+        let id = self.next_id;
+        self.next_id += 1;
+        self.write_frame(&envelope::request(id, method, params))
+            .await?;
+        Ok(id)
+    }
+
+    /// Wait for the response to an already-sent request.
+    ///
+    /// Agent-initiated traffic is serviced while waiting, exactly as it is during
+    /// [`call_within`](Self::call_within).
+    pub async fn await_response<H: SessionHandler>(
+        &mut self,
+        handler: &mut H,
+        id: u64,
+        budget: TurnBudget,
+    ) -> Result<Value, Error> {
+        self.read_until_response(handler, id, budget).await
+    }
+
     /// Send a request and wait for its response under an explicit budget.
     pub async fn call_within<H: SessionHandler>(
         &mut self,
@@ -182,11 +252,8 @@ impl<R: AsyncRead + Unpin, W: AsyncWrite + Unpin> Connection<R, W> {
         params: Value,
         budget: TurnBudget,
     ) -> Result<Value, Error> {
-        let id = self.next_id;
-        self.next_id += 1;
-        self.write_frame(&envelope::request(id, method, params))
-            .await?;
-        self.read_until_response(handler, id, budget).await
+        let id = self.send_request(method, params).await?;
+        self.await_response(handler, id, budget).await
     }
 
     async fn notify(&mut self, method: &str, params: Value) -> Result<(), Error> {

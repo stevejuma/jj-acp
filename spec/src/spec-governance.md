@@ -97,3 +97,24 @@ file no longer exists is itself a failure, so exceptions cannot outlive their
 justification. When the protocol crate's connection tests outgrew the test
 budget, the response was to split them across three test files sharing one
 harness module rather than to record an exception.
+
+## Milestone shape
+
+The ledger rejects a `Done` task that has an incomplete child, because a
+`<ID>.<N>` suffix asserts that the child is part of the parent's gate rather
+than work that follows it. Follow-on qualification is therefore a sibling
+milestone with a dependency on the one it follows, not a sub-milestone.
+
+That distinction was learned by being blocked rather than by anticipating it.
+The one-shot task runner was originally recorded with process-group containment
+and real installed-runner qualification as its children, which made the runner
+impossible to call done until both were also done, even though its own gate was
+complete and independently evidenced. Renumbering them as siblings with
+dependencies preserved the ordering without conflating a delivered gate with the
+hardening that follows it.
+
+One task carries a special evidence rule: the real installed-runner
+qualification cannot be marked done on evidence whose kind is anything other
+than a real runner run. A fixture-peer suite is deterministic and model-free by
+design, and that is exactly why it cannot prove interoperability with a shipping
+adapter.

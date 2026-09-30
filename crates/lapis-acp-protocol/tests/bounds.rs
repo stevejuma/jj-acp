@@ -177,3 +177,33 @@ async fn an_ended_stream_yields_no_further_frames() {
     );
     assert!(partial.next().await.expect("read").is_none());
 }
+
+#[tokio::test]
+async fn a_read_cancelled_mid_frame_resumes_instead_of_losing_bytes() {
+    // This is the property that makes racing a turn against a cancellation
+    // signal safe: dropping a pending read must not discard the bytes of a frame
+    // that has already partly arrived.
+    let (client, mut agent) = duplex(CAPACITY);
+    let mut reader = FrameReader::new(BufReader::new(client));
+    agent
+        .write_all(b"{\"jsonrpc\": ")
+        .await
+        .expect("first half");
+    agent.flush().await.expect("flush");
+
+    let pending = tokio::time::timeout(Duration::from_millis(50), reader.next());
+    assert!(
+        pending.await.is_err(),
+        "the read should still be waiting for the rest of the frame"
+    );
+
+    agent
+        .write_all(b"\"2.0\", \"id\": 1, \"result\": {\"ok\": true}}\n")
+        .await
+        .expect("second half");
+    agent.flush().await.expect("flush");
+    assert_eq!(
+        reader.next().await.expect("resumed read"),
+        Some(json!({"jsonrpc": "2.0", "id": 1, "result": {"ok": true}}))
+    );
+}

@@ -106,3 +106,18 @@ protocol crate's manifest and fails if a process or network facility appears in
 it, and the boundary checker fails on any crate absent from the layer matrix and
 on any excluded dependency, so a crate cannot quietly acquire a capability its
 layer does not own.
+
+## Layer status
+
+All six crates carry implementation except where the ledger says otherwise. The
+protocol, agent, runner, control and CLI crates are populated; the testkit crate
+owns fixture location, launch configuration and log parsing. The dependency
+matrix in `scripts/check-boundaries.mjs` is unchanged from the bootstrap slice,
+which is the point: filling five crates with real code required no new layer
+edge, so the original decomposition was adequate rather than merely tidy.
+
+The one dependency the matrix does express and the bootstrap could not exercise
+is the testkit's. It depends on the protocol and agent crates because it
+configures a fixture through the same types a production caller uses, and it
+must never depend on the runner, control or CLI crates, or a test helper would
+become a composition path around them.
