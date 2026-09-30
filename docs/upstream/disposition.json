@@ -51,7 +51,7 @@
     "src/acp.rs": {
       "disposition": "ported-with-changes",
       "owner": "crates/lapis-acp-protocol",
-      "note": "Decomposed into bounded modules under the counted-line budget; relay-derived prompt assembly removed."
+      "note": "Decomposed into twelve bounded modules; permission auto-approval replaced by a caller-supplied decision defaulting to cancellation; terminal-auth and vendor notification capability advertisements removed; relay-derived prompt assembly dropped."
     },
     "src/acp/system_prompt_tests.rs": {
       "disposition": "not-ported",

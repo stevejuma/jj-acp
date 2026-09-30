@@ -11,12 +11,12 @@ passing concrete tests linked from the progress ledger.
 | LAC-ARCH-004   | Implemented | `scripts/rust-architecture.mjs`; `scripts/rust-architecture.test.mjs`; [bootstrap evidence](milestones.md)                                           |
 | LAC-ARCH-005   | Planned     | [Architecture](architecture.md); [milestone gate](milestones.md)                                                                                     |
 | LAC-ARCH-006   | Planned     | [Architecture](architecture.md); [milestone gate](milestones.md)                                                                                     |
-| LAC-PROTO-001  | Planned     | [ACP wire protocol](protocol.md); [milestone gate](milestones.md)                                                                                    |
-| LAC-PROTO-002  | Planned     | [ACP wire protocol](protocol.md); [milestone gate](milestones.md)                                                                                    |
-| LAC-PROTO-003  | Planned     | [ACP wire protocol](protocol.md); [milestone gate](milestones.md)                                                                                    |
-| LAC-PROTO-004  | Planned     | [ACP wire protocol](protocol.md); [milestone gate](milestones.md)                                                                                    |
-| LAC-PROTO-005  | Planned     | [ACP wire protocol](protocol.md); [milestone gate](milestones.md)                                                                                    |
-| LAC-PROTO-006  | Planned     | [ACP wire protocol](protocol.md); [milestone gate](milestones.md)                                                                                    |
+| LAC-PROTO-001  | Implemented | `crates/lapis-acp-protocol/src/frame.rs`; `crates/lapis-acp-protocol/tests/bounds.rs`; [M2 evidence](milestones.md)                                  |
+| LAC-PROTO-002  | Implemented | `crates/lapis-acp-protocol/tests/wire.rs`; [M2 evidence](milestones.md)                                                                              |
+| LAC-PROTO-003  | Implemented | `crates/lapis-acp-protocol/tests/wire.rs`; `crates/lapis-acp-protocol/tests/inbound.rs`; [M2 evidence](milestones.md)                                |
+| LAC-PROTO-004  | Implemented | `crates/lapis-acp-protocol/tests/payload.rs`; `crates/lapis-acp-protocol/tests/wire.rs`; [M2 evidence](milestones.md)                                |
+| LAC-PROTO-005  | Implemented | `crates/lapis-acp-protocol/tests/payload.rs`; `crates/lapis-acp-protocol/tests/wire.rs`; [M2 evidence](milestones.md)                                |
+| LAC-PROTO-006  | Implemented | `scripts/governance.test.mjs`; `scripts/check-boundaries.mjs`; `crates/lapis-acp-protocol/Cargo.toml`; [M2 evidence](milestones.md)                  |
 | LAC-AGENT-001  | Planned     | [Runner catalog](agents.md); [milestone gate](milestones.md)                                                                                         |
 | LAC-AGENT-002  | Planned     | [Runner catalog](agents.md); [milestone gate](milestones.md)                                                                                         |
 | LAC-AGENT-003  | Planned     | [Runner catalog](agents.md); [milestone gate](milestones.md)                                                                                         |

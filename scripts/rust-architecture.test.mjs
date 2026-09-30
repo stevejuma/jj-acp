@@ -119,12 +119,22 @@ test("rejects_production_import_of_the_testkit", () => {
 test("rejects_inline_tests_in_a_production_module", () => {
   const dir = root({
     "crates/lapis-acp-protocol/src/frame.rs":
-      "fn a() {}\n\n#[cfg(test)]\nmod tests {}\n",
+      "fn a() {}\n\n#[cfg(test)]\nmod inline {\n    #[test]\n    fn proof() {}\n}\n",
   });
   assert.match(
     architectureErrors(dir, { files: {} }).join(),
-    /use a tests\.rs sibling/,
+    /defines tests inline/,
   );
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test("allows_a_cfg_test_sibling_module_declaration", () => {
+  const dir = root({
+    "crates/lapis-acp-protocol/src/frame.rs":
+      "fn a() {}\n\n#[cfg(test)]\nmod tests;\n",
+    "crates/lapis-acp-protocol/src/frame/tests.rs": "#[test]\nfn proof() {}\n",
+  });
+  assert.deepEqual(architectureErrors(dir, { files: {} }), []);
   rmSync(dir, { recursive: true, force: true });
 });
 

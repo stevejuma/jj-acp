@@ -76,9 +76,10 @@ baseline ships empty.
 
 Inspect the owning `crates/<crate>/src/` tree before adding files. Add behaviour
 in the crate that owns the concern rather than in the CLI composition facade.
-Internal modules import siblings directly. Production modules carry no inline
-test attributes and never import `lapis-acp-testkit`; unit tests live in a
-`tests.rs` sibling module and integration tests in `crates/<crate>/tests/`. Run
+Internal modules import siblings directly. Production modules define no test
+functions inline and never import `lapis-acp-testkit`; a
+`#[cfg(test)] mod tests;` declaration is fine, but the bodies live in a
+`tests.rs` sibling module or in `crates/<crate>/tests/`. Run
 `pnpm check:boundaries` and `pnpm check:architecture` with the relevant tests.
 
 ### Completion checklist

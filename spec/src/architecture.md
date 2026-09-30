@@ -26,14 +26,14 @@ fails the gate instead of review.
 
 ## Requirements
 
-| ID           | Requirement                                                                                                                                                                |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| LAC-ARCH-001 | The repository MUST be a Cargo workspace of layered crates whose internal dependencies match the matrix enforced by `scripts/check-boundaries.mjs`.                        |
-| LAC-ARCH-002 | `lapis-acp` MUST NOT depend on Nostr, transport, HTTP, TLS or database crates, and the boundary checker MUST fail closed when one appears.                                 |
-| LAC-ARCH-003 | Production sources MUST stay at or below 300 counted lines and test sources at or below 500, with exceptions only as explicit baseline entries.                            |
-| LAC-ARCH-004 | Production modules MUST NOT carry inline test attributes or import the testkit crate; unit tests use a `tests.rs` sibling and integration tests a crate `tests` directory. |
-| LAC-ARCH-005 | The controlling application MUST own runner selection, working directory, credentials and prompt content; `lapis-acp` MUST NOT derive them on its own.                     |
-| LAC-ARCH-006 | A crate MUST own its behaviour; the CLI crate MUST compose and MUST NOT reimplement protocol, scheduling or transport logic.                                               |
+| ID           | Requirement                                                                                                                                                                                     |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| LAC-ARCH-001 | The repository MUST be a Cargo workspace of layered crates whose internal dependencies match the matrix enforced by `scripts/check-boundaries.mjs`.                                             |
+| LAC-ARCH-002 | `lapis-acp` MUST NOT depend on Nostr, transport, HTTP, TLS or database crates, and the boundary checker MUST fail closed when one appears.                                                      |
+| LAC-ARCH-003 | Production sources MUST stay at or below 300 counted lines and test sources at or below 500, with exceptions only as explicit baseline entries.                                                 |
+| LAC-ARCH-004 | Production modules MUST NOT define test functions inline or import the testkit crate; unit tests MUST use a `tests.rs` sibling module and integration tests MUST use a crate `tests` directory. |
+| LAC-ARCH-005 | The controlling application MUST own runner selection, working directory, credentials and prompt content; `lapis-acp` MUST NOT derive them on its own.                                          |
+| LAC-ARCH-006 | A crate MUST own its behaviour; the CLI crate MUST compose and MUST NOT reimplement protocol, scheduling or transport logic.                                                                    |
 
 ## Crate ownership
 

@@ -12,7 +12,7 @@ in its enclosing Jujutsu change.
 | Bootstrap   | Done     | -         | LAC-GOV-001,LAC-GOV-002,LAC-GOV-003,LAC-GOV-005,LAC-GOV-006,LAC-ARCH-001,LAC-ARCH-002,LAC-COMPAT-004                                                                                                                                                                | Canonical specification, ledger, crate skeleton, boundary gate and pinned toolchain green on an empty product | Maintain governance each slice             | E-BOOT-001 |
 | Bootstrap.1 | Done     | -         | LAC-GOV-004,LAC-GOV-007,LAC-ARCH-003,LAC-ARCH-004                                                                                                                                                                                                                   | Boundary, counted-line and progress-checker negative tests pass                                               | Maintain gates each slice                  | E-BOOT-002 |
 | M1          | Done     | Bootstrap | LAC-COMPAT-001,LAC-COMPAT-002,LAC-COMPAT-003,LAC-COMPAT-007,LAC-SEC-001                                                                                                                                                                                             | Pinned upstream lock, attribution and digest-verified drift detection                                         | Implement M2 protocol crate                | E-M1-001   |
-| M2          | Planned  | Bootstrap | LAC-PROTO-001,LAC-PROTO-002,LAC-PROTO-003,LAC-PROTO-004,LAC-PROTO-005,LAC-PROTO-006                                                                                                                                                                                 | Bounded ACP framing, version negotiation and session methods under unit test                                  | Implement M3 runner catalog                | -          |
+| M2          | Done     | Bootstrap | LAC-PROTO-001,LAC-PROTO-002,LAC-PROTO-003,LAC-PROTO-004,LAC-PROTO-005,LAC-PROTO-006                                                                                                                                                                                 | Bounded ACP framing, version negotiation and session methods under unit test                                  | Implement M3 runner catalog                | E-M2-001   |
 | M3          | Planned  | M2        | LAC-AGENT-001,LAC-AGENT-002,LAC-AGENT-003,LAC-AGENT-004,LAC-AGENT-005,LAC-AGENT-006,LAC-COMPAT-005                                                                                                                                                                  | Tiered runner catalog, reserved-key stripping and deterministic fixture peer                                  | Implement M4 task runner                   | -          |
 | M4          | Planned  | M3        | LAC-CTRL-002,LAC-CTRL-003,LAC-CTRL-004,LAC-CTRL-005,LAC-CTRL-006,LAC-CTRL-007,LAC-CLI-001,LAC-CLI-002,LAC-CLI-004,LAC-CLI-005,LAC-CLI-006,LAC-RUN-001,LAC-RUN-003,LAC-RUN-004,LAC-ARCH-005,LAC-ARCH-006,LAC-SEC-002,LAC-SEC-003,LAC-SEC-004,LAC-SEC-005,LAC-SEC-007 | One-shot prepared task runner with sanitized terminal record, published exit codes and clean stdout           | Qualify M4.1 lifecycle bounds              | -          |
 | M4.1        | Planned  | M4        | LAC-RUN-002,LAC-RUN-005,LAC-RUN-007,LAC-CLI-003,LAC-SEC-006                                                                                                                                                                                                         | Bounded cancellation, process-group cleanup, crash reporting and signal handling                              | Qualify M4.2 real runner                   | -          |
@@ -194,6 +194,90 @@ coexist with an acknowledged gap.
     "remaining": [],
     "versions": "block/buzz@2664d14316790a57ea44b3f97c57440b70e43436; Node v24.10.0; SHA-256",
     "formats": "upstream disposition map; generated digest lock; drift report"
+  },
+  {
+    "id": "E-M2-001",
+    "tasks": ["M2"],
+    "date": "2026-09-30",
+    "kind": "protocol",
+    "files": [
+      "crates/lapis-acp-protocol/Cargo.toml",
+      "crates/lapis-acp-protocol/src/lib.rs",
+      "crates/lapis-acp-protocol/src/budget.rs",
+      "crates/lapis-acp-protocol/src/client.rs",
+      "crates/lapis-acp-protocol/src/config_option.rs",
+      "crates/lapis-acp-protocol/src/content.rs",
+      "crates/lapis-acp-protocol/src/envelope.rs",
+      "crates/lapis-acp-protocol/src/error.rs",
+      "crates/lapis-acp-protocol/src/frame.rs",
+      "crates/lapis-acp-protocol/src/handler.rs",
+      "crates/lapis-acp-protocol/src/initialize.rs",
+      "crates/lapis-acp-protocol/src/permission.rs",
+      "crates/lapis-acp-protocol/src/session.rs",
+      "crates/lapis-acp-protocol/src/stop_reason.rs",
+      "crates/lapis-acp-protocol/src/update.rs",
+      "crates/lapis-acp-protocol/tests/common/mod.rs",
+      "crates/lapis-acp-protocol/tests/payload.rs",
+      "crates/lapis-acp-protocol/tests/wire.rs",
+      "crates/lapis-acp-protocol/tests/inbound.rs",
+      "crates/lapis-acp-protocol/tests/bounds.rs",
+      "Cargo.toml",
+      "Cargo.lock",
+      "scripts/governance.test.mjs",
+      "scripts/rust-architecture.mjs",
+      "scripts/rust-architecture.test.mjs",
+      "docs/upstream/disposition.json",
+      "docs/upstream/lock.json",
+      "spec/src/protocol.md",
+      "spec/src/architecture.md",
+      "spec/src/compatibility.md",
+      "spec/src/spec-governance.md",
+      "AGENTS.md"
+    ],
+    "tests": [
+      "crates/lapis-acp-protocol/tests/wire.rs#initialize_negotiates_and_records_the_selected_version",
+      "crates/lapis-acp-protocol/tests/wire.rs#initialize_rejects_a_version_the_client_cannot_speak",
+      "crates/lapis-acp-protocol/tests/wire.rs#a_prompt_streams_updates_and_then_returns_one_stop_reason",
+      "crates/lapis-acp-protocol/tests/wire.rs#request_ids_increase_and_stay_correlated",
+      "crates/lapis-acp-protocol/tests/wire.rs#cancellation_is_a_notification_and_carries_no_id",
+      "crates/lapis-acp-protocol/tests/inbound.rs#an_unanswered_permission_request_is_cancelled_not_approved",
+      "crates/lapis-acp-protocol/tests/inbound.rs#an_explicit_approval_selects_the_option_by_kind",
+      "crates/lapis-acp-protocol/tests/inbound.rs#an_unimplemented_agent_request_is_answered_not_ignored",
+      "crates/lapis-acp-protocol/tests/bounds.rs#an_oversized_frame_is_refused_before_it_can_be_buffered",
+      "crates/lapis-acp-protocol/tests/bounds.rs#the_idle_bound_reports_silence_while_the_absolute_bound_caps_noise",
+      "crates/lapis-acp-protocol/tests/bounds.rs#an_agent_that_stops_reading_is_reported_as_a_write_timeout",
+      "crates/lapis-acp-protocol/tests/bounds.rs#a_closed_agent_stream_is_reported_not_hung",
+      "crates/lapis-acp-protocol/tests/payload.rs#a_model_match_comes_from_the_nested_candidates_not_the_current_value",
+      "crates/lapis-acp-protocol/tests/payload.rs#stop_reason_parsing_tolerates_agent_casing",
+      "scripts/governance.test.mjs#the_protocol_crate_declares_no_process_or_network_facility",
+      "scripts/rust-architecture.test.mjs#allows_a_cfg_test_sibling_module_declaration"
+    ],
+    "runs": [
+      {
+        "command": "cargo test -p lapis-acp-protocol --locked",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "cargo clippy --workspace --all-targets --locked -- -D warnings",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "node scripts/rust-architecture.mjs",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "node --test scripts/governance.test.mjs scripts/rust-architecture.test.mjs scripts/upstream-lock.test.mjs",
+        "result": "pass",
+        "failures": 0
+      }
+    ],
+    "result": "pass",
+    "remaining": [],
+    "versions": "Rust 1.98.1; tokio 1.53.1; serde 1.0.229; serde_json 1.0.151; thiserror 2.0.21",
+    "formats": "ACP JSON-RPC protocol version 2 with version 1 fallback; newline-delimited frames capped at 10 MB"
   }
 ]
 ```

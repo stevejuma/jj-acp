@@ -1,11 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   validateLedger,
   ledgerPath,
   needsEvidence,
 } from "./check-progress.mjs";
-import { dependencyErrors } from "./check-boundaries.mjs";
+import { dependencyErrors, excluded } from "./check-boundaries.mjs";
+
+const root = fileURLToPath(new URL("..", import.meta.url));
 
 const entry = {
   id: "E-TEST-001",
@@ -257,3 +262,44 @@ test("rejects_crate_outside_the_boundary_matrix", () =>
     dependencyErrors([{ name: "lapis-acp-mystery", dependencies: [] }]).join(),
     /absent from the boundary matrix/,
   ));
+
+test("the_protocol_crate_declares_no_process_or_network_facility", () => {
+  const manifest = readFileSync(
+    join(root, "crates/lapis-acp-protocol/Cargo.toml"),
+    "utf8",
+  );
+  // The protocol crate speaks over a caller-supplied byte stream, so it must
+  // never gain the ability to spawn a process or open a socket itself.
+  for (const facility of ["process", "net"])
+    assert.ok(
+      !new RegExp(`"${facility}"`).test(manifest),
+      `tokio ${facility} feature leaked into the protocol crate`,
+    );
+  assert.deepEqual(
+    dependencyErrors([
+      {
+        name: "lapis-acp-protocol",
+        dependencies: [
+          { name: "tokio" },
+          { name: "serde" },
+          { name: "serde_json" },
+          { name: "thiserror" },
+        ],
+      },
+    ]),
+    [],
+  );
+});
+
+test("every_declared_crate_dependency_survives_the_exclusion_list", () => {
+  const workspace = readFileSync(join(root, "Cargo.toml"), "utf8");
+  const declared = [...workspace.matchAll(/^([a-z0-9_-]+) = /gm)].map(
+    (match) => match[1],
+  );
+  assert.ok(
+    declared.includes("serde"),
+    "expected serde in the workspace manifest",
+  );
+  for (const name of declared)
+    assert.ok(!excluded.test(name), `${name} is an excluded dependency`);
+});

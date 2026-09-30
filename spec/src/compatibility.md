@@ -90,6 +90,16 @@ A dropped region names the reason it was refused and has no owner. A not-ported
 region names an owning crate and a deferred concern, and is a deliberate
 deferral tracked in the ledger rather than an oversight.
 
+A `ported-with-changes` note records what changed, not merely that something
+did. The ACP client region is the clearest case: it is decomposed into twelve
+bounded modules, its automatic approval of every permission request is replaced
+by a caller-supplied decision that defaults to cancellation, and its
+advertisement of terminal-native authentication and vendor notification
+extensions is removed because this harness holds no credentials and publishes no
+telemetry. Each of those is a boundary this repository holds, so it is recorded
+in the port map where a re-port will surface it rather than left in a commit
+message where it will not.
+
 ## Toolchain and dependency pins
 
 The toolchain is pinned by `rust-toolchain.toml` with the cargo, clippy and

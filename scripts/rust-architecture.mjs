@@ -80,10 +80,10 @@ export function architectureErrors(root, baseline) {
     if (
       !isTest &&
       path.endsWith(".rs") &&
-      /#\[(?:cfg\(test\)|(?:tokio::)?test)\]/u.test(source)
+      /#\[(?:tokio::)?test\]/u.test(source)
     )
       errors.push(
-        `${path}: production module carries inline tests; use a tests.rs sibling or crates/*/tests`,
+        `${path}: production module defines tests inline; use a tests.rs sibling or crates/*/tests`,
       );
   }
   return errors;

@@ -74,3 +74,21 @@ A lane that needs the network, a credential or a model provider MUST NOT be part
 of the normal check run. It belongs in an explicitly named opt-in lane whose
 absent evidence is recorded in the ledger as a gap rather than inferred as a
 pass.
+
+## Test placement and the counted-line gate
+
+The counted-line gate classifies a source file as production, test or script
+from its path, and a production file that defines a test function inline is
+rejected. A `#[cfg(test)] mod tests;` declaration is accepted, because it names
+a sibling file rather than carrying test bodies; the bodies live in that sibling
+or in the crate's `tests` directory. The distinction matters to the budget: an
+inline test module inflates a production file's counted lines with content that
+is not production, which would either force a spurious baseline exception or
+push real logic out of the file it belongs in.
+
+An over-budget file is extracted, never baselined. The baseline exists for a
+file whose extraction genuinely cannot lower its budget, and a stale entry whose
+file no longer exists is itself a failure, so exceptions cannot outlive their
+justification. When the protocol crate's connection tests outgrew the test
+budget, the response was to split them across three test files sharing one
+harness module rather than to record an exception.
