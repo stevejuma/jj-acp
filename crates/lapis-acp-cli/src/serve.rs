@@ -4,9 +4,10 @@
 //! this module builds the runtime, installs signal handlers, and maps the way the
 //! loop ended onto a process exit code.
 
+use lapis_acp_control::ServeLimits;
 use lapis_acp_control::record::ExitCode;
-use lapis_acp_control::serve::{ServeExit, serve};
-use tokio::io::{BufReader, stdout};
+use lapis_acp_control::serve::{ServeConfig, ServeExit, serve};
+use lapis_acp_control::transport::stdio;
 
 use crate::args::LaunchOptions;
 use crate::run_task::invocation_config;
@@ -36,9 +37,16 @@ pub async fn execute(launch: &LaunchOptions) -> i32 {
     // application that is gone has nobody to receive a record, so the honest
     // outcome is a bounded shutdown and the signal's own exit code.
     let mut receiver = installed.receiver.clone();
-    let input = BufReader::new(tokio::io::stdin());
+    let serve_config = ServeConfig {
+        limits: ServeLimits {
+            workers: launch.workers,
+            queue_capacity: launch.queue_capacity,
+        },
+        invocation: config,
+    };
+    let (mut source, sink) = stdio();
     let served = tokio::select! {
-        exit = serve(input, stdout(), config) => exit,
+        exit = serve(&mut source, sink, serve_config) => exit,
         _ = wait_for_signal(&mut receiver) => ServeExit::Shutdown,
     };
     match served {

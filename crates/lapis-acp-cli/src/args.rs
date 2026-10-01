@@ -23,6 +23,18 @@ pub const DEFAULT_CANCEL_GRACE: Duration = Duration::from_secs(5);
 /// Default reap bound after a kill.
 pub const DEFAULT_REAP_TIMEOUT: Duration = Duration::from_secs(5);
 
+/// Default concurrent submissions for `serve`.
+///
+/// One worker keeps the serial behaviour a controlling application had before
+/// scopes existed, so raising concurrency is an explicit choice.
+pub const DEFAULT_WORKERS: usize = 1;
+
+/// Default bound on waiting submissions for `serve`.
+pub const DEFAULT_QUEUE_CAPACITY: usize = 16;
+
+/// Highest permitted worker count.
+pub const MAX_WORKERS: usize = 32;
+
 /// A parsing refusal.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ArgError {
@@ -67,6 +79,10 @@ pub struct LaunchOptions {
     pub prompt_transport: SystemPromptTransport,
     /// Working directory; defaults to the launch directory.
     pub cwd: Option<PathBuf>,
+    /// How many submissions `serve` may execute at once.
+    pub workers: usize,
+    /// How many submissions `serve` may queue before refusing one.
+    pub queue_capacity: usize,
 }
 
 impl Default for LaunchOptions {
@@ -84,6 +100,8 @@ impl Default for LaunchOptions {
             system_prompt_file: None,
             prompt_transport: SystemPromptTransport::Field,
             cwd: None,
+            workers: DEFAULT_WORKERS,
+            queue_capacity: DEFAULT_QUEUE_CAPACITY,
         }
     }
 }
@@ -168,6 +186,8 @@ Run options:
   --reap-timeout <secs>      reap bound (LAPIS_ACP_REAP_TIMEOUT)
   --system-prompt-file <p>   standing instructions (LAPIS_ACP_SYSTEM_PROMPT_FILE)
   --prompt-transport <kind>  field | meta | meta-append (LAPIS_ACP_PROMPT_TRANSPORT)
+  --workers <n>              concurrent submissions for serve (LAPIS_ACP_WORKERS)
+  --queue-capacity <n>       waiting submissions for serve (LAPIS_ACP_QUEUE_CAPACITY)
 
 A requested model, effort or mode that the adapter does not offer is reported on
 stderr and the adapter's own default is kept; it never fails the run.
@@ -253,6 +273,9 @@ fn parse_launch(
             None => SystemPromptTransport::Field,
         },
         cwd: env("LAPIS_ACP_CWD").map(PathBuf::from),
+        workers: optional_count(env, "LAPIS_ACP_WORKERS", "--workers")?.unwrap_or(DEFAULT_WORKERS),
+        queue_capacity: optional_count(env, "LAPIS_ACP_QUEUE_CAPACITY", "--queue-capacity")?
+            .unwrap_or(DEFAULT_QUEUE_CAPACITY),
     };
 
     let mut task: Option<TaskSource> = None;
@@ -289,6 +312,13 @@ fn parse_launch(
             "--system-prompt-file" => {
                 launch.system_prompt_file = Some(next_value(items, "--system-prompt-file")?);
             }
+            "--workers" => {
+                launch.workers = count(&next_value(items, "--workers")?, "--workers")?;
+            }
+            "--queue-capacity" => {
+                launch.queue_capacity =
+                    count(&next_value(items, "--queue-capacity")?, "--queue-capacity")?;
+            }
             "--prompt-transport" => {
                 launch.prompt_transport = transport(&next_value(items, "--prompt-transport")?)?;
             }
@@ -316,6 +346,29 @@ fn next_value(items: &mut std::vec::IntoIter<String>, flag: &str) -> Result<Stri
     items
         .next()
         .ok_or_else(|| ArgError::Usage(format!("{flag} needs a value")))
+}
+
+fn count(value: &str, option: &str) -> Result<usize, ArgError> {
+    let parsed: usize = value
+        .trim()
+        .parse()
+        .map_err(|_| ArgError::Invalid(format!("{option} must be a whole number")))?;
+    if parsed == 0 {
+        return Err(ArgError::Invalid(format!("{option} must be at least 1")));
+    }
+    if parsed > MAX_WORKERS && option == "--workers" {
+        return Err(ArgError::Invalid(format!(
+            "{option} must be at most {MAX_WORKERS}"
+        )));
+    }
+    Ok(parsed)
+}
+
+fn optional_count(env: &Env, name: &str, flag: &str) -> Result<Option<usize>, ArgError> {
+    match env(name) {
+        Some(value) => Ok(Some(count(&value, flag)?)),
+        None => Ok(None),
+    }
 }
 
 fn optional_duration(env: &Env, name: &str, flag: &str) -> Result<Option<Duration>, ArgError> {

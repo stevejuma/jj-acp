@@ -7,20 +7,20 @@ in its enclosing Jujutsu change.
 
 ## Tasks and gates
 
-| ID          | Status  | Depends   | Requirements                                                                                                                                                                                                                                                                                            | Gate                                                                                                                                     | Next                                       | Evidence          |
-| ----------- | ------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ----------------- |
-| Bootstrap   | Done    | -         | LAC-GOV-001,LAC-GOV-002,LAC-GOV-003,LAC-GOV-005,LAC-GOV-006,LAC-ARCH-001,LAC-ARCH-002,LAC-COMPAT-004                                                                                                                                                                                                    | Canonical specification, ledger, crate skeleton, boundary gate and pinned toolchain green on an empty product                            | Maintain governance each slice             | E-BOOT-001        |
-| Bootstrap.1 | Done    | -         | LAC-GOV-004,LAC-GOV-007,LAC-ARCH-003,LAC-ARCH-004                                                                                                                                                                                                                                                       | Boundary, counted-line and progress-checker negative tests pass                                                                          | Maintain gates each slice                  | E-BOOT-002        |
-| M1          | Done    | Bootstrap | LAC-COMPAT-001,LAC-COMPAT-002,LAC-COMPAT-003,LAC-COMPAT-007,LAC-SEC-001                                                                                                                                                                                                                                 | Pinned upstream lock, attribution and digest-verified drift detection                                                                    | Implement M2 protocol crate                | E-M1-001          |
-| M2          | Done    | Bootstrap | LAC-PROTO-001,LAC-PROTO-002,LAC-PROTO-003,LAC-PROTO-004,LAC-PROTO-005,LAC-PROTO-006                                                                                                                                                                                                                     | Bounded ACP framing, version negotiation and session methods under unit test                                                             | Implement M3 runner catalog                | E-M2-001          |
-| M3          | Done    | M2        | LAC-AGENT-001,LAC-AGENT-002,LAC-AGENT-003,LAC-AGENT-004,LAC-AGENT-005,LAC-AGENT-006,LAC-COMPAT-005                                                                                                                                                                                                      | Tiered runner catalog, reserved-key stripping and deterministic fixture peer                                                             | Implement M4 task runner                   | E-M3-001          |
-| M4          | Done    | M3        | LAC-CTRL-002,LAC-CTRL-003,LAC-CTRL-004,LAC-CTRL-005,LAC-CTRL-006,LAC-CTRL-007,LAC-CLI-001,LAC-CLI-002,LAC-CLI-003,LAC-CLI-004,LAC-CLI-005,LAC-CLI-006,LAC-RUN-001,LAC-RUN-002,LAC-RUN-003,LAC-RUN-004,LAC-ARCH-005,LAC-ARCH-006,LAC-SEC-002,LAC-SEC-003,LAC-SEC-004,LAC-SEC-005,LAC-SEC-006,LAC-SEC-007 | One-shot prepared task runner with sanitized record, published exit codes, signal cleanup and clean stdout                               | Qualify M5 process-group containment       | E-M4-001          |
-| M5          | Done    | M4        | LAC-RUN-005,LAC-RUN-007                                                                                                                                                                                                                                                                                 | Descendant containment on both the forced and the graceful path, crash reporting distinct from a timeout, and no re-dispatch             | Qualify M6 against a real installed runner | E-M5-001          |
-| M6          | Done    | M5        | LAC-COMPAT-006,LAC-PROTO-002                                                                                                                                                                                                                                                                            | Real installed-runner qualification against cursor-agent acp recorded separately from fixture evidence                                   | Implement M7 session configuration         | E-M6-001,E-M6-002 |
-| M7          | Done    | M6        | LAC-RUN-006                                                                                                                                                                                                                                                                                             | Model, effort and mode resolved per session with transport-versus-rejection classification, qualified live on two adapters               | Implement M8 persistent transport          | E-M7-001          |
-| M8          | Done    | M7        | LAC-CTRL-001                                                                                                                                                                                                                                                                                            | Persistent versioned control protocol over stdio with concurrent cancellation, frame-level refusals and one shape for every task outcome | Implement M9 standing pool                 | E-M8-001          |
-| M9          | Planned | M8        | LAC-RUN-001,LAC-RUN-005                                                                                                                                                                                                                                                                                 | Standing session pool, caller-named scopes, inbound batching and crash respawn without re-dispatch                                       | Implement M10 consumer acceptance          | -                 |
-| M10         | Planned | M9        | LAC-ARCH-005                                                                                                                                                                                                                                                                                            | Controlling-application consumer acceptance in a real host                                                                               | Future release                             | -                 |
+| ID          | Status  | Depends   | Requirements                                                                                                                                                                                                                                                                                            | Gate                                                                                                                                                | Next                                       | Evidence          |
+| ----------- | ------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ----------------- |
+| Bootstrap   | Done    | -         | LAC-GOV-001,LAC-GOV-002,LAC-GOV-003,LAC-GOV-005,LAC-GOV-006,LAC-ARCH-001,LAC-ARCH-002,LAC-COMPAT-004                                                                                                                                                                                                    | Canonical specification, ledger, crate skeleton, boundary gate and pinned toolchain green on an empty product                                       | Maintain governance each slice             | E-BOOT-001        |
+| Bootstrap.1 | Done    | -         | LAC-GOV-004,LAC-GOV-007,LAC-ARCH-003,LAC-ARCH-004                                                                                                                                                                                                                                                       | Boundary, counted-line and progress-checker negative tests pass                                                                                     | Maintain gates each slice                  | E-BOOT-002        |
+| M1          | Done    | Bootstrap | LAC-COMPAT-001,LAC-COMPAT-002,LAC-COMPAT-003,LAC-COMPAT-007,LAC-SEC-001                                                                                                                                                                                                                                 | Pinned upstream lock, attribution and digest-verified drift detection                                                                               | Implement M2 protocol crate                | E-M1-001          |
+| M2          | Done    | Bootstrap | LAC-PROTO-001,LAC-PROTO-002,LAC-PROTO-003,LAC-PROTO-004,LAC-PROTO-005,LAC-PROTO-006                                                                                                                                                                                                                     | Bounded ACP framing, version negotiation and session methods under unit test                                                                        | Implement M3 runner catalog                | E-M2-001          |
+| M3          | Done    | M2        | LAC-AGENT-001,LAC-AGENT-002,LAC-AGENT-003,LAC-AGENT-004,LAC-AGENT-005,LAC-AGENT-006,LAC-COMPAT-005                                                                                                                                                                                                      | Tiered runner catalog, reserved-key stripping and deterministic fixture peer                                                                        | Implement M4 task runner                   | E-M3-001          |
+| M4          | Done    | M3        | LAC-CTRL-002,LAC-CTRL-003,LAC-CTRL-004,LAC-CTRL-005,LAC-CTRL-006,LAC-CTRL-007,LAC-CLI-001,LAC-CLI-002,LAC-CLI-003,LAC-CLI-004,LAC-CLI-005,LAC-CLI-006,LAC-RUN-001,LAC-RUN-002,LAC-RUN-003,LAC-RUN-004,LAC-ARCH-005,LAC-ARCH-006,LAC-SEC-002,LAC-SEC-003,LAC-SEC-004,LAC-SEC-005,LAC-SEC-006,LAC-SEC-007 | One-shot prepared task runner with sanitized record, published exit codes, signal cleanup and clean stdout                                          | Qualify M5 process-group containment       | E-M4-001          |
+| M5          | Done    | M4        | LAC-RUN-005,LAC-RUN-007                                                                                                                                                                                                                                                                                 | Descendant containment on both the forced and the graceful path, crash reporting distinct from a timeout, and no re-dispatch                        | Qualify M6 against a real installed runner | E-M5-001          |
+| M6          | Done    | M5        | LAC-COMPAT-006,LAC-PROTO-002                                                                                                                                                                                                                                                                            | Real installed-runner qualification against cursor-agent acp recorded separately from fixture evidence                                              | Implement M7 session configuration         | E-M6-001,E-M6-002 |
+| M7          | Done    | M6        | LAC-RUN-006                                                                                                                                                                                                                                                                                             | Model, effort and mode resolved per session with transport-versus-rejection classification, qualified live on two adapters                          | Implement M8 persistent transport          | E-M7-001          |
+| M8          | Done    | M7        | LAC-CTRL-001                                                                                                                                                                                                                                                                                            | Persistent versioned control protocol over stdio with concurrent cancellation, frame-level refusals and one shape for every task outcome            | Implement M9 standing pool                 | E-M8-001          |
+| M9          | Done    | M8        | LAC-RUN-001,LAC-RUN-005                                                                                                                                                                                                                                                                                 | Caller-named scopes with one turn in flight each, concurrent distinct scopes, bounded queue admission and slot release on crash without re-dispatch | Implement M10 consumer acceptance          | E-M9-001          |
+| M10         | Planned | M9        | LAC-ARCH-005                                                                                                                                                                                                                                                                                            | Controlling-application consumer acceptance in a real host                                                                                          | Future release                             | -                 |
 
 ## Evidence
 
@@ -803,18 +803,105 @@ coexist with an acknowledged gap.
     "versions": "control protocol version 1; Rust 1.98.1; tokio 1.53.1",
     "formats": "newline-delimited control frames; requests submit/cancel/runners/shutdown; responses ready/record/runners/ack/error/diagnostic",
     "note": "The signals test was intermittently failing under parallel workspace load. The cause was the test, not the product: it raised the idle bound to 90 seconds but left the absolute cap at 60, so a deadline could end the turn before the signal arrived and report exit 124 instead of the signal code. Both bounds now exceed any plausible startup delay and three consecutive full workspace runs are clean. Execution is serial in this slice; a standing pool with caller-named scopes is M9."
+  },
+  {
+    "id": "E-M9-001",
+    "tasks": ["M9"],
+    "date": "2026-10-01",
+    "kind": "scheduler",
+    "files": [
+      "crates/lapis-acp-control/src/scheduler.rs",
+      "crates/lapis-acp-control/src/serve.rs",
+      "crates/lapis-acp-control/src/transport.rs",
+      "crates/lapis-acp-control/src/protocol.rs",
+      "crates/lapis-acp-control/src/lib.rs",
+      "crates/lapis-acp-control/tests/serve.rs",
+      "crates/lapis-acp-cli/src/args.rs",
+      "crates/lapis-acp-cli/src/serve.rs",
+      "crates/lapis-acp-cli/tests/serve.rs",
+      "spec/src/control.md",
+      "spec/src/cli.md",
+      "spec/src/milestones.md",
+      "spec/src/verification.md"
+    ],
+    "tests": [
+      "crates/lapis-acp-control/tests/serve.rs#the_ready_frame_announces_sizing_and_the_catalogue",
+      "crates/lapis-acp-control/tests/serve.rs#one_scope_serializes_while_distinct_scopes_overlap",
+      "crates/lapis-acp-control/tests/serve.rs#a_crashed_agent_releases_its_slot_without_re_dispatch",
+      "crates/lapis-acp-control/tests/serve.rs#a_malformed_frame_never_stops_the_loop",
+      "crates/lapis-acp-control/tests/serve.rs#a_submission_completes_and_the_loop_keeps_serving",
+      "crates/lapis-acp-cli/tests/serve.rs#submissions_in_one_scope_serialize_rather_than_overlap",
+      "crates/lapis-acp-cli/tests/serve.rs#submissions_in_distinct_scopes_run_concurrently",
+      "crates/lapis-acp-cli/tests/serve.rs#a_full_queue_is_refused_rather_than_grown",
+      "crates/lapis-acp-cli/tests/serve.rs#a_crashed_agent_releases_its_slot_and_is_never_re_dispatched",
+      "crates/lapis-acp-cli/tests/args.rs#malformed_command_lines_are_refused_before_any_work"
+    ],
+    "runs": [
+      {
+        "command": "cargo test -p lapis-acp-control --locked",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "cargo test -p lapis-acp-cli --test serve --locked",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "cargo test --workspace --locked",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "cargo clippy --workspace --all-targets --locked -- -D warnings",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "node scripts/rust-architecture.mjs",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "node --test scripts/governance.test.mjs scripts/rust-architecture.test.mjs scripts/upstream-lock.test.mjs",
+        "result": "pass",
+        "failures": 0
+      }
+    ],
+    "result": "pass",
+    "remaining": [],
+    "versions": "control protocol version 1 with scopes; Rust 1.98.1; tokio 1.53.1",
+    "formats": "requests submit/cancel/runners/status/shutdown; responses ready/queued/record/runners/status/ack/error/diagnostic",
+    "note": "Two defects were found while building this. Emitting a record directly from the worker task let a peer observe a record and then a status still listing that submission as running, so completions now route through the loop and release the scope first. And serve.rs reached 334 counted lines, which the budget gate rejected; the scheduler was extracted rather than baselined. The M8 contract changed deliberately: a second submission in the same scope is now queued and acknowledged rather than refused with busy, because serializing a scope means the second turn waits. Warm agent reuse across turns is not implemented; each turn spawns and tears down its own agent process. The M8 test asserting a busy refusal was replaced by scope-serialization coverage and the replacement is recorded as a tracked removal.",
+    "removed_tests": [
+      "crates/lapis-acp-cli/tests/serve.rs#a_second_submission_while_one_is_in_flight_is_refused"
+    ]
   }
 ]
 ```
 
 ## Recorded gaps
 
-Both entry points are delivered: a one-shot `run --task` for a controlling
-application that wants one process per task, and a persistent `serve` for one
-that wants a single long-lived process. The persistent path executes one
-submission at a time and refuses a second with `busy`. A standing pool with
-caller-named scopes, inbound batching and crash respawn is M9, so a controlling
-application that needs concurrency must run several harnesses for now.
+Both entry points are delivered and the persistent one is concurrent:
+submissions carry a caller-named scope, one scope has at most one turn in
+flight, distinct scopes overlap up to the worker limit, and a bounded queue
+refuses admission rather than growing. A crashed agent releases its slot and is
+never re-dispatched.
+
+Agents are not reused across turns. Each submission spawns an agent process,
+runs one turn and tears it down, so warm process and session reuse — the reason
+upstream keeps a standing pool at all — is still absent. For an adapter with
+slow startup that is a real cost per task, and closing it needs session caching,
+rotation and health tracking that this slice does not have.
+
+Inbound batching is also absent. Upstream drains all queued events for a scope
+into one prompt; here each submission is one turn, so a controlling application
+that wants batching must do it before submitting.
+
+`ControlTransport` was replaced rather than wired in. Its old shape modelled the
+one-shot path and nothing used it; the loop now depends on a `FrameSource` and a
+shared `FrameSink`, and the scheduler is tested in process over an in-memory
+pair as well as through the spawned binary.
 
 `ControlTransport` remains unused by either path. It was drawn as the seam a
 non-stdio transport would implement, and `serve` currently reads and writes

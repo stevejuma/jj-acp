@@ -1,29 +1,28 @@
 //! The persistent control loop.
 //!
-//! One controlling application drives one harness over stdin and stdout. Work is
-//! executed one submission at a time in this slice; a standing pool with
-//! caller-named scopes is a separate milestone. Cancellation is genuinely
-//! concurrent, because a controlling application that cannot interrupt a running
-//! task has no way to bound it.
+//! One controlling application drives one harness over a pair of frame streams. The
+//! loop reads frames, admits submissions into the scheduler, and emits responses.
+//! It never blocks on a submission, so a `cancel`, a `status` query or a `shutdown`
+//! is always serviceable while a turn is in flight — a peer that cannot interrupt a
+//! running task has no way to bound it.
+//!
+//! A crashed agent is reported and its slot released. It is never re-dispatched: a
+//! turn whose outcome is unknown may already have produced side effects, so running
+//! it again is the controlling application's decision to make with its own durable
+//! state, not this loop's to make automatically.
 
+use std::collections::{HashMap, VecDeque};
 use std::sync::Arc;
 
 use lapis_acp_agent::Catalog;
-use lapis_acp_agent::availability::{self, PathProbe};
+use lapis_acp_agent::availability::PathProbe;
 use serde_json::{Value, json};
-use tokio::io::{AsyncBufRead, AsyncBufReadExt, AsyncWrite, AsyncWriteExt};
-use tokio::sync::{Mutex, watch};
+use tokio::sync::{Semaphore, mpsc};
 
-use crate::invocation::{InvocationConfig, invoke_with_probe};
+use crate::invocation::InvocationConfig;
 use crate::protocol::{Request, Response, code_control, parse_request_text};
-use crate::record::TerminalRecord;
-use crate::task::{TaskRejection, code};
-
-/// One in-flight submission and the handle that cancels it.
-struct InFlight {
-    request_id: String,
-    cancel: watch::Sender<bool>,
-}
+use crate::scheduler::{Completion, Job, ServeLimits, dispatch, drain};
+use crate::transport::{FrameSink, FrameSource};
 
 /// How the control loop ended.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -36,12 +35,21 @@ pub enum ServeExit {
     InputFailed,
 }
 
+/// Everything the loop needs, assembled once at startup.
+pub struct ServeConfig {
+    /// Trusted launch configuration shared with the one-shot path, so a flag
+    /// cannot mean one thing in `run` and something else in `serve`.
+    pub invocation: InvocationConfig,
+    /// Pool and queue sizing.
+    pub limits: ServeLimits,
+}
+
 /// Summarize the enabled runners for a control frame.
 ///
 /// Availability is probed, never installed, and an unavailable runner reports its
 /// guidance so a controlling application can show an operator what to do.
 pub fn runner_summaries(catalog: &Catalog) -> Vec<Value> {
-    availability::probe_all(catalog.list(), &PathProbe)
+    lapis_acp_agent::availability::probe_all(catalog.list(), &PathProbe)
         .into_iter()
         .map(|report| {
             json!({
@@ -57,175 +65,192 @@ pub fn runner_summaries(catalog: &Catalog) -> Vec<Value> {
         .collect()
 }
 
-/// Write one frame, holding the lock across the flush so lines cannot interleave.
-async fn emit<W: AsyncWrite + Unpin>(writer: &Mutex<W>, response: &Response) {
-    let mut line = response.to_line();
-    line.push('\n');
-    let mut guard = writer.lock().await;
-    // A write failure means the controlling application is gone; there is nobody
-    // left to tell, so it is dropped rather than escalated.
-    let _ = guard.write_all(line.as_bytes()).await;
-    let _ = guard.flush().await;
-}
-
 /// Run the control loop until shutdown or end of input.
-///
-/// The loop never blocks on a submission: work is spawned so that a later frame
-/// can still cancel it. Stdout carries control frames only, and diagnostics that
-/// the one-shot path would print to stderr travel as `diagnostic` frames instead,
-/// because a controlling application parsing stdout must not have to distinguish
-/// prose from frames.
-pub async fn serve<R, W>(input: R, output: W, config: InvocationConfig) -> ServeExit
+pub async fn serve<S, K>(source: &mut S, sink: Arc<K>, config: ServeConfig) -> ServeExit
 where
-    R: AsyncBufRead + Unpin,
-    W: AsyncWrite + Unpin + Send + 'static,
+    S: FrameSource,
+    K: FrameSink + 'static,
 {
-    let writer = Arc::new(Mutex::new(output));
-    let config = Arc::new(config);
-    let inflight: Arc<Mutex<Option<InFlight>>> = Arc::new(Mutex::new(None));
+    let limits = config.limits;
+    let cleanup = config.invocation.cancel_grace + config.invocation.reap;
+    let invocation = Arc::new(config.invocation);
+    let slots = Arc::new(Semaphore::new(limits.workers.max(1)));
+    let (done_tx, mut done_rx) = mpsc::unbounded_channel::<Completion>();
+
+    let mut pending: VecDeque<Job> = VecDeque::new();
+    let mut running: HashMap<String, crate::scheduler::Running> = HashMap::new();
 
     emit(
-        &writer,
+        &sink,
         &Response::Ready {
-            runners: runner_summaries(&config.catalog),
+            runners: runner_summaries(&invocation.catalog),
+            workers: limits.workers,
+            queue_capacity: limits.queue_capacity,
         },
     )
     .await;
 
-    let mut lines = input.lines();
     loop {
-        let line = match lines.next_line().await {
-            Ok(Some(line)) => line,
-            Ok(None) => return ServeExit::Eof,
-            Err(_) => return ServeExit::InputFailed,
-        };
-        if line.trim().is_empty() {
-            continue;
-        }
-        match parse_request_text(&line) {
-            Err(rejection) => {
-                emit(&writer, &refusal(&line, &rejection)).await;
-            }
-            Ok(Request::Runners { request_id }) => {
-                emit(
-                    &writer,
-                    &Response::Runners {
-                        request_id,
-                        runners: runner_summaries(&config.catalog),
-                    },
-                )
-                .await;
-            }
-            Ok(Request::Shutdown { request_id }) => {
-                emit(&writer, &Response::Ack { request_id }).await;
-                drain(&inflight, &config, &writer).await;
-                return ServeExit::Shutdown;
-            }
-            Ok(Request::Cancel { request_id, target }) => {
-                let matched = {
-                    let guard = inflight.lock().await;
-                    match guard.as_ref() {
-                        Some(current) if current.request_id == target => {
-                            let _ = current.cancel.send(true);
-                            true
-                        }
-                        _ => false,
+        dispatch(&mut pending, &mut running, &slots, &invocation, &done_tx);
+        tokio::select! {
+            line = source.next_line() => match line {
+                Ok(Some(line)) => {
+                    if line.trim().is_empty() {
+                        continue;
                     }
-                };
-                // Emitted after the lock is released: the spawned task clears
-                // in-flight under the same lock, and holding it across a write
-                // would let two frames deadlock each other.
-                if matched {
-                    emit(&writer, &Response::Ack { request_id }).await;
-                } else {
+                    if handle(&line, &sink, &limits, &invocation, &mut pending, &mut running).await {
+                        break;
+                    }
+                }
+                Ok(None) => {
+                    drain(&running, &slots, &sink, limits.workers, cleanup).await;
+                    return ServeExit::Eof;
+                }
+                Err(_) => {
+                    drain(&running, &slots, &sink, limits.workers, cleanup).await;
+                    return ServeExit::InputFailed;
+                }
+            },
+            Some(completion) = done_rx.recv() => {
+                // Released before the frames are emitted, so a peer that reacts to
+                // a record and then asks for status never sees a contradiction.
+                running.remove(&completion.scope);
+                for frame in &completion.frames {
+                    emit(&sink, frame).await;
+                }
+            }
+        }
+    }
+    drain(&running, &slots, &sink, limits.workers, cleanup).await;
+    ServeExit::Shutdown
+}
+
+/// Handle one inbound frame. Returns true when the loop should stop.
+#[allow(clippy::too_many_arguments)]
+async fn handle<K: FrameSink>(
+    line: &str,
+    sink: &Arc<K>,
+    limits: &ServeLimits,
+    invocation: &Arc<InvocationConfig>,
+    pending: &mut VecDeque<Job>,
+    running: &mut HashMap<String, crate::scheduler::Running>,
+) -> bool {
+    match parse_request_text(line) {
+        Err(rejection) => {
+            emit(sink, &refusal(line, &rejection)).await;
+            false
+        }
+        Ok(Request::Runners { request_id }) => {
+            emit(
+                sink,
+                &Response::Runners {
+                    request_id,
+                    runners: runner_summaries(&invocation.catalog),
+                },
+            )
+            .await;
+            false
+        }
+        Ok(Request::Status { request_id }) => {
+            let mut scopes: Vec<String> = running.keys().cloned().collect();
+            scopes.sort();
+            emit(
+                sink,
+                &Response::Status {
+                    request_id,
+                    workers: limits.workers,
+                    queue_capacity: limits.queue_capacity,
+                    queued: pending.len(),
+                    running: scopes,
+                },
+            )
+            .await;
+            false
+        }
+        Ok(Request::Shutdown { request_id }) => {
+            emit(sink, &Response::Ack { request_id }).await;
+            true
+        }
+        Ok(Request::Cancel { request_id, target }) => {
+            let matched = running
+                .values()
+                .find(|entry| entry.request_id == target)
+                .map(|entry| entry.cancel.clone());
+            match matched {
+                Some(cancel) => {
+                    let _ = cancel.send(true);
+                    emit(sink, &Response::Ack { request_id }).await;
+                }
+                None => {
                     emit(
-                        &writer,
+                        sink,
                         &Response::Error {
                             request_id: Some(request_id),
                             code: code_control::NOT_IN_FLIGHT.to_owned(),
-                            reason: format!("no submission {target:?} is in flight"),
+                            reason: format!("no submission {target:?} is running"),
                         },
                     )
-                    .await;
+                    .await
                 }
             }
-            Ok(Request::Submit { request_id, task }) => {
-                let busy = inflight.lock().await.is_some();
-                if busy {
-                    emit(
-                        &writer,
-                        &Response::Error {
-                            request_id: Some(request_id),
-                            code: code_control::BUSY.to_owned(),
-                            reason: "a submission is already in flight".to_owned(),
-                        },
-                    )
-                    .await;
-                    continue;
-                }
-                let (sender, receiver) = watch::channel(false);
-                *inflight.lock().await = Some(InFlight {
-                    request_id: request_id.clone(),
-                    cancel: sender,
-                });
-                let writer = writer.clone();
-                let config = config.clone();
-                let inflight = inflight.clone();
-                tokio::spawn(async move {
-                    let mut receiver = receiver;
-                    let invocation =
-                        invoke_with_probe(&config, task, &mut receiver, &PathProbe).await;
-                    for message in &invocation.diagnostics {
-                        emit(
-                            &writer,
-                            &Response::Diagnostic {
-                                message: message.clone(),
-                            },
-                        )
-                        .await;
-                    }
-                    emit(
-                        &writer,
-                        &Response::Record {
-                            request_id: request_id.clone(),
-                            record: invocation.record,
-                        },
-                    )
-                    .await;
-                    *inflight.lock().await = None;
-                });
+            false
+        }
+        Ok(Request::Submit {
+            request_id,
+            scope,
+            task,
+        }) => {
+            if pending.len() >= limits.queue_capacity {
+                emit(
+                    sink,
+                    &Response::Error {
+                        request_id: Some(request_id),
+                        code: code_control::QUEUE_FULL.to_owned(),
+                        reason: format!(
+                            "{} submissions are already waiting",
+                            limits.queue_capacity
+                        ),
+                    },
+                )
+                .await;
+                return false;
             }
+            let position = pending.len();
+            pending.push_back(Job {
+                request_id: request_id.clone(),
+                scope: scope.clone(),
+                task,
+            });
+            // Admission is acknowledged, so a peer can tell a submission that is
+            // waiting from one that was silently dropped. A submission queued
+            // behind its own scope is not refused: serializing a scope means the
+            // second turn waits, not that it is rejected.
+            emit(
+                sink,
+                &Response::Queued {
+                    request_id,
+                    scope,
+                    position,
+                },
+            )
+            .await;
+            false
         }
     }
 }
 
-/// Wait for an in-flight submission to finish before shutting down.
-///
-/// Bounded by the configuration's own cleanup intervals through the invocation,
-/// so a shutdown cannot hang indefinitely on an agent that will not stop.
-async fn drain<W: AsyncWrite + Unpin + Send + 'static>(
-    inflight: &Arc<Mutex<Option<InFlight>>>,
-    config: &Arc<InvocationConfig>,
-    writer: &Arc<Mutex<W>>,
-) {
-    let grace = config.cancel_grace + config.reap;
-    let deadline = tokio::time::Instant::now() + grace + config.cancel_grace;
-    loop {
-        let busy = inflight.lock().await.is_some();
-        if !busy || tokio::time::Instant::now() >= deadline {
-            return;
-        }
-        let _ = writer;
-        tokio::time::sleep(tokio::time::Duration::from_millis(20)).await;
-    }
+async fn emit<K: FrameSink>(sink: &Arc<K>, response: &Response) {
+    // A write failure means the controlling application is gone; there is nobody
+    // left to tell, so it is dropped rather than escalated.
+    let _ = sink.send(response).await;
 }
 
 /// Build a refusal frame, recovering the correlation id when one is present.
 ///
 /// A controlling application that sent a malformed frame still needs to correlate
-/// the refusal, so the identifier is read from the raw text rather than from a
-/// parse that already failed.
-fn refusal(line: &str, rejection: &TaskRejection) -> Response {
+/// the refusal, so the identifier is read from the raw text rather than from a parse
+/// that already failed.
+fn refusal(line: &str, rejection: &crate::task::TaskRejection) -> Response {
     let request_id = serde_json::from_str::<Value>(line)
         .ok()
         .and_then(|frame| {
@@ -235,25 +260,32 @@ fn refusal(line: &str, rejection: &TaskRejection) -> Response {
                 .map(str::to_owned)
         })
         .filter(|value| !value.is_empty());
-    let mapped = if rejection.code == code::INVALID_TASK_JSON
-        || rejection.code == code::TASK_TOO_LARGE
-        || rejection.code == code::UNSUPPORTED_TASK_VERSION
-        || rejection.code == code::INVALID_TASK_ID
-        || rejection.code == code::INVALID_PROMPT
-        || rejection.code == code::INVALID_DURATION
-    {
-        // A task document problem is reported as a terminal record so a
-        // controlling application handles one shape for every task outcome.
+    if is_task_outcome(rejection.code) {
+        // A task document problem is reported as a terminal record so a peer
+        // handles one shape for every task outcome.
         return Response::Record {
             request_id: request_id.unwrap_or_default(),
-            record: TerminalRecord::invalid(rejection.code),
+            record: crate::record::TerminalRecord::invalid(rejection.code),
         };
-    } else {
-        rejection.code.to_owned()
-    };
+    }
     Response::Error {
         request_id,
-        code: mapped,
+        code: rejection.code.to_owned(),
         reason: rejection.reason.clone(),
     }
+}
+
+fn is_task_outcome(code: &str) -> bool {
+    use crate::task::code as task_code;
+    matches!(
+        code,
+        task_code::INVALID_TASK_JSON
+            | task_code::TASK_TOO_LARGE
+            | task_code::UNSUPPORTED_TASK_VERSION
+            | task_code::INVALID_TASK_ID
+            | task_code::INVALID_PROMPT
+            | task_code::INVALID_DURATION
+            | task_code::INVALID_RUNNER
+            | task_code::RUNNER_MISMATCH
+    )
 }

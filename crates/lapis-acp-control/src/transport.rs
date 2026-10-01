@@ -1,78 +1,116 @@
 //! The control transport abstraction.
 //!
-//! One implementation ships in this slice: newline-delimited JSON over the
-//! inherited stdin and stdout. A controlling application that wants a Unix
-//! socket, a local HTTP endpoint or an in-process link implements this trait
-//! rather than editing the runner, which is why the one-shot task runner and a
-//! future persistent service can share one session and turn machinery.
+//! A persistent server has one reader and many writers: the loop reads frames
+//! while spawned submissions emit records concurrently. Modelling that as one
+//! bidirectional object would force the two sides to share a lock they do not both
+//! need, so the seam is split into a source the loop owns and a sink it shares.
+//!
+//! An earlier shape of this trait modelled the one-shot path — read a task
+//! document, emit a record — and nothing used it, because the persistent protocol
+//! exchanges requests and responses rather than documents. A seam that does not fit
+//! its only caller is worse than no seam, so this one is derived from what the loop
+//! actually does and is exercised by it.
 //!
 //! No transport may add authentication. There is no peer to authenticate: the
 //! process that spawned this one already decided to run it with this environment.
 
 use std::io;
+use std::sync::Arc;
 
-use crate::record::TerminalRecord;
-use crate::task::TaskDocument;
+use tokio::io::{AsyncBufRead, AsyncBufReadExt, AsyncWrite, AsyncWriteExt};
+use tokio::sync::Mutex;
 
-/// Carries task documents in and terminal records out.
-pub trait ControlTransport {
-    /// Read the next prepared task, or `None` when the caller is finished.
-    fn next_task(
-        &mut self,
-    ) -> impl std::future::Future<Output = io::Result<Option<TaskDocument>>> + Send;
+use crate::protocol::Response;
 
-    /// Emit exactly one terminal record for one attempted invocation.
-    fn emit(
-        &mut self,
-        record: &TerminalRecord,
-    ) -> impl std::future::Future<Output = io::Result<()>> + Send;
-
-    /// Write an operator diagnostic. Implementations must route this away from
-    /// the channel `emit` uses.
-    fn diagnose(
-        &mut self,
-        message: &str,
-    ) -> impl std::future::Future<Output = io::Result<()>> + Send;
+/// Reads inbound control frames, one line at a time.
+///
+/// Lines are returned raw rather than parsed, so a malformed frame is the loop's
+/// problem to refuse and never the transport's to interpret. A transport that
+/// dropped or rewrote a frame it disliked would hide the very thing a controlling
+/// application needs to hear about.
+pub trait FrameSource: Send {
+    /// The next inbound line, or `None` once the peer is finished.
+    fn next_line(&mut self)
+    -> impl std::future::Future<Output = io::Result<Option<String>>> + Send;
 }
 
-/// The stdio transport: documents in on stdin, records out on stdout.
+/// Writes outbound control frames.
 ///
-/// Stderr carries diagnostics so stdout stays unconditionally parseable. A
-/// controlling application that mixes its own output into this process's stdout
-/// breaks that guarantee, which is why the CLI never writes anything else there.
-#[derive(Debug, Default)]
-pub struct StdioTransport;
+/// Implementations take `&self` and serialize internally, because several
+/// submissions emit concurrently and a controlling application parses the stream
+/// line by line. An interleaved frame is indistinguishable from a corrupt one, so
+/// atomicity here is a correctness requirement rather than tidiness.
+pub trait FrameSink: Send + Sync {
+    /// Write one frame as a single line.
+    fn send(&self, response: &Response)
+    -> impl std::future::Future<Output = io::Result<()>> + Send;
+}
 
-impl StdioTransport {
-    /// Build the stdio transport.
-    pub fn new() -> Self {
-        Self
+/// A line-oriented source over any buffered byte stream.
+#[derive(Debug)]
+pub struct LineSource<R> {
+    input: R,
+}
+
+impl<R: AsyncBufRead + Unpin + Send> LineSource<R> {
+    /// Wrap a buffered byte stream.
+    pub fn new(input: R) -> Self {
+        Self { input }
     }
 }
 
-impl ControlTransport for StdioTransport {
-    async fn next_task(&mut self) -> io::Result<Option<TaskDocument>> {
-        match crate::input::read_stdin().await {
-            Ok(document) => Ok(Some(document)),
-            // A rejected document is not an I/O failure; the caller reports the
-            // rejection through `emit` and continues or exits.
-            Err(rejection) => Err(io::Error::other(rejection.reason)),
+impl<R: AsyncBufRead + Unpin + Send> FrameSource for LineSource<R> {
+    async fn next_line(&mut self) -> io::Result<Option<String>> {
+        let mut line = String::new();
+        let read = self.input.read_line(&mut line).await?;
+        if read == 0 {
+            return Ok(None);
+        }
+        Ok(Some(line))
+    }
+}
+
+/// A line-oriented sink over any byte stream, serialized by an internal lock.
+#[derive(Debug)]
+pub struct LineSink<W> {
+    output: Mutex<W>,
+}
+
+impl<W: AsyncWrite + Unpin + Send> LineSink<W> {
+    /// Wrap a byte stream.
+    pub fn new(output: W) -> Self {
+        Self {
+            output: Mutex::new(output),
         }
     }
 
-    async fn emit(&mut self, record: &TerminalRecord) -> io::Result<()> {
-        use tokio::io::{AsyncWriteExt, Stdout, stdout};
-        let mut handle: Stdout = stdout();
-        handle.write_all(record.to_line().as_bytes()).await?;
-        handle.write_all(b"\n").await?;
-        handle.flush().await
+    /// Share this sink so concurrent submissions can emit through it.
+    pub fn shared(output: W) -> Arc<Self> {
+        Arc::new(Self::new(output))
     }
+}
 
-    async fn diagnose(&mut self, message: &str) -> io::Result<()> {
-        use tokio::io::{AsyncWriteExt, Stderr, stderr};
-        let mut handle: Stderr = stderr();
-        handle.write_all(message.as_bytes()).await?;
-        handle.write_all(b"\n").await?;
-        handle.flush().await
+impl<W: AsyncWrite + Unpin + Send> FrameSink for LineSink<W> {
+    async fn send(&self, response: &Response) -> io::Result<()> {
+        let mut line = response.to_line();
+        line.push('\n');
+        let mut guard = self.output.lock().await;
+        guard.write_all(line.as_bytes()).await?;
+        guard.flush().await
     }
+}
+
+/// Build the stdio source and sink pair.
+///
+/// Stdout carries frames and nothing else. Diagnostics that a human-facing path
+/// would print to stderr travel as `diagnostic` frames instead, because a peer that
+/// has to watch two streams to know what happened will eventually miss one.
+pub fn stdio() -> (
+    LineSource<tokio::io::BufReader<tokio::io::Stdin>>,
+    Arc<LineSink<tokio::io::Stdout>>,
+) {
+    (
+        LineSource::new(tokio::io::BufReader::new(tokio::io::stdin())),
+        LineSink::shared(tokio::io::stdout()),
+    )
 }

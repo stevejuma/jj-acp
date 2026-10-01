@@ -10,9 +10,15 @@ use std::process::Stdio;
 use std::time::Duration;
 
 use common::{Scratch, task, write_catalog};
+
+fn scoped_submit(request_id: &str, scope: &str, task: &Value) -> Value {
+    scoped_submit_frame(request_id, scope, task)
+}
 use lapis_acp_control::protocol::{
-    CONTROL_VERSION, cancel_frame, runners_frame, shutdown_frame, submit_frame,
+    CONTROL_VERSION, cancel_frame, runners_frame, scoped_submit_frame, shutdown_frame,
+    status_frame, submit_frame,
 };
+use lapis_acp_testkit::FixtureLog;
 use serde_json::{Value, json};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::process::{Child, ChildStdin, ChildStdout, Command};
@@ -155,10 +161,12 @@ async fn a_submitted_task_returns_exactly_one_record() {
     assert_eq!(record["record"]["taskId"], json!("task-serve-1"));
     assert_eq!(record["record"]["stopReason"], json!("end_turn"));
     assert_eq!(record["version"], json!(CONTROL_VERSION));
-    // Diagnostics are frames too, so nothing else may share the stream.
-    for frame in &skipped {
-        assert_eq!(frame["type"], json!("diagnostic"), "{frame}");
-    }
+    // Admission is acknowledged and diagnostics are frames too, so nothing that
+    // is not a frame may share the stream.
+    assert_eq!(skipped.len(), 1, "{skipped:?}");
+    assert_eq!(skipped[0]["type"], json!("queued"));
+    assert_eq!(skipped[0]["requestId"], json!("req-1"));
+    assert_eq!(skipped[0]["scope"], json!("default"));
     server.send(shutdown_frame("req-2")).await;
     let (ack, _) = server.recv_type("ack").await;
     assert_eq!(ack["requestId"], json!("req-2"));
@@ -167,27 +175,195 @@ async fn a_submitted_task_returns_exactly_one_record() {
 }
 
 #[tokio::test]
-async fn a_second_submission_while_one_is_in_flight_is_refused() {
-    let scratch = Scratch::new("serve-busy");
-    let mut server = Server::start(&scratch, "turn-hang", &[]).await;
+async fn submissions_in_one_scope_serialize_rather_than_overlap() {
+    let scratch = Scratch::new("serve-scope-serial");
+    // One worker, one scope: the second submission must wait for the first, and
+    // both must be observable while that is true.
+    let mut server = Server::start(&scratch, "turn-hang", &["--workers", "1"]).await;
     server
-        .send(submit_frame("req-a", &task("task-a", "hang", 60_000)))
+        .send(scoped_submit(
+            "req-a",
+            "same",
+            &task("task-a", "hang", 60_000),
+        ))
         .await;
-    // Give the first submission time to be registered as in flight.
-    tokio::time::sleep(Duration::from_millis(1500)).await;
+    let (queued_a, _) = server.recv_type("queued").await;
+    assert_eq!(queued_a["position"], json!(0));
     server
-        .send(submit_frame("req-b", &task("task-b", "hang", 60_000)))
+        .send(scoped_submit(
+            "req-b",
+            "same",
+            &task("task-b", "hang", 60_000),
+        ))
+        .await;
+    let (queued_b, _) = server.recv_type("queued").await;
+    // Position counts submissions already waiting, not those already running: the
+    // first was dispatched immediately, so the second is at the head of an empty
+    // queue even though it cannot start yet.
+    assert_eq!(queued_b["position"], json!(0));
+    assert_eq!(queued_b["scope"], json!("same"));
+
+    server.send(status_frame("req-status")).await;
+    let (status, _) = server.recv_type("status").await;
+    assert_eq!(status["queued"], json!(1));
+    assert_eq!(status["running"], json!(["same"]));
+    assert_eq!(status["workers"], json!(1));
+
+    // Cancelling the first releases the scope and the second runs, so the records
+    // arrive in submission order and never overlap.
+    server.send(cancel_frame("req-c1", "req-a")).await;
+    let (ack, _) = server.recv_type("ack").await;
+    assert_eq!(ack["requestId"], json!("req-c1"));
+    let (first, _) = server.recv_type("record").await;
+    assert_eq!(first["requestId"], json!("req-a"));
+    assert_eq!(first["record"]["status"], json!("cancelled"));
+
+    server.send(status_frame("req-status-2")).await;
+    let (status, _) = server.recv_type("status").await;
+    assert_eq!(
+        status["queued"],
+        json!(0),
+        "the queued job should have started"
+    );
+    assert_eq!(status["running"], json!(["same"]));
+
+    server.send(cancel_frame("req-c2", "req-b")).await;
+    let (second, _) = server.recv_type("record").await;
+    assert_eq!(second["requestId"], json!("req-b"));
+    assert_eq!(second["record"]["status"], json!("cancelled"));
+    let _ = server.stop().await;
+}
+
+#[tokio::test]
+async fn submissions_in_distinct_scopes_run_concurrently() {
+    let scratch = Scratch::new("serve-scope-parallel");
+    let mut server = Server::start(&scratch, "turn-hang", &["--workers", "2"]).await;
+    server
+        .send(scoped_submit(
+            "req-p",
+            "scope-p",
+            &task("task-p", "hang", 60_000),
+        ))
+        .await;
+    let _ = server.recv_type("queued").await;
+    server
+        .send(scoped_submit(
+            "req-q",
+            "scope-q",
+            &task("task-q", "hang", 60_000),
+        ))
+        .await;
+    let _ = server.recv_type("queued").await;
+
+    server.send(status_frame("req-status")).await;
+    let (status, _) = server.recv_type("status").await;
+    // Both scopes are in flight at once, which is the whole point of naming them.
+    let mut running: Vec<String> = status["running"]
+        .as_array()
+        .expect("running")
+        .iter()
+        .map(|value| value.as_str().expect("scope").to_owned())
+        .collect();
+    running.sort();
+    assert_eq!(running, vec!["scope-p", "scope-q"]);
+    assert_eq!(status["queued"], json!(0));
+
+    server.send(cancel_frame("req-cp", "req-p")).await;
+    let (first, _) = server.recv_type("record").await;
+    assert_eq!(first["requestId"], json!("req-p"));
+    server.send(cancel_frame("req-cq", "req-q")).await;
+    let (second, _) = server.recv_type("record").await;
+    assert_eq!(second["requestId"], json!("req-q"));
+    let _ = server.stop().await;
+}
+
+#[tokio::test]
+async fn a_full_queue_is_refused_rather_than_grown() {
+    let scratch = Scratch::new("serve-queue-full");
+    let mut server = Server::start(
+        &scratch,
+        "turn-hang",
+        &["--workers", "1", "--queue-capacity", "1"],
+    )
+    .await;
+    // One runs, one waits, the third has nowhere to go.
+    server
+        .send(scoped_submit(
+            "req-1",
+            "s1",
+            &task("task-1", "hang", 60_000),
+        ))
+        .await;
+    let _ = server.recv_type("queued").await;
+    server
+        .send(scoped_submit(
+            "req-2",
+            "s2",
+            &task("task-2", "hang", 60_000),
+        ))
+        .await;
+    let _ = server.recv_type("queued").await;
+    server
+        .send(scoped_submit(
+            "req-3",
+            "s3",
+            &task("task-3", "hang", 60_000),
+        ))
         .await;
     let (error, _) = server.recv_type("error").await;
-    assert_eq!(error["requestId"], json!("req-b"));
-    assert_eq!(error["code"], json!("busy"));
+    assert_eq!(error["requestId"], json!("req-3"));
+    assert_eq!(error["code"], json!("queue_full"));
 
-    server.send(cancel_frame("req-c", "req-a")).await;
-    let (ack, _) = server.recv_type("ack").await;
-    assert_eq!(ack["requestId"], json!("req-c"));
+    // Refusing one submission must not disturb the ones already admitted.
+    server.send(status_frame("req-status")).await;
+    let (status, _) = server.recv_type("status").await;
+    assert_eq!(status["queued"], json!(1));
+    assert_eq!(status["queueCapacity"], json!(1));
+    let _ = server.stop().await;
+}
+
+#[tokio::test]
+async fn a_crashed_agent_releases_its_slot_and_is_never_re_dispatched() {
+    let scratch = Scratch::new("serve-crash");
+    let mut server = Server::start(&scratch, "crash-turn", &["--workers", "1"]).await;
+    server
+        .send(scoped_submit(
+            "req-crash",
+            "s",
+            &task("task-crash", "crash", 60_000),
+        ))
+        .await;
+    let _ = server.recv_type("queued").await;
     let (record, _) = server.recv_type("record").await;
-    assert_eq!(record["requestId"], json!("req-a"));
-    assert_eq!(record["record"]["status"], json!("cancelled"));
+    assert_eq!(record["record"]["status"], json!("failed"));
+    assert_eq!(record["record"]["error"], json!("agent_exited"));
+
+    // The slot came back: a second submission in the same scope still runs, which
+    // is what proves the crash released it rather than leaking the worker.
+    server
+        .send(scoped_submit(
+            "req-after",
+            "s",
+            &task("task-after", "crash", 60_000),
+        ))
+        .await;
+    let _ = server.recv_type("queued").await;
+    let (second, _) = server.recv_type("record").await;
+    assert_eq!(second["requestId"], json!("req-after"));
+
+    // And the loop is still serving.
+    server.send(status_frame("req-status")).await;
+    let (status, _) = server.recv_type("status").await;
+    assert_eq!(status["queued"], json!(0));
+    assert_eq!(status["running"], json!([]));
+
+    // Neither turn was re-dispatched after its agent died.
+    let log = FixtureLog::new(scratch.log());
+    assert_eq!(
+        log.method_count("session/prompt").expect("log"),
+        2,
+        "a crashed turn was retried"
+    );
     let _ = server.stop().await;
 }
 

@@ -20,6 +20,7 @@ pub mod input;
 pub mod invocation;
 pub mod protocol;
 pub mod record;
+pub mod scheduler;
 pub mod serve;
 pub mod task;
 pub mod transport;
@@ -28,9 +29,11 @@ pub use input::{TaskSource, read, read_bytes, read_path, read_stdin};
 pub use invocation::{Invocation, InvocationConfig, invoke, invoke_with_probe};
 pub use protocol::{
     CONTROL_VERSION, Request, Response, cancel_frame, code_control, parse_request,
-    parse_request_text, runners_frame, shutdown_frame, submit_frame,
+    parse_request_text, runners_frame, scoped_submit_frame, shutdown_frame, status_frame,
+    submit_frame,
 };
 pub use record::{ExitCode, RECORD_VERSION, Status, TerminalRecord};
-pub use serve::{ServeExit, runner_summaries, serve};
+pub use scheduler::{DEFAULT_SCOPE, ServeLimits};
+pub use serve::{ServeConfig, ServeExit, runner_summaries, serve};
 pub use task::{TASK_VERSION, TaskDocument, TaskRejection, code, parse, parse_text};
-pub use transport::{ControlTransport, StdioTransport};
+pub use transport::{FrameSink, FrameSource, LineSink, LineSource, stdio};

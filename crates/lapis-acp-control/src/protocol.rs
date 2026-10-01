@@ -29,8 +29,8 @@ pub mod code_control {
     pub const UNKNOWN_REQUEST: &str = "unknown_request";
     /// A required field was absent or the wrong type.
     pub const INVALID_REQUEST: &str = "invalid_request";
-    /// A task was submitted while another is still in flight.
-    pub const BUSY: &str = "busy";
+    /// The bounded queue was full, so the submission was not admitted.
+    pub const QUEUE_FULL: &str = "queue_full";
     /// A cancel named a request that is not in flight.
     pub const NOT_IN_FLIGHT: &str = "not_in_flight";
 }
@@ -42,6 +42,10 @@ pub enum Request {
     Submit {
         /// Correlates the reply to this request.
         request_id: String,
+        /// Caller-named serialization scope. Two submissions in one scope never
+        /// overlap; distinct scopes may run concurrently. Omitted means the
+        /// default scope, which preserves serial behaviour.
+        scope: String,
         /// The validated task document.
         task: TaskDocument,
     },
@@ -54,6 +58,11 @@ pub enum Request {
     },
     /// List resolved runners with availability.
     Runners {
+        /// Correlates the reply to this request.
+        request_id: String,
+    },
+    /// Report pool and queue state.
+    Status {
         /// Correlates the reply to this request.
         request_id: String,
     },
@@ -71,6 +80,7 @@ impl Request {
             Self::Submit { request_id, .. }
             | Self::Cancel { request_id, .. }
             | Self::Runners { request_id }
+            | Self::Status { request_id }
             | Self::Shutdown { request_id } => request_id,
         }
     }
@@ -79,10 +89,23 @@ impl Request {
 /// A frame sent back to the controlling application.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Response {
-    /// Emitted once at startup, carrying the resolved runner list.
+    /// Emitted once at startup, carrying the resolved runner list and sizing.
     Ready {
         /// One entry per enabled runner.
         runners: Vec<Value>,
+        /// How many submissions may execute at once.
+        workers: usize,
+        /// How many may wait before a submission is refused.
+        queue_capacity: usize,
+    },
+    /// A submission was admitted and is waiting or running.
+    Queued {
+        /// The submission it acknowledges.
+        request_id: String,
+        /// The scope it will run in.
+        scope: String,
+        /// How many submissions were already waiting.
+        position: usize,
     },
     /// The terminal record for one submission.
     Record {
@@ -97,6 +120,19 @@ pub enum Response {
         request_id: String,
         /// One entry per enabled runner.
         runners: Vec<Value>,
+    },
+    /// Pool and queue state.
+    Status {
+        /// The request it answers.
+        request_id: String,
+        /// Configured concurrency.
+        workers: usize,
+        /// Configured queue bound.
+        queue_capacity: usize,
+        /// Submissions admitted but not yet running.
+        queued: usize,
+        /// Scopes with a turn in flight.
+        running: Vec<String>,
     },
     /// A request that carries no payload other than success.
     Ack {
@@ -123,7 +159,32 @@ impl Response {
     /// Serialize to the single line written to the control stream.
     pub fn to_value(&self) -> Value {
         let base = match self {
-            Self::Ready { runners } => json!({"type": "ready", "runners": runners}),
+            Self::Ready {
+                runners,
+                workers,
+                queue_capacity,
+            } => json!({
+                "type": "ready", "runners": runners,
+                "workers": workers, "queueCapacity": queue_capacity,
+            }),
+            Self::Queued {
+                request_id,
+                scope,
+                position,
+            } => json!({
+                "type": "queued", "requestId": request_id,
+                "scope": scope, "position": position,
+            }),
+            Self::Status {
+                request_id,
+                workers,
+                queue_capacity,
+                queued,
+                running,
+            } => json!({
+                "type": "status", "requestId": request_id, "workers": workers,
+                "queueCapacity": queue_capacity, "queued": queued, "running": running,
+            }),
             Self::Record { request_id, record } => json!({
                 "type": "record", "requestId": request_id,
                 "record": serde_json::to_value(record).expect("record serializes"),
@@ -190,6 +251,7 @@ pub fn parse_request(frame: &Value) -> Result<Request, TaskRejection> {
         )
     })?;
     match kind {
+        "status" => Ok(Request::Status { request_id }),
         "submit" => {
             let task = frame.get("task").ok_or_else(|| {
                 TaskRejection::new(
@@ -204,6 +266,8 @@ pub fn parse_request(frame: &Value) -> Result<Request, TaskRejection> {
             let document = parse(&encoded)?;
             Ok(Request::Submit {
                 request_id,
+                scope: string_field(frame, "scope")
+                    .unwrap_or_else(|| crate::scheduler::DEFAULT_SCOPE.to_owned()),
                 task: document,
             })
         }
@@ -240,12 +304,22 @@ fn string_field(frame: &Value, key: &str) -> Option<String> {
         .filter(|value| !value.is_empty())
 }
 
-/// Build a submit frame, for controlling applications and tests.
+/// Build a submit frame in the default scope.
 pub fn submit_frame(request_id: &str, task: &Value) -> Value {
+    scoped_submit_frame(request_id, crate::scheduler::DEFAULT_SCOPE, task)
+}
+
+/// Build a submit frame in a named scope.
+pub fn scoped_submit_frame(request_id: &str, scope: &str, task: &Value) -> Value {
     json!({
-        "version": CONTROL_VERSION, "type": "submit",
+        "version": CONTROL_VERSION, "type": "submit", "scope": scope,
         "requestId": request_id, "task": task,
     })
+}
+
+/// Build a status frame.
+pub fn status_frame(request_id: &str) -> Value {
+    json!({"version": CONTROL_VERSION, "type": "status", "requestId": request_id})
 }
 
 /// Build a cancel frame.

@@ -134,3 +134,15 @@ controlling application says it is finished.
 Unusable launch configuration exits `2` with the reason on stderr and nothing on
 stdout. There is no loop to serve and no peer to frame a refusal for, so the
 exit code is the only machine-readable signal available.
+
+## Pool sizing
+
+`--workers` sets how many submissions `serve` executes at once and
+`--queue-capacity` how many may wait, each with a matching `LAPIS_ACP_WORKERS`
+and `LAPIS_ACP_QUEUE_CAPACITY` variable. Workers default to one, which preserves
+the serial behaviour from before scopes existed, so raising concurrency is an
+explicit choice rather than a surprise. Both are validated: zero is refused, and
+workers are capped at 32.
+
+The one-shot path ignores both, because a process that runs one task and exits
+has nothing to size.
