@@ -1,16 +1,16 @@
-# lapis-acp
+# jj-acp
 
 A pluggable [Agent Client Protocol](https://agentclientprotocol.com/) harness
 that runs coding agents on behalf of a controlling application.
 
-`lapis-acp` spawns an ACP-speaking agent subprocess, drives it over stdio
-JSON-RPC, and reports one sanitized terminal record per invocation. It has no
-message bus, no relay, no listener, no authentication and no durable state. The
-controlling application owns identity, authorization, storage and prompt policy;
-`lapis-acp` owns the protocol, the runner catalog and the turn lifecycle.
+`jj-acp` spawns an ACP-speaking agent subprocess, drives it over stdio JSON-RPC,
+and reports one sanitized terminal record per invocation. It has no message bus,
+no relay, no listener, no authentication and no durable state. The controlling
+application owns identity, authorization, storage and prompt policy; `jj-acp`
+owns the protocol, the runner catalog and the turn lifecycle.
 
 ```
-controlling app ──task document──▶ lapis-acp ──stdio JSON-RPC──▶ ACP agent
+controlling app ──task document──▶ jj-acp ──stdio JSON-RPC──▶ ACP agent
        ▲                              │                              │
        └──────terminal record─────────┘                              │
                                              tools, files, side effects
@@ -37,9 +37,9 @@ adapter has been qualified yet. The roadmap and the real evidence for each slice
 live in the [progress ledger](spec/src/milestones.md).
 
 ```sh
-lapis-acp run --task task.json --catalog runners.json --runner codex
+jj-acp run --task task.json --catalog runners.json --runner codex
 # {"version":1,"taskId":"task-001","status":"completed","stopReason":"end_turn"}
-lapis-acp agents   # one JSON object per line: id, label, availability, install hint
+jj-acp agents   # one JSON object per line: id, label, availability, install hint
 ```
 
 | Slice     | Scope                                                                 | Status   |

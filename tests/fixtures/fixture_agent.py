@@ -5,7 +5,7 @@ Nostr git keyfile assertions are replaced by the harness-reserved variables this
 repository actually injects, so the launch record proves injection rather than
 identity.
 
-Modes are selected with LAPIS_ACP_FIXTURE_MODE:
+Modes are selected with JJ_ACP_FIXTURE_MODE:
   normal             answer every method and stop with the configured reason
   startup-hang       never answer initialize
   session-hang       never answer session/new
@@ -26,12 +26,12 @@ import subprocess
 import sys
 import time
 
-MODE = os.environ.get("LAPIS_ACP_FIXTURE_MODE", "normal")
-PROTOCOL = int(os.environ.get("LAPIS_ACP_FIXTURE_PROTOCOL", "2"))
-STOP_REASON = os.environ.get("LAPIS_ACP_FIXTURE_STOP_REASON", "end_turn")
+MODE = os.environ.get("JJ_ACP_FIXTURE_MODE", "normal")
+PROTOCOL = int(os.environ.get("JJ_ACP_FIXTURE_PROTOCOL", "2"))
+STOP_REASON = os.environ.get("JJ_ACP_FIXTURE_STOP_REASON", "end_turn")
 HANG_SECONDS = 120
 
-log = open(os.environ["LAPIS_ACP_FIXTURE_LOG"], "a", buffering=1)
+log = open(os.environ["JJ_ACP_FIXTURE_LOG"], "a", buffering=1)
 
 
 def emit(frame):
@@ -48,9 +48,9 @@ record({
     "pid": os.getpid(),
     "mode": MODE,
     "cwd": os.getcwd(),
-    "runner": os.environ.get("LAPIS_ACP_TASK_RUNNER"),
-    "taskId": os.environ.get("LAPIS_ACP_TASK_ID"),
-    "reserved": sorted(k for k in os.environ if k.startswith("LAPIS_ACP_")),
+    "runner": os.environ.get("JJ_ACP_TASK_RUNNER"),
+    "taskId": os.environ.get("JJ_ACP_TASK_ID"),
+    "reserved": sorted(k for k in os.environ if k.startswith("JJ_ACP_")),
 })
 
 if MODE.startswith("descendant"):
@@ -94,7 +94,7 @@ for line in sys.stdin:
         if MODE in ("startup-hang", "descendant-startup"):
             time.sleep(HANG_SECONDS)
         result = {"protocolVersion": PROTOCOL,
-                  "agentInfo": {"name": "lapis-acp-fixture", "version": "1"},
+                  "agentInfo": {"name": "jj-acp-fixture", "version": "1"},
                   "agentCapabilities": {}}
     elif method == "session/new":
         if MODE == "session-hang":

@@ -7,21 +7,17 @@ import { fileURLToPath } from "node:url";
  * Mirrors the jj-store boundary gate so an invalid edge fails before review.
  */
 export const layers = {
-  "lapis-acp-protocol": [],
-  "lapis-acp-agent": ["lapis-acp-protocol"],
-  "lapis-acp-runner": ["lapis-acp-protocol", "lapis-acp-agent"],
-  "lapis-acp-control": [
-    "lapis-acp-protocol",
-    "lapis-acp-agent",
-    "lapis-acp-runner",
+  "jj-acp-protocol": [],
+  "jj-acp-agent": ["jj-acp-protocol"],
+  "jj-acp-runner": ["jj-acp-protocol", "jj-acp-agent"],
+  "jj-acp-control": ["jj-acp-protocol", "jj-acp-agent", "jj-acp-runner"],
+  "jj-acp-cli": [
+    "jj-acp-protocol",
+    "jj-acp-agent",
+    "jj-acp-runner",
+    "jj-acp-control",
   ],
-  "lapis-acp-cli": [
-    "lapis-acp-protocol",
-    "lapis-acp-agent",
-    "lapis-acp-runner",
-    "lapis-acp-control",
-  ],
-  "lapis-acp-testkit": ["lapis-acp-protocol", "lapis-acp-agent"],
+  "jj-acp-testkit": ["jj-acp-protocol", "jj-acp-agent"],
 };
 
 /**
@@ -44,7 +40,7 @@ export function dependencyErrors(packages) {
     for (const dep of pkg.dependencies) {
       if (excluded.test(dep.name))
         errors.push(`${pkg.name}: excluded dependency ${dep.name}`);
-      if (dep.name === "lapis-acp-testkit" && dep.kind !== "dev")
+      if (dep.name === "jj-acp-testkit" && dep.kind !== "dev")
         errors.push(`${pkg.name}: testkit is a dev-only dependency`);
       if (!known.has(dep.name)) continue;
       if (!layers[pkg.name].includes(dep.name) && dep.kind !== "dev")

@@ -1,6 +1,6 @@
 # Security and trust
 
-`lapis-acp` runs an autonomous coding agent with tool access on a local machine.
+`jj-acp` runs an autonomous coding agent with tool access on a local machine.
 Its security posture is therefore mostly about what it refuses to own. It
 implements no authentication, holds no keys, signs nothing, opens no listener
 and keeps no durable state. Every one of those is the controlling application's
@@ -14,13 +14,13 @@ content and an untrusted agent subprocess producing untrusted output.
 
 | ID          | Requirement                                                                                                                                                                         |
 | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| LAC-SEC-001 | `lapis-acp` MUST NOT implement authentication, identity, key custody or author gating; the controlling application is the trust boundary.                                           |
-| LAC-SEC-002 | Credentials MUST NOT appear in process arguments and MUST NOT be written to a log, a diagnostic or a terminal record.                                                               |
-| LAC-SEC-003 | A task document MUST be treated as executable input, and the runner identifier check MUST prevent accidental execution by a different runner without claiming to verify authorship. |
-| LAC-SEC-004 | `lapis-acp` MUST NOT modify global Git configuration, install a credential helper or persist a signing key.                                                                         |
-| LAC-SEC-005 | A failed, cancelled or uncertain invocation MUST NOT be retried automatically.                                                                                                      |
-| LAC-SEC-006 | Agent output, agent error text and agent-supplied paths MUST be treated as untrusted data and MUST NOT be interpreted as instructions or executed.                                  |
-| LAC-SEC-007 | Resource bounds MUST be enforced on untrusted input: document size, read interval, frame size, turn duration and reap interval.                                                     |
+| JAC-SEC-001 | `jj-acp` MUST NOT implement authentication, identity, key custody or author gating; the controlling application is the trust boundary.                                              |
+| JAC-SEC-002 | Credentials MUST NOT appear in process arguments and MUST NOT be written to a log, a diagnostic or a terminal record.                                                               |
+| JAC-SEC-003 | A task document MUST be treated as executable input, and the runner identifier check MUST prevent accidental execution by a different runner without claiming to verify authorship. |
+| JAC-SEC-004 | `jj-acp` MUST NOT modify global Git configuration, install a credential helper or persist a signing key.                                                                            |
+| JAC-SEC-005 | A failed, cancelled or uncertain invocation MUST NOT be retried automatically.                                                                                                      |
+| JAC-SEC-006 | Agent output, agent error text and agent-supplied paths MUST be treated as untrusted data and MUST NOT be interpreted as instructions or executed.                                  |
+| JAC-SEC-007 | Resource bounds MUST be enforced on untrusted input: document size, read interval, frame size, turn duration and reap interval.                                                     |
 
 ## What is deliberately absent
 
@@ -32,7 +32,7 @@ feature-flagged. A future need for it belongs in the controlling application,
 which already has an identity system, rather than in a runner that would have to
 invent one.
 
-The consequence is explicit: `lapis-acp` grants an agent whatever the launch
+The consequence is explicit: `jj-acp` grants an agent whatever the launch
 environment grants. A caller that supplies provider credentials in the
 environment has given them to the agent. That is the caller's decision and it is
 not reversible from inside this process, which is why the task document cannot
@@ -51,7 +51,7 @@ Diagnostics on stderr are operator-facing and may name a failing executable, a
 protocol violation or a timeout stage. They MUST NOT include credentials or
 prompt content. Child stderr is forwarded for diagnosis and is the agent's own
 output; a controlling application that treats it as trusted is making an error
-this repository cannot prevent, and LAC-SEC-006 states the expectation.
+this repository cannot prevent, and JAC-SEC-006 states the expectation.
 
 ## Bounds
 

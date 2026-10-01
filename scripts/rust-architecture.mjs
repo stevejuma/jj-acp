@@ -75,12 +75,12 @@ export function architectureErrors(root, baseline) {
     if (count > allowed)
       errors.push(`${path}: ${count} counted lines exceeds ${allowed}`);
     const isTest = fileKind(path) === "test";
-    const inTestkit = path.startsWith("crates/lapis-acp-testkit/");
+    const inTestkit = path.startsWith("crates/jj-acp-testkit/");
     if (
       !isTest &&
       !inTestkit &&
       path.endsWith(".rs") &&
-      /lapis_acp_testkit/u.test(source)
+      /jj_acp_testkit/u.test(source)
     )
       errors.push(`${path}: production source imports the testkit crate`);
     if (

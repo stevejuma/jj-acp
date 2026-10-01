@@ -1,6 +1,6 @@
 # Upstream lock and port audit
 
-`lapis-acp` is a derived work of the `buzz-acp` crate in the `block/buzz`
+`jj-acp` is a derived work of the `buzz-acp` crate in the `block/buzz`
 repository. This document is the audit trail for that relationship. It records
 what is pinned, what was taken, what was refused and how to prove the record is
 still true.
@@ -42,7 +42,7 @@ dropped and 7 not-ported.
 The ACP client is the reason this port exists. Upstream concentrates framing,
 correlation, capability negotiation, session setup, model and permission
 handling, stop-reason mapping and legacy first-turn framing in one 215 KB file.
-Here it is decomposed across `crates/lapis-acp-protocol` under the counted-line
+Here it is decomposed across `crates/jj-acp-protocol` under the counted-line
 budget, and the port map records the owning crate rather than a single file so a
 future comparison is region by region.
 

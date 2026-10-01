@@ -26,23 +26,17 @@ test("counted_lines_keep_trailing_comment_bearing_code", () => {
 });
 
 test("file_kind_classifies_tests_scripts_and_production", () => {
-  assert.equal(fileKind("crates/lapis-acp-cli/tests/run_task.rs"), "test");
-  assert.equal(
-    fileKind("crates/lapis-acp-protocol/src/frame/tests.rs"),
-    "test",
-  );
+  assert.equal(fileKind("crates/jj-acp-cli/tests/run_task.rs"), "test");
+  assert.equal(fileKind("crates/jj-acp-protocol/src/frame/tests.rs"), "test");
   assert.equal(fileKind("tests/fixtures/task_agent.py"), "test");
   assert.equal(fileKind("scripts/governance.test.mjs"), "test");
   assert.equal(fileKind("scripts/check-progress.mjs"), "script");
-  assert.equal(
-    fileKind("crates/lapis-acp-protocol/src/frame.rs"),
-    "production",
-  );
+  assert.equal(fileKind("crates/jj-acp-protocol/src/frame.rs"), "production");
 });
 
 /** Build a throwaway repository root holding the supplied relative files. */
 function root(files) {
-  const dir = mkdtempSync(join(tmpdir(), "lapis-acp-arch-"));
+  const dir = mkdtempSync(join(tmpdir(), "jj-acp-arch-"));
   for (const leaf of ["crates", "scripts", "tests"])
     mkdirSync(join(dir, leaf), { recursive: true });
   for (const [path, source] of Object.entries(files)) {
@@ -54,7 +48,7 @@ function root(files) {
 }
 
 test("accepts_sources_within_budget", () => {
-  const dir = root({ "crates/lapis-acp-protocol/src/lib.rs": "fn a() {}\n" });
+  const dir = root({ "crates/jj-acp-protocol/src/lib.rs": "fn a() {}\n" });
   assert.deepEqual(architectureErrors(dir, { files: {} }), []);
   rmSync(dir, { recursive: true, force: true });
 });
@@ -64,7 +58,7 @@ test("rejects_production_source_over_budget", () => {
     { length: limits.production + 1 },
     (_, i) => `fn f${i}() {}`,
   ).join("\n");
-  const dir = root({ "crates/lapis-acp-runner/src/turn.rs": `${body}\n` });
+  const dir = root({ "crates/jj-acp-runner/src/turn.rs": `${body}\n` });
   assert.match(
     architectureErrors(dir, { files: {} }).join(),
     new RegExp(`exceeds ${limits.production}`),
@@ -77,7 +71,7 @@ test("test_files_use_the_larger_budget", () => {
     { length: limits.production + 1 },
     (_, i) => `fn f${i}() {}`,
   ).join("\n");
-  const dir = root({ "crates/lapis-acp-cli/tests/run_task.rs": `${body}\n` });
+  const dir = root({ "crates/jj-acp-cli/tests/run_task.rs": `${body}\n` });
   assert.deepEqual(architectureErrors(dir, { files: {} }), []);
   rmSync(dir, { recursive: true, force: true });
 });
@@ -87,7 +81,7 @@ test("baseline_grants_an_explicit_exception", () => {
     { length: limits.production + 1 },
     (_, i) => `fn f${i}() {}`,
   ).join("\n");
-  const path = "crates/lapis-acp-runner/src/turn.rs";
+  const path = "crates/jj-acp-runner/src/turn.rs";
   const dir = root({ [path]: `${body}\n` });
   assert.deepEqual(
     architectureErrors(dir, { files: { [path]: limits.production + 1 } }),
@@ -97,7 +91,7 @@ test("baseline_grants_an_explicit_exception", () => {
 });
 
 test("rejects_stale_baseline_entry", () => {
-  const dir = root({ "crates/lapis-acp-protocol/src/lib.rs": "fn a() {}\n" });
+  const dir = root({ "crates/jj-acp-protocol/src/lib.rs": "fn a() {}\n" });
   assert.match(
     architectureErrors(dir, { files: { "crates/gone.rs": 300 } }).join(),
     /stale architecture baseline/,
@@ -107,7 +101,7 @@ test("rejects_stale_baseline_entry", () => {
 
 test("rejects_production_import_of_the_testkit", () => {
   const dir = root({
-    "crates/lapis-acp-runner/src/turn.rs": "use lapis_acp_testkit::peer;\n",
+    "crates/jj-acp-runner/src/turn.rs": "use jj_acp_testkit::peer;\n",
   });
   assert.match(
     architectureErrors(dir, { files: {} }).join(),
@@ -118,7 +112,7 @@ test("rejects_production_import_of_the_testkit", () => {
 
 test("rejects_inline_tests_in_a_production_module", () => {
   const dir = root({
-    "crates/lapis-acp-protocol/src/frame.rs":
+    "crates/jj-acp-protocol/src/frame.rs":
       "fn a() {}\n\n#[cfg(test)]\nmod inline {\n    #[test]\n    fn proof() {}\n}\n",
   });
   assert.match(
@@ -130,9 +124,9 @@ test("rejects_inline_tests_in_a_production_module", () => {
 
 test("allows_a_cfg_test_sibling_module_declaration", () => {
   const dir = root({
-    "crates/lapis-acp-protocol/src/frame.rs":
+    "crates/jj-acp-protocol/src/frame.rs":
       "fn a() {}\n\n#[cfg(test)]\nmod tests;\n",
-    "crates/lapis-acp-protocol/src/frame/tests.rs": "#[test]\nfn proof() {}\n",
+    "crates/jj-acp-protocol/src/frame/tests.rs": "#[test]\nfn proof() {}\n",
   });
   assert.deepEqual(architectureErrors(dir, { files: {} }), []);
   rmSync(dir, { recursive: true, force: true });
@@ -140,7 +134,7 @@ test("allows_a_cfg_test_sibling_module_declaration", () => {
 
 test("allows_testkit_use_from_a_test_module", () => {
   const dir = root({
-    "crates/lapis-acp-cli/tests/run_task.rs": "use lapis_acp_testkit::peer;\n",
+    "crates/jj-acp-cli/tests/run_task.rs": "use jj_acp_testkit::peer;\n",
   });
   assert.deepEqual(architectureErrors(dir, { files: {} }), []);
   rmSync(dir, { recursive: true, force: true });
@@ -151,8 +145,7 @@ test("allows_the_testkit_crate_to_name_itself", () => {
   // name; the rule exists to keep production crates away from test helpers, not
   // to stop the helper describing itself.
   const dir = root({
-    "crates/lapis-acp-testkit/src/lib.rs":
-      "//! use lapis_acp_testkit::Fixture;\n",
+    "crates/jj-acp-testkit/src/lib.rs": "//! use jj_acp_testkit::Fixture;\n",
   });
   assert.deepEqual(architectureErrors(dir, { files: {} }), []);
   rmSync(dir, { recursive: true, force: true });

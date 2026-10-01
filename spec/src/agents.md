@@ -1,7 +1,7 @@
 # Runner catalog
 
-A runner is an external ACP-speaking agent that `lapis-acp` can spawn. Runners
-are data, not code: a catalog entry names an executable, its arguments, an
+A runner is an external ACP-speaking agent that `jj-acp` can spawn. Runners are
+data, not code: a catalog entry names an executable, its arguments, an
 environment floor, an MCP transport and an install hint. Adding support for a
 new agent MUST be a catalog change.
 
@@ -23,12 +23,12 @@ attempting a download or executing a shell command.
 
 | ID            | Requirement                                                                                                                                  |
 | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| LAC-AGENT-001 | A runner MUST be declared as data carrying identifier, label, command, arguments, environment floor, MCP transport and install hint.         |
-| LAC-AGENT-002 | Adding a runner MUST NOT require a code change, an install shell command or a network fetch.                                                 |
-| LAC-AGENT-003 | Reserved harness environment keys MUST be stripped before a definition or caller override is merged, and MUST NOT be settable by any tier.   |
-| LAC-AGENT-004 | A disabled or unknown runner identifier MUST fail resolution and MUST NOT fall back to a default runner.                                     |
-| LAC-AGENT-005 | Runner identifiers MUST be validated against a fixed pattern and MUST be unique within a resolved catalog.                                   |
-| LAC-AGENT-006 | The launch environment MUST be assembled from the inherited environment, the definition floor and caller overrides in that precedence order. |
+| JAC-AGENT-001 | A runner MUST be declared as data carrying identifier, label, command, arguments, environment floor, MCP transport and install hint.         |
+| JAC-AGENT-002 | Adding a runner MUST NOT require a code change, an install shell command or a network fetch.                                                 |
+| JAC-AGENT-003 | Reserved harness environment keys MUST be stripped before a definition or caller override is merged, and MUST NOT be settable by any tier.   |
+| JAC-AGENT-004 | A disabled or unknown runner identifier MUST fail resolution and MUST NOT fall back to a default runner.                                     |
+| JAC-AGENT-005 | Runner identifiers MUST be validated against a fixed pattern and MUST be unique within a resolved catalog.                                   |
+| JAC-AGENT-006 | The launch environment MUST be assembled from the inherited environment, the definition floor and caller overrides in that precedence order. |
 
 ## Reserved environment
 
@@ -38,12 +38,12 @@ runner definition, a catalog file or a caller-supplied override that sets one is
 stripped before merge, and the strip is recorded so the operator can see that a
 definition attempted to claim harness identity.
 
-This is the only place `lapis-acp` performs anything resembling an authorization
+This is the only place `jj-acp` performs anything resembling an authorization
 check, and it is a namespace guard rather than an identity system. There is no
 keypair, no signature, no token and no peer credential anywhere in this
 repository. The controlling application decided to run this runner with this
-environment; `lapis-acp` only refuses to let the runner definition contradict
-that decision.
+environment; `jj-acp` only refuses to let the runner definition contradict that
+decision.
 
 ## Default catalog
 
@@ -100,12 +100,12 @@ floor, then caller overrides. A later layer replaces an earlier one for the same
 name, and the first appearance fixes its position so the result is
 deterministic.
 
-Every layer is stripped of names under the `LAPIS_ACP_TASK_` prefix before
-merging, and the stripped names are returned so an operator can see that a
-definition tried to claim harness identity. The harness then adds its own
-reserved variables through a separate function that no catalog file and no
-caller override can reach. The prefix is matched rather than an enumerated list,
-so a future harness variable is covered without a rule change.
+Every layer is stripped of names under the `JJ_ACP_TASK_` prefix before merging,
+and the stripped names are returned so an operator can see that a definition
+tried to claim harness identity. The harness then adds its own reserved
+variables through a separate function that no catalog file and no caller
+override can reach. The prefix is matched rather than an enumerated list, so a
+future harness variable is covered without a rule change.
 
 ## Qualification status
 

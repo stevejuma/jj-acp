@@ -1,0 +1,28 @@
+[package]
+name = "jj-acp-control"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+jj-acp-protocol.workspace = true
+jj-acp-agent.workspace = true
+jj-acp-runner.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = [
+  "fs",
+  "io-std",
+  "io-util",
+  "process",
+  "rt",
+  "sync",
+  "time",
+] }
+
+[dev-dependencies]
+jj-acp-testkit.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

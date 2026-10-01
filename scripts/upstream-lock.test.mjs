@@ -25,11 +25,11 @@ const pin = {
   path: "crates/buzz-acp",
   commit: "2664d14316790a57ea44b3f97c57440b70e43436",
   license: "Apache-2.0",
-  owners: ["crates/lapis-acp-protocol", "none"],
+  owners: ["crates/jj-acp-protocol", "none"],
   files: {
     "src/acp.rs": {
       disposition: "ported-with-changes",
-      owner: "crates/lapis-acp-protocol",
+      owner: "crates/jj-acp-protocol",
       note: "Decomposed under the counted-line budget.",
     },
     "src/relay.rs": {
@@ -113,7 +113,7 @@ test("rejects_an_owner_disposition_mismatch", () => {
   const droppedWithOwner = {
     "src/relay.rs": {
       ...pin.files["src/relay.rs"],
-      owner: "crates/lapis-acp-protocol",
+      owner: "crates/jj-acp-protocol",
     },
   };
   assert.match(

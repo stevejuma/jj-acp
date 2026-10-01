@@ -1,6 +1,6 @@
 # Compatibility and upstream port
 
-`lapis-acp` is a derived work. Most of its design and a substantial part of its
+`jj-acp` is a derived work. Most of its design and a substantial part of its
 logic come from the upstream `buzz-acp` crate in the `block/buzz` repository,
 which is Apache-2.0. This chapter governs how that relationship stays auditable
 so the port can be updated rather than rewritten when upstream moves.
@@ -14,13 +14,13 @@ dependencies.
 
 | ID             | Requirement                                                                                                                                                           |
 | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| LAC-COMPAT-001 | The upstream port source MUST be pinned by repository, path and commit in `docs/upstream-lock.md` together with a per-file disposition map.                           |
-| LAC-COMPAT-002 | Adopted upstream attribution MUST be recorded in `docs/licenses/NOTICE.md`, and upstream repository-level agent instructions MUST NOT be copied into this repository. |
-| LAC-COMPAT-003 | Upstream drift MUST be detectable by a script that materializes the pinned source into ignored scratch storage and verifies recorded digests.                         |
-| LAC-COMPAT-004 | The Rust toolchain MUST be pinned and formatting MUST be checked by both the normal and the specification check lanes.                                                |
-| LAC-COMPAT-005 | Integration tests MUST reach a terminal outcome without a model provider, a network endpoint or a credential.                                                         |
-| LAC-COMPAT-006 | Qualification against a real installed runner MUST be recorded separately and MUST NOT be inferred from fixture-peer tests.                                           |
-| LAC-COMPAT-007 | Every disposition in the port map MUST be one of ported, ported-with-changes, dropped or not-ported, and a dropped region MUST name the reason.                       |
+| JAC-COMPAT-001 | The upstream port source MUST be pinned by repository, path and commit in `docs/upstream-lock.md` together with a per-file disposition map.                           |
+| JAC-COMPAT-002 | Adopted upstream attribution MUST be recorded in `docs/licenses/NOTICE.md`, and upstream repository-level agent instructions MUST NOT be copied into this repository. |
+| JAC-COMPAT-003 | Upstream drift MUST be detectable by a script that materializes the pinned source into ignored scratch storage and verifies recorded digests.                         |
+| JAC-COMPAT-004 | The Rust toolchain MUST be pinned and formatting MUST be checked by both the normal and the specification check lanes.                                                |
+| JAC-COMPAT-005 | Integration tests MUST reach a terminal outcome without a model provider, a network endpoint or a credential.                                                         |
+| JAC-COMPAT-006 | Qualification against a real installed runner MUST be recorded separately and MUST NOT be inferred from fixture-peer tests.                                           |
+| JAC-COMPAT-007 | Every disposition in the port map MUST be one of ported, ported-with-changes, dropped or not-ported, and a dropped region MUST name the reason.                       |
 
 ## Upstream lock
 
@@ -143,9 +143,8 @@ rather than identity.
 
 It advertises model and reasoning-effort catalogues, honours a protocol version
 override and a stop reason override, streams one content chunk per turn, and
-appends every frame it receives to a log a test can read back.
-`lapis-acp-testkit` owns locating it, building its argv and environment, and
-parsing that log.
+appends every frame it receives to a log a test can read back. `jj-acp-testkit`
+owns locating it, building its argv and environment, and parsing that log.
 
 Two findings came from running it rather than from reading the port map. A
 permission request answered by semantic kind completes the turn, which exercises
@@ -170,7 +169,7 @@ and threads has no work to do yet and arrives with the persistent transport.
 The fixture peer is ported with all ten failure modes and is exercised through
 the real binary, not only through the protocol crate. Two defects surfaced that
 way and neither would have been caught by reading the port map: reserving the
-whole `LAPIS_ACP_` environment namespace stripped legitimate launch options, and
+whole `JJ_ACP_` environment namespace stripped legitimate launch options, and
 letting `initialize` keep a fixed request timeout gave a hung adapter an
 unbounded startup phase that the lifecycle chapter explicitly forbids.
 
@@ -201,7 +200,7 @@ Two adapters have been qualified. The first is `cursor-agent acp` version
 2026.09.26-dd393fe, authenticated through the operator's existing
 `cursor-agent login` session. The harness performed no authentication and never
 called the `authenticate` method the adapter offers, which is the boundary
-LAC-SEC-001 states and the reason an adapter that requires interactive login is
+JAC-SEC-001 states and the reason an adapter that requires interactive login is
 usable here only when the operator has already logged in.
 
 Two real turns completed, both reporting `status: completed` with
@@ -236,7 +235,7 @@ inside parameterized model values such as
 `grok-4.7[context=256k,reasoning_effort=high, fast=true]` and exposes a `mode`
 option with `agent`, `plan` and `ask`, while the upstream harness discovered a
 separate `thought_level` option for a different adapter. Neither is a superset
-of the other, so LAC-RUN-006 stays Planned and owns its own milestone rather
+of the other, so JAC-RUN-006 stays Planned and owns its own milestone rather
 than being marked done on a model-only implementation.
 
 ## Advertised surfaces are not stable across sessions

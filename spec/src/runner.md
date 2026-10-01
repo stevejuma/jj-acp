@@ -1,26 +1,26 @@
 # Session and turn lifecycle
 
-`lapis-acp-runner` executes prepared turns. It does not decide what to run, when
-to run it, or what to do with the result; intake and disposition belong to
-`lapis-acp-control` and to the controlling application above it.
+`jj-acp-runner` executes prepared turns. It does not decide what to run, when to
+run it, or what to do with the result; intake and disposition belong to
+`jj-acp-control` and to the controlling application above it.
 
 A session scope is the unit of serialization. One scope has at most one turn in
 flight. Distinct scopes may run concurrently when more than one agent subprocess
 exists. This mirrors the upstream per-channel guarantee without inheriting its
-channel concept: the controlling application names the scope, and `lapis-acp`
+channel concept: the controlling application names the scope, and `jj-acp`
 treats it as an opaque key.
 
 ## Requirements
 
 | ID          | Requirement                                                                                                                                                                                                                                                                                                |
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| LAC-RUN-001 | The runner MUST execute one prepared turn per session scope with at most one turn in flight per scope.                                                                                                                                                                                                     |
-| LAC-RUN-002 | Cancellation MUST be cooperative and bounded: request cancellation, wait a bounded grace period, then kill the process group and reap within a bounded interval.                                                                                                                                           |
-| LAC-RUN-003 | An idle timeout reset by agent output and an absolute wall-clock turn deadline MUST both apply, and the shorter remaining bound MUST win.                                                                                                                                                                  |
-| LAC-RUN-004 | A timeout MUST be reported as an unknown outcome and MUST NOT be recorded as success or as a proven failure.                                                                                                                                                                                               |
-| LAC-RUN-005 | A crashed agent MUST be reported as a distinct outcome from a bound that elapsed, and a restart MUST NOT silently re-dispatch a turn that was already sent.                                                                                                                                                |
-| LAC-RUN-006 | Session creation MUST apply a configured model, reasoning effort and execution mode where the adapter advertises them, MUST resolve each against the current session rather than a cached one, and MUST retain the adapter default rather than fail the turn when a setting is unsupported or unavailable. |
-| LAC-RUN-007 | On Unix, cleanup MUST signal the whole process group before reaping its leader so ordinary descendants cannot outlive the turn, and MUST report whether the stop was confirmed.                                                                                                                            |
+| JAC-RUN-001 | The runner MUST execute one prepared turn per session scope with at most one turn in flight per scope.                                                                                                                                                                                                     |
+| JAC-RUN-002 | Cancellation MUST be cooperative and bounded: request cancellation, wait a bounded grace period, then kill the process group and reap within a bounded interval.                                                                                                                                           |
+| JAC-RUN-003 | An idle timeout reset by agent output and an absolute wall-clock turn deadline MUST both apply, and the shorter remaining bound MUST win.                                                                                                                                                                  |
+| JAC-RUN-004 | A timeout MUST be reported as an unknown outcome and MUST NOT be recorded as success or as a proven failure.                                                                                                                                                                                               |
+| JAC-RUN-005 | A crashed agent MUST be reported as a distinct outcome from a bound that elapsed, and a restart MUST NOT silently re-dispatch a turn that was already sent.                                                                                                                                                |
+| JAC-RUN-006 | Session creation MUST apply a configured model, reasoning effort and execution mode where the adapter advertises them, MUST resolve each against the current session rather than a cached one, and MUST retain the adapter default rather than fail the turn when a setting is unsupported or unavailable. |
+| JAC-RUN-007 | On Unix, cleanup MUST signal the whole process group before reaping its leader so ordinary descendants cannot outlive the turn, and MUST report whether the stop was confirmed.                                                                                                                            |
 
 ## Deadline composition
 

@@ -1,5 +1,5 @@
 {
-  "name": "@lapismd/lapis-acp",
+  "name": "@lapismd/jj-acp",
   "version": "0.1.0",
   "private": true,
   "description": "Pluggable Agent Client Protocol harness for controlling applications",

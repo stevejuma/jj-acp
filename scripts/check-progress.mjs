@@ -216,7 +216,7 @@ export function run(root) {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
     });
-  const rev = process.env.LAPIS_ACP_CHECK_REVISION ?? "@";
+  const rev = process.env.JJ_ACP_CHECK_REVISION ?? "@";
   const changed = jj(["diff", "--name-only", "--from", `${rev}-`, "--to", rev])
     .trim()
     .split("\n")
@@ -236,7 +236,7 @@ export function run(root) {
     );
   const requirements = new Set(
     paths.flatMap((p) =>
-      [...read(p).matchAll(/^\| (LAC-[A-Z]+-\d{3}) \|/gm)].map((m) => m[1]),
+      [...read(p).matchAll(/^\| (JAC-[A-Z]+-\d{3}) \|/gm)].map((m) => m[1]),
     ),
   );
   const errors = validateLedger({

@@ -16,7 +16,7 @@ import {
 const API = "https://api.github.com/repos";
 const RAW = "https://raw.githubusercontent.com";
 const HEADERS = {
-  "User-Agent": "lapis-acp-upstream-sync",
+  "User-Agent": "jj-acp-upstream-sync",
   Accept: "application/vnd.github+json",
 };
 const CONCURRENCY = 6;

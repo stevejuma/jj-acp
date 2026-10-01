@@ -1,11 +1,11 @@
 [workspace]
 members = [
-  "crates/lapis-acp-protocol",
-  "crates/lapis-acp-agent",
-  "crates/lapis-acp-runner",
-  "crates/lapis-acp-control",
-  "crates/lapis-acp-cli",
-  "crates/lapis-acp-testkit",
+  "crates/jj-acp-protocol",
+  "crates/jj-acp-agent",
+  "crates/jj-acp-runner",
+  "crates/jj-acp-control",
+  "crates/jj-acp-cli",
+  "crates/jj-acp-testkit",
 ]
 resolver = "2"
 
@@ -17,11 +17,11 @@ license = "Apache-2.0"
 authors = ["LapisMD contributors"]
 
 [workspace.dependencies]
-lapis-acp-protocol = { path = "crates/lapis-acp-protocol" }
-lapis-acp-agent = { path = "crates/lapis-acp-agent" }
-lapis-acp-runner = { path = "crates/lapis-acp-runner" }
-lapis-acp-control = { path = "crates/lapis-acp-control" }
-lapis-acp-testkit = { path = "crates/lapis-acp-testkit" }
+jj-acp-protocol = { path = "crates/jj-acp-protocol" }
+jj-acp-agent = { path = "crates/jj-acp-agent" }
+jj-acp-runner = { path = "crates/jj-acp-runner" }
+jj-acp-control = { path = "crates/jj-acp-control" }
+jj-acp-testkit = { path = "crates/jj-acp-testkit" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"

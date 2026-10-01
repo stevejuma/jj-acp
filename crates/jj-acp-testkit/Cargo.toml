@@ -1,0 +1,21 @@
+[package]
+name = "jj-acp-testkit"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+jj-acp-protocol.workspace = true
+jj-acp-agent.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = [
+  "io-util",
+  "macros",
+  "process",
+  "rt",
+  "time",
+] }

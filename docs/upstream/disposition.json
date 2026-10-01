@@ -18,12 +18,12 @@
     "spec/src/cli.md",
     "spec/src/security.md",
     "spec/src/compatibility.md",
-    "crates/lapis-acp-protocol",
-    "crates/lapis-acp-agent",
-    "crates/lapis-acp-runner",
-    "crates/lapis-acp-control",
-    "crates/lapis-acp-cli",
-    "crates/lapis-acp-testkit",
+    "crates/jj-acp-protocol",
+    "crates/jj-acp-agent",
+    "crates/jj-acp-runner",
+    "crates/jj-acp-control",
+    "crates/jj-acp-cli",
+    "crates/jj-acp-testkit",
     "tests/fixtures",
     "none"
   ],
@@ -50,22 +50,22 @@
     },
     "src/acp.rs": {
       "disposition": "ported-with-changes",
-      "owner": "crates/lapis-acp-protocol",
+      "owner": "crates/jj-acp-protocol",
       "note": "Decomposed into twelve bounded modules; permission auto-approval replaced by a caller-supplied decision defaulting to cancellation; terminal-auth and vendor notification capability advertisements removed; relay-derived prompt assembly dropped."
     },
     "src/acp/system_prompt_tests.rs": {
       "disposition": "not-ported",
-      "owner": "crates/lapis-acp-protocol",
+      "owner": "crates/jj-acp-protocol",
       "note": "Covers relay-derived system prompt assembly that this port does not carry."
     },
     "src/base_prompt.md": {
       "disposition": "ported-with-changes",
-      "owner": "crates/lapis-acp-runner",
+      "owner": "crates/jj-acp-runner",
       "note": "Standing instructions rewritten without Buzz CLI, relay and channel references."
     },
     "src/config.rs": {
       "disposition": "ported-with-changes",
-      "owner": "crates/lapis-acp-cli",
+      "owner": "crates/jj-acp-cli",
       "note": "Launch, runner, model, permission and prompt sections ported; key, persona, relay and membership sections dropped."
     },
     "src/engram_fetch.rs": {
@@ -90,17 +90,17 @@
     },
     "src/isolated_execution.rs": {
       "disposition": "ported-with-changes",
-      "owner": "crates/lapis-acp-runner",
+      "owner": "crates/jj-acp-runner",
       "note": "Isolated turn execution retained; relay socket publication removed."
     },
     "src/lib.rs": {
       "disposition": "ported-with-changes",
-      "owner": "crates/lapis-acp-cli",
+      "owner": "crates/jj-acp-cli",
       "note": "Composition root only; relay connection, subscription and channel discovery wiring dropped."
     },
     "src/main.rs": {
       "disposition": "ported",
-      "owner": "crates/lapis-acp-cli",
+      "owner": "crates/jj-acp-cli",
       "note": "Thin binary entry point delegating to the library run function."
     },
     "src/observer.rs": {
@@ -110,37 +110,37 @@
     },
     "src/pool.rs": {
       "disposition": "ported-with-changes",
-      "owner": "crates/lapis-acp-runner",
+      "owner": "crates/jj-acp-runner",
       "note": "Session and turn machinery ported; channel context resolution and relay presence dropped."
     },
     "src/pool/pi_prompt_tests.rs": {
       "disposition": "not-ported",
-      "owner": "crates/lapis-acp-runner",
+      "owner": "crates/jj-acp-runner",
       "note": "Pi harness prompt specifics outside the default runner catalog."
     },
     "src/pool/system_prompt_tests.rs": {
       "disposition": "not-ported",
-      "owner": "crates/lapis-acp-runner",
+      "owner": "crates/jj-acp-runner",
       "note": "Covers relay-derived standing prompt assembly."
     },
     "src/pool_lifecycle.rs": {
       "disposition": "ported-with-changes",
-      "owner": "crates/lapis-acp-runner",
+      "owner": "crates/jj-acp-runner",
       "note": "Pool lifecycle states retained without relay-driven wake conditions."
     },
     "src/prompt_framing.rs": {
       "disposition": "ported-with-changes",
-      "owner": "crates/lapis-acp-runner",
+      "owner": "crates/jj-acp-runner",
       "note": "Modern and legacy first-turn framing retained; relay context injection removed."
     },
     "src/prompt_project.rs": {
       "disposition": "not-ported",
-      "owner": "crates/lapis-acp-control",
+      "owner": "crates/jj-acp-control",
       "note": "Channel history projection depends on relay reads; deferred with the persistent transport."
     },
     "src/queue.rs": {
       "disposition": "not-ported",
-      "owner": "crates/lapis-acp-control",
+      "owner": "crates/jj-acp-control",
       "note": "Inbound batching, deduplication and overflow replay arrive with the persistent transport."
     },
     "src/relay.rs": {
@@ -165,17 +165,17 @@
     },
     "src/run_task.rs": {
       "disposition": "ported-with-changes",
-      "owner": "crates/lapis-acp-cli",
+      "owner": "crates/jj-acp-cli",
       "note": "One-shot task invocation, terminal record and exit codes ported; identity check retargeted to the runner identifier."
     },
     "src/runtime.rs": {
       "disposition": "ported-with-changes",
-      "owner": "crates/lapis-acp-runner",
+      "owner": "crates/jj-acp-runner",
       "note": "Shared runtime, pool startup and prompt context retained; relay client, owner and key fields removed."
     },
     "src/scope.rs": {
       "disposition": "ported-with-changes",
-      "owner": "crates/lapis-acp-control",
+      "owner": "crates/jj-acp-control",
       "note": "Channel, thread and task scopes generalized to one opaque caller-named session scope."
     },
     "src/session_model_channel.md": {
@@ -185,7 +185,7 @@
     },
     "src/session_model_task.md": {
       "disposition": "ported-with-changes",
-      "owner": "crates/lapis-acp-runner",
+      "owner": "crates/jj-acp-runner",
       "note": "Task session description retained without relay reporting instructions."
     },
     "src/session_model_thread.md": {
@@ -215,17 +215,17 @@
     },
     "tests/pool_lifecycle_state.rs": {
       "disposition": "not-ported",
-      "owner": "crates/lapis-acp-runner",
+      "owner": "crates/jj-acp-runner",
       "note": "Arrives with the standing pool in the persistent transport slice."
     },
     "tests/run_task.rs": {
       "disposition": "ported-with-changes",
-      "owner": "crates/lapis-acp-cli",
+      "owner": "crates/jj-acp-cli",
       "note": "Binary-level task contract tests ported; relay, identity and memory cases removed."
     },
     "tests/stdio_contract.rs": {
       "disposition": "ported-with-changes",
-      "owner": "crates/lapis-acp-cli",
+      "owner": "crates/jj-acp-cli",
       "note": "Clean-stdout contract ported; the unreachable-relay startup failure is replaced by an unresolvable runner."
     }
   }

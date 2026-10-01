@@ -43,46 +43,36 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 
 [[package]]
-name = "lapis-acp-agent"
+name = "jj-acp-agent"
 version = "0.1.0"
 dependencies = [
- "lapis-acp-protocol",
+ "jj-acp-protocol",
  "serde",
  "serde_json",
  "thiserror",
 ]
 
 [[package]]
-name = "lapis-acp-cli"
+name = "jj-acp-cli"
 version = "0.1.0"
 dependencies = [
- "lapis-acp-agent",
- "lapis-acp-control",
- "lapis-acp-protocol",
- "lapis-acp-runner",
- "lapis-acp-testkit",
+ "jj-acp-agent",
+ "jj-acp-control",
+ "jj-acp-protocol",
+ "jj-acp-runner",
+ "jj-acp-testkit",
  "serde_json",
  "tokio",
 ]
 
 [[package]]
-name = "lapis-acp-control"
+name = "jj-acp-control"
 version = "0.1.0"
 dependencies = [
- "lapis-acp-agent",
- "lapis-acp-protocol",
- "lapis-acp-runner",
- "lapis-acp-testkit",
- "serde",
- "serde_json",
- "thiserror",
- "tokio",
-]
-
-[[package]]
-name = "lapis-acp-protocol"
-version = "0.1.0"
-dependencies = [
+ "jj-acp-agent",
+ "jj-acp-protocol",
+ "jj-acp-runner",
+ "jj-acp-testkit",
  "serde",
  "serde_json",
  "thiserror",
@@ -90,12 +80,22 @@ dependencies = [
 ]
 
 [[package]]
-name = "lapis-acp-runner"
+name = "jj-acp-protocol"
 version = "0.1.0"
 dependencies = [
- "lapis-acp-agent",
- "lapis-acp-protocol",
- "lapis-acp-testkit",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+]
+
+[[package]]
+name = "jj-acp-runner"
+version = "0.1.0"
+dependencies = [
+ "jj-acp-agent",
+ "jj-acp-protocol",
+ "jj-acp-testkit",
  "nix",
  "serde_json",
  "thiserror",
@@ -103,11 +103,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "lapis-acp-testkit"
+name = "jj-acp-testkit"
 version = "0.1.0"
 dependencies = [
- "lapis-acp-agent",
- "lapis-acp-protocol",
+ "jj-acp-agent",
+ "jj-acp-protocol",
  "serde_json",
  "tokio",
 ]

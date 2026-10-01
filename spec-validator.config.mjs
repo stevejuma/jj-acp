@@ -5,17 +5,17 @@ import {
 } from "@lapismd/spec-validator";
 
 export default defineConfig(tableRequirements(), {
-  name: "lapis-acp",
-  idPattern: /^LAC-[A-Z]+-\d{3}$/,
+  name: "jj-acp",
+  idPattern: /^JAC-[A-Z]+-\d{3}$/,
   tableSection: "Requirements",
   ruleIds: {
-    summary: "LAC-GOV-001",
-    governance: "LAC-GOV-001",
-    verification: "LAC-GOV-001",
-    book: "LAC-GOV-001",
-    bookIgnore: "LAC-GOV-001",
-    specFirst: "LAC-GOV-002",
-    internal: "LAC-GOV-001",
+    summary: "JAC-GOV-001",
+    governance: "JAC-GOV-001",
+    verification: "JAC-GOV-001",
+    book: "JAC-GOV-001",
+    bookIgnore: "JAC-GOV-001",
+    specFirst: "JAC-GOV-002",
+    internal: "JAC-GOV-001",
   },
   validators: {
     summary: true,
@@ -48,27 +48,27 @@ export default defineConfig(tableRequirements(), {
       ],
       rules: [
         {
-          pattern: "^crates/lapis-acp-protocol/",
+          pattern: "^crates/(?:[a-z0-9]+-)*acp-protocol/",
           chapters: ["spec/src/protocol.md"],
         },
         {
-          pattern: "^crates/lapis-acp-agent/",
+          pattern: "^crates/(?:[a-z0-9]+-)*acp-agent/",
           chapters: ["spec/src/agents.md"],
         },
         {
-          pattern: "^crates/lapis-acp-runner/",
+          pattern: "^crates/(?:[a-z0-9]+-)*acp-runner/",
           chapters: ["spec/src/runner.md"],
         },
         {
-          pattern: "^crates/lapis-acp-control/",
+          pattern: "^crates/(?:[a-z0-9]+-)*acp-control/",
           chapters: ["spec/src/control.md"],
         },
         {
-          pattern: "^crates/lapis-acp-cli/",
+          pattern: "^crates/(?:[a-z0-9]+-)*acp-cli/",
           chapters: ["spec/src/cli.md"],
         },
         {
-          pattern: "^crates/lapis-acp-testkit/",
+          pattern: "^crates/(?:[a-z0-9]+-)*acp-testkit/",
           chapters: ["spec/src/compatibility.md"],
         },
         {

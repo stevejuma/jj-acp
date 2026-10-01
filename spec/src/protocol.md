@@ -1,9 +1,9 @@
 # ACP wire protocol
 
-`lapis-acp-protocol` owns the Agent Client Protocol surface that `lapis-acp`
-speaks to an agent subprocess over stdin and stdout. It is a hand-rolled
-JSON-RPC implementation, matching upstream: there is no ACP crate dependency to
-vendor, and no network transport of any kind.
+`jj-acp-protocol` owns the Agent Client Protocol surface that `jj-acp` speaks to
+an agent subprocess over stdin and stdout. It is a hand-rolled JSON-RPC
+implementation, matching upstream: there is no ACP crate dependency to vendor,
+and no network transport of any kind.
 
 Framing is newline-delimited JSON with an explicit per-frame byte cap. A frame
 that exceeds the cap is a protocol error, never a silent truncation and never an
@@ -14,12 +14,12 @@ malfunctioning agent that emits an endless line.
 
 | ID            | Requirement                                                                                                                                                                                       |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| LAC-PROTO-001 | The protocol crate MUST encode and decode ACP JSON-RPC frames over newline-delimited stdio with an explicit per-frame byte cap and MUST fail closed on overflow.                                  |
-| LAC-PROTO-002 | The client MUST request protocol version 2 at `initialize` and MUST fall back to version 1 when the agent reports it, recording the negotiated version.                                           |
-| LAC-PROTO-003 | The client MUST support `session/new`, `session/prompt`, `session/cancel`, `session/set_model`, `session/set_config_option`, inbound `session/request_permission` and `session/update`.           |
-| LAC-PROTO-004 | A turn MUST terminate in exactly one stop reason drawn from `end_turn`, `max_tokens`, `max_turn_requests`, `refusal` and `cancelled`.                                                             |
-| LAC-PROTO-005 | An agent error MUST be surfaced as a typed protocol error preserving the agent's numeric code, and MUST substitute the whole error object when no message is present so provider detail survives. |
-| LAC-PROTO-006 | The protocol crate MUST remain free of process spawning, scheduling, credential handling and transport policy.                                                                                    |
+| JAC-PROTO-001 | The protocol crate MUST encode and decode ACP JSON-RPC frames over newline-delimited stdio with an explicit per-frame byte cap and MUST fail closed on overflow.                                  |
+| JAC-PROTO-002 | The client MUST request protocol version 2 at `initialize` and MUST fall back to version 1 when the agent reports it, recording the negotiated version.                                           |
+| JAC-PROTO-003 | The client MUST support `session/new`, `session/prompt`, `session/cancel`, `session/set_model`, `session/set_config_option`, inbound `session/request_permission` and `session/update`.           |
+| JAC-PROTO-004 | A turn MUST terminate in exactly one stop reason drawn from `end_turn`, `max_tokens`, `max_turn_requests`, `refusal` and `cancelled`.                                                             |
+| JAC-PROTO-005 | An agent error MUST be surfaced as a typed protocol error preserving the agent's numeric code, and MUST substitute the whole error object when no message is present so provider detail survives. |
+| JAC-PROTO-006 | The protocol crate MUST remain free of process spawning, scheduling, credential handling and transport policy.                                                                                    |
 
 ## Method direction
 

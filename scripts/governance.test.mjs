@@ -26,7 +26,7 @@ const entry = {
   formats: "none",
 };
 function fixture(
-  rows = "| Bootstrap | Done | - | LAC-GOV-001 | gate | continue | E-TEST-001 |",
+  rows = "| Bootstrap | Done | - | JAC-GOV-001 | gate | continue | E-TEST-001 |",
   entries = [entry],
   extra = {},
 ) {
@@ -36,7 +36,7 @@ function fixture(
       if (path === "test.rs") return "#[test] fn proof() {}";
       throw Error("missing");
     },
-    requirements: new Set(["LAC-GOV-001"]),
+    requirements: new Set(["JAC-GOV-001"]),
     ...extra,
   };
 }
@@ -51,7 +51,7 @@ test("rejects_completed_parent_with_incomplete_child", () =>
   assert.match(
     validateLedger(
       fixture(
-        "| Bootstrap | Done | - | LAC-GOV-001 | gate | next | E-TEST-001 |\n| Bootstrap.1 | Planned | - | LAC-GOV-001 | child gate | next | - |",
+        "| Bootstrap | Done | - | JAC-GOV-001 | gate | next | E-TEST-001 |\n| Bootstrap.1 | Planned | - | JAC-GOV-001 | child gate | next | - |",
       ),
     ).join(),
     /incomplete child/,
@@ -78,7 +78,7 @@ test("accepts_evidence_superseded_by_tracked_removals", () => {
   assert.deepEqual(
     validateLedger(
       fixture(
-        "| Bootstrap | Done | - | LAC-GOV-001 | gate | continue | E-TEST-001,E-TEST-002 |",
+        "| Bootstrap | Done | - | JAC-GOV-001 | gate | continue | E-TEST-001,E-TEST-002 |",
         [retired, replacement],
       ),
     ),
@@ -103,7 +103,7 @@ test("rejects_dependency_cycle", () =>
   assert.match(
     validateLedger(
       fixture(
-        "| Bootstrap | Planned | M1 | LAC-GOV-001 | gate | next | - |\n| M1 | Planned | Bootstrap | LAC-GOV-001 | gate | next | - |",
+        "| Bootstrap | Planned | M1 | JAC-GOV-001 | gate | next | - |\n| M1 | Planned | Bootstrap | JAC-GOV-001 | gate | next | - |",
       ),
     ).join(),
     /cycle/,
@@ -112,7 +112,7 @@ test("rejects_invalid_task_id", () =>
   assert.match(
     validateLedger(
       fixture(
-        "| Bootstrap-x | Planned | - | LAC-GOV-001 | gate | next | - |",
+        "| Bootstrap-x | Planned | - | JAC-GOV-001 | gate | next | - |",
         [],
       ),
     ).join(),
@@ -122,7 +122,7 @@ test("rejects_unchanged_ledger_for_code", () =>
   assert.match(
     validateLedger(
       fixture(undefined, undefined, {
-        changed: ["crates/lapis-acp-protocol/src/lib.rs"],
+        changed: ["crates/jj-acp-protocol/src/lib.rs"],
         previousEntries: [entry],
       }),
     ).join(),
@@ -132,7 +132,7 @@ test("rejects_touch_without_new_evidence", () =>
   assert.match(
     validateLedger(
       fixture(undefined, undefined, {
-        changed: ["crates/lapis-acp-protocol/src/lib.rs", ledgerPath],
+        changed: ["crates/jj-acp-protocol/src/lib.rs", ledgerPath],
         previousEntries: [entry],
       }),
     ).join(),
@@ -144,7 +144,7 @@ test("allows_documentation_without_execution_ledger", () => {
 });
 test("requires_evidence_for_protected_surfaces", () => {
   for (const path of [
-    "crates/lapis-acp-cli/src/main.rs",
+    "crates/jj-acp-cli/src/main.rs",
     "tests/fixtures/task_agent.py",
     "scripts/check-boundaries.mjs",
     "Cargo.toml",
@@ -172,7 +172,7 @@ test("rejects_fixture_peer_qualification", () =>
   assert.match(
     validateLedger(
       fixture(
-        "| M6 | Done | - | LAC-GOV-001 | real runner | next | E-TEST-001 |",
+        "| M6 | Done | - | JAC-GOV-001 | real runner | next | E-TEST-001 |",
         [{ ...entry, tasks: ["M6"], kind: "fixture-peer" }],
       ),
     ).join(),
@@ -189,32 +189,32 @@ test("rejects_layer_dependency_leaks", () => {
   assert.match(
     dependencyErrors([
       {
-        name: "lapis-acp-protocol",
-        dependencies: [{ name: "lapis-acp-runner" }],
+        name: "jj-acp-protocol",
+        dependencies: [{ name: "jj-acp-runner" }],
       },
     ]).join(),
-    /invalid layer dependency lapis-acp-runner/,
+    /invalid layer dependency jj-acp-runner/,
   );
   assert.match(
     dependencyErrors([
-      { name: "lapis-acp-agent", dependencies: [{ name: "lapis-acp-cli" }] },
+      { name: "jj-acp-agent", dependencies: [{ name: "jj-acp-cli" }] },
     ]).join(),
-    /invalid layer dependency lapis-acp-cli/,
+    /invalid layer dependency jj-acp-cli/,
   );
 });
 test("accepts_owned_layer_dependencies", () =>
   assert.deepEqual(
     dependencyErrors([
       {
-        name: "lapis-acp-agent",
-        dependencies: [{ name: "lapis-acp-protocol" }],
+        name: "jj-acp-agent",
+        dependencies: [{ name: "jj-acp-protocol" }],
       },
       {
-        name: "lapis-acp-control",
+        name: "jj-acp-control",
         dependencies: [
-          { name: "lapis-acp-protocol" },
-          { name: "lapis-acp-agent" },
-          { name: "lapis-acp-runner" },
+          { name: "jj-acp-protocol" },
+          { name: "jj-acp-agent" },
+          { name: "jj-acp-runner" },
         ],
       },
     ]),
@@ -223,7 +223,7 @@ test("accepts_owned_layer_dependencies", () =>
 test("rejects_excluded_nostr_transport_and_database_dependencies", () => {
   const errors = dependencyErrors([
     {
-      name: "lapis-acp-cli",
+      name: "jj-acp-cli",
       dependencies: [
         { name: "nostr" },
         { name: "reqwest" },
@@ -241,8 +241,8 @@ test("testkit_is_dev_only", () => {
   assert.deepEqual(
     dependencyErrors([
       {
-        name: "lapis-acp-cli",
-        dependencies: [{ name: "lapis-acp-testkit", kind: "dev" }],
+        name: "jj-acp-cli",
+        dependencies: [{ name: "jj-acp-testkit", kind: "dev" }],
       },
     ]),
     [],
@@ -250,8 +250,8 @@ test("testkit_is_dev_only", () => {
   assert.match(
     dependencyErrors([
       {
-        name: "lapis-acp-runner",
-        dependencies: [{ name: "lapis-acp-testkit" }],
+        name: "jj-acp-runner",
+        dependencies: [{ name: "jj-acp-testkit" }],
       },
     ]).join(),
     /testkit is a dev-only dependency/,
@@ -259,13 +259,13 @@ test("testkit_is_dev_only", () => {
 });
 test("rejects_crate_outside_the_boundary_matrix", () =>
   assert.match(
-    dependencyErrors([{ name: "lapis-acp-mystery", dependencies: [] }]).join(),
+    dependencyErrors([{ name: "jj-acp-mystery", dependencies: [] }]).join(),
     /absent from the boundary matrix/,
   ));
 
 test("the_protocol_crate_declares_no_process_or_network_facility", () => {
   const manifest = readFileSync(
-    join(root, "crates/lapis-acp-protocol/Cargo.toml"),
+    join(root, "crates/jj-acp-protocol/Cargo.toml"),
     "utf8",
   );
   // The protocol crate speaks over a caller-supplied byte stream, so it must
@@ -278,7 +278,7 @@ test("the_protocol_crate_declares_no_process_or_network_facility", () => {
   assert.deepEqual(
     dependencyErrors([
       {
-        name: "lapis-acp-protocol",
+        name: "jj-acp-protocol",
         dependencies: [
           { name: "tokio" },
           { name: "serde" },
@@ -308,10 +308,10 @@ test("the_testkit_may_depend_on_the_layers_it_exercises", () => {
   assert.deepEqual(
     dependencyErrors([
       {
-        name: "lapis-acp-testkit",
+        name: "jj-acp-testkit",
         dependencies: [
-          { name: "lapis-acp-protocol" },
-          { name: "lapis-acp-agent" },
+          { name: "jj-acp-protocol" },
+          { name: "jj-acp-agent" },
           { name: "tokio", kind: "dev" },
         ],
       },
@@ -323,10 +323,10 @@ test("the_testkit_may_depend_on_the_layers_it_exercises", () => {
   assert.match(
     dependencyErrors([
       {
-        name: "lapis-acp-testkit",
-        dependencies: [{ name: "lapis-acp-runner" }],
+        name: "jj-acp-testkit",
+        dependencies: [{ name: "jj-acp-runner" }],
       },
     ]).join(),
-    /invalid layer dependency lapis-acp-runner/,
+    /invalid layer dependency jj-acp-runner/,
   );
 });

@@ -1,15 +1,15 @@
-# lapis-acp agent guide
+# jj-acp agent guide
 
 This repository owns the pluggable Agent Client Protocol harness: the ACP wire
 protocol, the runner catalog, session and turn lifecycle, the controlling
-application boundary and the `lapis-acp` executable. Read this guide and the
-owning canonical chapter before inspecting or changing implementation. Apply the
-parent workspace guidance too.
+application boundary and the `jj-acp` executable. Read this guide and the owning
+canonical chapter before inspecting or changing implementation. Apply the parent
+workspace guidance too.
 
 ## Authority and ownership
 
 1. Workspace instructions and this tracked guide.
-2. The owning `LAC-<AREA>-NNN` requirement under `spec/src`.
+2. The owning `JAC-<AREA>-NNN` requirement under `spec/src`.
 3. Public crate APIs and the published task document, terminal record and exit
    code contracts.
 4. Tests and recorded verification evidence.
@@ -77,10 +77,10 @@ baseline ships empty.
 Inspect the owning `crates/<crate>/src/` tree before adding files. Add behaviour
 in the crate that owns the concern rather than in the CLI composition facade.
 Internal modules import siblings directly. Production modules define no test
-functions inline and never import `lapis-acp-testkit`; a
-`#[cfg(test)] mod tests;` declaration is fine, but the bodies live in a
-`tests.rs` sibling module or in `crates/<crate>/tests/`. Run
-`pnpm check:boundaries` and `pnpm check:architecture` with the relevant tests.
+functions inline and never import `jj-acp-testkit`; a `#[cfg(test)] mod tests;`
+declaration is fine, but the bodies live in a `tests.rs` sibling module or in
+`crates/<crate>/tests/`. Run `pnpm check:boundaries` and
+`pnpm check:architecture` with the relevant tests.
 
 ### Completion checklist
 

@@ -1,9 +1,9 @@
 # Controlling application boundary
 
-`lapis-acp` has no message bus, no relay, no subscription and no author gate.
-Work arrives from a controlling application that spawned the process, over
-stdin, and results leave over stdout. There is no listener, no port, no token
-and no authentication, because there is no peer: the parent process is the trust
+`jj-acp` has no message bus, no relay, no subscription and no author gate. Work
+arrives from a controlling application that spawned the process, over stdin, and
+results leave over stdout. There is no listener, no port, no token and no
+authentication, because there is no peer: the parent process is the trust
 boundary and it already decided to run this executable with this environment.
 
 This chapter replaces the upstream relay intake entirely. The upstream author
@@ -12,15 +12,15 @@ have no analogue here and are not partially reimplemented.
 
 ## Requirements
 
-| ID           | Requirement                                                                                                                                                                                    |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| LAC-CTRL-001 | The controlling application MUST drive `lapis-acp` over a versioned newline-delimited JSON control protocol with no authentication and no network listener.                                    |
-| LAC-CTRL-002 | `lapis-acp` MUST accept one prepared task document of at most 1 MiB from a file or stdin and MUST reject unknown fields, duplicate fields, wrong types, trailing documents and malformed JSON. |
-| LAC-CTRL-003 | Every attempted invocation MUST emit exactly one terminal record on stdout and MUST NOT include the prompt, credentials, agent final text or raw adapter errors.                               |
-| LAC-CTRL-004 | Diagnostics and child stderr MUST stay on stderr so that stdout remains unconditionally parseable by the controlling application.                                                              |
-| LAC-CTRL-005 | The task document MUST NOT change the working directory, executable, tools or credentials, which come only from trusted launch configuration.                                                  |
-| LAC-CTRL-006 | A control frame MUST carry an explicit integer version, and an unsupported version MUST be rejected before any agent subprocess is started.                                                    |
-| LAC-CTRL-007 | Reading a task document from a file or stdin MUST have its own bounded interval, separate from the execution deadline.                                                                         |
+| ID           | Requirement                                                                                                                                                                                 |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| JAC-CTRL-001 | The controlling application MUST drive `jj-acp` over a versioned newline-delimited JSON control protocol with no authentication and no network listener.                                    |
+| JAC-CTRL-002 | `jj-acp` MUST accept one prepared task document of at most 1 MiB from a file or stdin and MUST reject unknown fields, duplicate fields, wrong types, trailing documents and malformed JSON. |
+| JAC-CTRL-003 | Every attempted invocation MUST emit exactly one terminal record on stdout and MUST NOT include the prompt, credentials, agent final text or raw adapter errors.                            |
+| JAC-CTRL-004 | Diagnostics and child stderr MUST stay on stderr so that stdout remains unconditionally parseable by the controlling application.                                                           |
+| JAC-CTRL-005 | The task document MUST NOT change the working directory, executable, tools or credentials, which come only from trusted launch configuration.                                               |
+| JAC-CTRL-006 | A control frame MUST carry an explicit integer version, and an unsupported version MUST be rejected before any agent subprocess is started.                                                 |
+| JAC-CTRL-007 | Reading a task document from a file or stdin MUST have its own bounded interval, separate from the execution deadline.                                                                      |
 
 ## Task document, version 1
 
@@ -95,13 +95,13 @@ stays empty for every refusal case.
 
 ## Reserved namespace
 
-Only the task identity the harness injects is reserved, under the
-`LAPIS_ACP_TASK_` prefix. An earlier design reserved the whole `LAPIS_ACP_` tree
-and the fixture peer caught the consequence: it also stripped the launch options
-an operator sets on purpose, such as `LAPIS_ACP_RUNNER` and `LAPIS_ACP_MODEL`,
-breaking configuration in the name of protecting identity. Reserving narrowly is
-still sufficient, because the only thing a runner definition must not be able to
-forge is which task the harness says it is running.
+Only the task identity the harness injects is reserved, under the `JJ_ACP_TASK_`
+prefix. An earlier design reserved the whole `JJ_ACP_` tree and the fixture peer
+caught the consequence: it also stripped the launch options an operator sets on
+purpose, such as `JJ_ACP_RUNNER` and `JJ_ACP_MODEL`, breaking configuration in
+the name of protecting identity. Reserving narrowly is still sufficient, because
+the only thing a runner definition must not be able to forge is which task the
+harness says it is running.
 
 ## Exit code resolution
 
@@ -127,8 +127,8 @@ reduces it to diagnostics because its contract is one record and one exit code.
 
 ## The persistent control protocol
 
-`lapis-acp serve` reads newline-delimited JSON frames on stdin and writes frames
-on stdout. Version 1 carries four requests and six responses.
+`jj-acp serve` reads newline-delimited JSON frames on stdin and writes frames on
+stdout. Version 1 carries four requests and six responses.
 
 | Request    | Fields                | Answered by                                  |
 | ---------- | --------------------- | -------------------------------------------- |

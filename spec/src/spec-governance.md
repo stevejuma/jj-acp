@@ -8,35 +8,35 @@ test commands may prove a requested slice without running unrelated suites when
 the user narrows test scope, but every directly affected boundary still needs
 named evidence.
 
-`lapis-acp` borrows the jj-store governance regime wholesale: canonical mdBook
+`jj-acp` borrows the jj-store governance regime wholesale: canonical mdBook
 chapters, unique requirement IDs with exactly one verification row each, a
 single progress ledger, mapped spec-first enforcement, pinned toolchain and
 Jujutsu commits per verified slice. It deliberately adds one gate jj-store does
-not have for Rust, recorded as LAC-GOV-007, because the upstream files this
+not have for Rust, recorded as JAC-GOV-007, because the upstream files this
 repository ports are far larger than jj-store's Rust budget would allow.
 
 ## Requirements
 
 | ID          | Requirement                                                                                                                                                           |
 | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| LAC-GOV-001 | The canonical specification MUST live under `spec/src`, build with mdBook, and assign unique `LAC-<AREA>-NNN` requirement IDs with exactly one verification row each. |
-| LAC-GOV-002 | Protected implementation, interface, tooling and agent-guidance changes MUST update their mapped canonical chapter in the same Jujutsu change.                        |
-| LAC-GOV-003 | Every implementation slice MUST update `milestones.md` with actual commands, results, failures, affected files, versions, formats, gaps and next action.              |
-| LAC-GOV-004 | Progress checks MUST validate task and dependency references, evidence links and named tests, completion gates and same-change ledger updates.                        |
-| LAC-GOV-005 | Verified slices MUST be committed with Jujutsu while unrelated work and local workspace configuration remain uncommitted.                                             |
-| LAC-GOV-006 | Rust formatting MUST use the pinned toolchain component and tracked `rustfmt.toml`, and MUST be checked by both normal and specification checks.                      |
-| LAC-GOV-007 | Rust and first-party script sources MUST stay within the recorded counted-line budget, and exceptions MUST be explicit baseline entries that do not grow.             |
+| JAC-GOV-001 | The canonical specification MUST live under `spec/src`, build with mdBook, and assign unique `JAC-<AREA>-NNN` requirement IDs with exactly one verification row each. |
+| JAC-GOV-002 | Protected implementation, interface, tooling and agent-guidance changes MUST update their mapped canonical chapter in the same Jujutsu change.                        |
+| JAC-GOV-003 | Every implementation slice MUST update `milestones.md` with actual commands, results, failures, affected files, versions, formats, gaps and next action.              |
+| JAC-GOV-004 | Progress checks MUST validate task and dependency references, evidence links and named tests, completion gates and same-change ledger updates.                        |
+| JAC-GOV-005 | Verified slices MUST be committed with Jujutsu while unrelated work and local workspace configuration remain uncommitted.                                             |
+| JAC-GOV-006 | Rust formatting MUST use the pinned toolchain component and tracked `rustfmt.toml`, and MUST be checked by both normal and specification checks.                      |
+| JAC-GOV-007 | Rust and first-party script sources MUST stay within the recorded counted-line budget, and exceptions MUST be explicit baseline entries that do not grow.             |
 
 ## Change map
 
 | Protected area                                                                                                    | Required chapter     |
 | ----------------------------------------------------------------------------------------------------------------- | -------------------- |
-| `^crates/lapis-acp-protocol/`                                                                                     | `protocol.md`        |
-| `^crates/lapis-acp-agent/`                                                                                        | `agents.md`          |
-| `^crates/lapis-acp-runner/`                                                                                       | `runner.md`          |
-| `^crates/lapis-acp-control/`                                                                                      | `control.md`         |
-| `^crates/lapis-acp-cli/`                                                                                          | `cli.md`             |
-| `^crates/lapis-acp-testkit/`                                                                                      | `compatibility.md`   |
+| `^crates/(?:[a-z0-9]+-)*acp-protocol/`                                                                            | `protocol.md`        |
+| `^crates/(?:[a-z0-9]+-)*acp-agent/`                                                                               | `agents.md`          |
+| `^crates/(?:[a-z0-9]+-)*acp-runner/`                                                                              | `runner.md`          |
+| `^crates/(?:[a-z0-9]+-)*acp-control/`                                                                             | `control.md`         |
+| `^crates/(?:[a-z0-9]+-)*acp-cli/`                                                                                 | `cli.md`             |
+| `^crates/(?:[a-z0-9]+-)*acp-testkit/`                                                                             | `compatibility.md`   |
 | `^(?:tests/\|docs/)`                                                                                              | `compatibility.md`   |
 | `^(?:scripts/\|AGENTS\.md$\|spec-validator\.config\.mjs$\|spec/book\.toml$\|\.gitignore$\|\.prettier)`            | `spec-governance.md` |
 | `^rustfmt\.toml$`                                                                                                 | `spec-governance.md` |
@@ -118,3 +118,22 @@ qualification cannot be marked done on evidence whose kind is anything other
 than a real runner run. A fixture-peer suite is deterministic and model-free by
 design, and that is exactly why it cannot prove interoperability with a shipping
 adapter.
+
+## Crate rules key on the layer, not the product name
+
+The crate rows above match `(?:[a-z0-9]+-)*acp-<layer>` rather than a literal
+product prefix. The layer is what determines the owning chapter: a change under
+a protocol crate belongs to `protocol.md` whatever the product is called.
+
+Renaming the repository exposed why the literal form was wrong. A rename
+produces deletions at the old paths alongside additions at the new ones, and the
+old paths still match the `protected` list. With literal patterns they matched
+no rule, so the rename commit failed as unmapped protected source — correctly by
+the rule as written, and for a reason that had nothing to do with the
+specification. The alternatives were worse: carrying the previous product name
+in the map forever, or adding a temporary rule and remembering to remove it.
+
+The pattern still fails closed for a genuinely new crate. Anything under
+`crates/` whose layer is not one of the six listed matches no rule and is
+reported as unmapped, so adding a seventh crate still requires a same-change map
+update.
