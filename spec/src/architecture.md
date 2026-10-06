@@ -160,3 +160,16 @@ ledger entry rather than being spread across slices.
 Interactive control version 2 is implemented within the existing protocol,
 runner and control layers. It adds no network, database or identity dependency
 and retains the one-shot interface.
+
+## Qualified controlling application
+
+JAC-ARCH-005 is qualified against jj-store on macOS ARM64 through M10. The host
+owns authorization, runner selection, exact isolated JJ workspaces, private
+request journals, sanitized live delivery and AgentStore publication. It
+consumes the rebuilt executable over explicit control version 2, without crate
+or sibling source imports. Real Codex/Cursor edits in registered Git-backed JJ
+folders and native real-RustFS repositories, cold production Chromium/restart
+and managed owner lifetime are separately recorded in E-M10-001. These live
+turns raised no permission requests; exact permission/cancellation/deadline
+proof remains fixture evidence. Packaging, additional platforms/adapters and
+live permission qualification remain separate from this host profile.

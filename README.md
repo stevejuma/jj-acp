@@ -41,20 +41,20 @@ jj-acp run --task task.json --catalog runners.json --runner codex
 jj-acp agents   # one JSON object per line: id, label, availability, install hint
 ```
 
-| Slice     | Scope                                                                 | Status  |
-| --------- | --------------------------------------------------------------------- | ------- |
-| Bootstrap | Specification, ledger, crate skeleton, boundary and line-budget gates | Done    |
-| M1        | Pinned upstream lock, attribution and drift detection                 | Done    |
-| M2        | ACP framing, negotiation and session methods                          | Done    |
-| M3        | Runner catalog, launch environment and deterministic fixture peer     | Done    |
-| M4        | One-shot `run --task` with sanitized terminal record and exit codes   | Done    |
-| M5        | Descendant containment, crash reporting and no re-dispatch            | Done    |
-| M6        | Real installed-runner qualification against `cursor-agent acp`        | Done    |
-| M7        | Model, reasoning-effort and execution-mode application                | Done    |
-| M8        | Persistent control transport                                          | Done    |
-| M9        | Scoped concurrent scheduler and bounded queues                        | Done    |
-| M10       | Controlling-application consumer acceptance                           | Planned |
-| M11       | Interactive version-2 session lifecycle                               | Done    |
+| Slice     | Scope                                                                 | Status |
+| --------- | --------------------------------------------------------------------- | ------ |
+| Bootstrap | Specification, ledger, crate skeleton, boundary and line-budget gates | Done   |
+| M1        | Pinned upstream lock, attribution and drift detection                 | Done   |
+| M2        | ACP framing, negotiation and session methods                          | Done   |
+| M3        | Runner catalog, launch environment and deterministic fixture peer     | Done   |
+| M4        | One-shot `run --task` with sanitized terminal record and exit codes   | Done   |
+| M5        | Descendant containment, crash reporting and no re-dispatch            | Done   |
+| M6        | Real installed-runner qualification against `cursor-agent acp`        | Done   |
+| M7        | Model, reasoning-effort and execution-mode application                | Done   |
+| M8        | Persistent control transport                                          | Done   |
+| M9        | Scoped concurrent scheduler and bounded queues                        | Done   |
+| M10       | Controlling-application consumer acceptance                           | Done   |
+| M11       | Interactive version-2 session lifecycle                               | Done   |
 
 ## Requirements
 
