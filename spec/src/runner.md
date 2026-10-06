@@ -235,3 +235,8 @@ Interactive open and load retain their agent connection. Follow-up prompts reuse
 the same session and serialized process; close, protocol loss and timeout
 release process ownership. Configuration and permission handling use bounded
 application callbacks rather than the accumulating one-shot recording handler.
+
+Queued prompt cancellation in explicit control v2 reports sessionUsable while
+retaining the warm session. The next explicit follow-up reuses it; connection
+shutdown still closes it. Version-1 command and terminal record shapes remain
+unchanged. E-M11-003 records the binary regression and source gates.

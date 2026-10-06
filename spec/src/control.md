@@ -256,3 +256,8 @@ bounded; output backpressure or overflow ends execution with an explicit unknown
 outcome. A control connection never retries work. Coverage loss remains latched
 after the output queue drains. A racing completed turn cannot report success or
 a reusable session after any activity frame was lost.
+
+Canceling an admitted prompt while it is still queued reports cancelled without
+discarding a warm session. Its terminal frame explicitly reports sessionUsable;
+an individual queued cancellation retains usability, while connection shutdown
+does not. The next explicit prompt can reuse the retained session.

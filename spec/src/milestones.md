@@ -7,22 +7,22 @@ in its enclosing Jujutsu change.
 
 ## Tasks and gates
 
-| ID          | Status  | Depends   | Requirements                                                                                                                                                                                                                                                                                            | Gate                                                                                                                                                | Next                                       | Evidence            |
-| ----------- | ------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ------------------- |
-| Bootstrap   | Done    | -         | JAC-GOV-001,JAC-GOV-002,JAC-GOV-003,JAC-GOV-005,JAC-GOV-006,JAC-ARCH-001,JAC-ARCH-002,JAC-COMPAT-004                                                                                                                                                                                                    | Canonical specification, ledger, crate skeleton, boundary gate and pinned toolchain green on an empty product                                       | Maintain governance each slice             | E-BOOT-001          |
-| Bootstrap.1 | Done    | -         | JAC-GOV-004,JAC-GOV-007,JAC-ARCH-003,JAC-ARCH-004                                                                                                                                                                                                                                                       | Boundary, counted-line and progress-checker negative tests pass                                                                                     | Maintain gates each slice                  | E-BOOT-002          |
-| Bootstrap.2 | Done    | -         | JAC-GOV-001,JAC-GOV-002,JAC-GOV-003,JAC-ARCH-001                                                                                                                                                                                                                                                        | Repository, crates, binary, requirement prefix and environment namespace renamed from lapis-acp to jj-acp with the change map keyed on crate layer  | Maintain governance each slice             | E-BOOT-003          |
-| M1          | Done    | Bootstrap | JAC-COMPAT-001,JAC-COMPAT-002,JAC-COMPAT-003,JAC-COMPAT-007,JAC-SEC-001                                                                                                                                                                                                                                 | Pinned upstream lock, attribution and digest-verified drift detection                                                                               | Implement M2 protocol crate                | E-M1-001            |
-| M2          | Done    | Bootstrap | JAC-PROTO-001,JAC-PROTO-002,JAC-PROTO-003,JAC-PROTO-004,JAC-PROTO-005,JAC-PROTO-006                                                                                                                                                                                                                     | Bounded ACP framing, version negotiation and session methods under unit test                                                                        | Implement M3 runner catalog                | E-M2-001            |
-| M3          | Done    | M2        | JAC-AGENT-001,JAC-AGENT-002,JAC-AGENT-003,JAC-AGENT-004,JAC-AGENT-005,JAC-AGENT-006,JAC-COMPAT-005                                                                                                                                                                                                      | Tiered runner catalog, reserved-key stripping and deterministic fixture peer                                                                        | Implement M4 task runner                   | E-M3-001            |
-| M4          | Done    | M3        | JAC-CTRL-002,JAC-CTRL-003,JAC-CTRL-004,JAC-CTRL-005,JAC-CTRL-006,JAC-CTRL-007,JAC-CLI-001,JAC-CLI-002,JAC-CLI-003,JAC-CLI-004,JAC-CLI-005,JAC-CLI-006,JAC-RUN-001,JAC-RUN-002,JAC-RUN-003,JAC-RUN-004,JAC-ARCH-005,JAC-ARCH-006,JAC-SEC-002,JAC-SEC-003,JAC-SEC-004,JAC-SEC-005,JAC-SEC-006,JAC-SEC-007 | One-shot prepared task runner with sanitized record, published exit codes, signal cleanup and clean stdout                                          | Qualify M5 process-group containment       | E-M4-001            |
-| M5          | Done    | M4        | JAC-RUN-005,JAC-RUN-007                                                                                                                                                                                                                                                                                 | Descendant containment on both the forced and the graceful path, crash reporting distinct from a timeout, and no re-dispatch                        | Qualify M6 against a real installed runner | E-M5-001            |
-| M6          | Done    | M5        | JAC-COMPAT-006,JAC-PROTO-002                                                                                                                                                                                                                                                                            | Real installed-runner qualification against cursor-agent acp recorded separately from fixture evidence                                              | Implement M7 session configuration         | E-M6-001,E-M6-002   |
-| M7          | Done    | M6        | JAC-RUN-006                                                                                                                                                                                                                                                                                             | Model, effort and mode resolved per session with transport-versus-rejection classification, qualified live on two adapters                          | Implement M8 persistent transport          | E-M7-001            |
-| M8          | Done    | M7        | JAC-CTRL-001                                                                                                                                                                                                                                                                                            | Persistent versioned control protocol over stdio with concurrent cancellation, frame-level refusals and one shape for every task outcome            | Implement M9 standing pool                 | E-M8-001            |
-| M9          | Done    | M8        | JAC-RUN-001,JAC-RUN-005                                                                                                                                                                                                                                                                                 | Caller-named scopes with one turn in flight each, concurrent distinct scopes, bounded queue admission and slot release on crash without re-dispatch | Implement M10 consumer acceptance          | E-M9-001            |
-| M10         | Planned | M9        | JAC-ARCH-005                                                                                                                                                                                                                                                                                            | Controlling-application consumer acceptance in a real host                                                                                          | Future release                             | -                   |
-| M11         | Done    | M9        | JAC-CTRL-008,JAC-RUN-008,JAC-PROTO-007,JAC-CLI-007                                                                                                                                                                                                                                                      | Persistent interactive sessions, streamed activity, permission decisions and bounded cleanup                                                        | Qualify real jj-store consumer in M10      | E-M11-001,E-M11-002 |
+| ID          | Status  | Depends   | Requirements                                                                                                                                                                                                                                                                                            | Gate                                                                                                                                                | Next                                       | Evidence                      |
+| ----------- | ------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ----------------------------- |
+| Bootstrap   | Done    | -         | JAC-GOV-001,JAC-GOV-002,JAC-GOV-003,JAC-GOV-005,JAC-GOV-006,JAC-ARCH-001,JAC-ARCH-002,JAC-COMPAT-004                                                                                                                                                                                                    | Canonical specification, ledger, crate skeleton, boundary gate and pinned toolchain green on an empty product                                       | Maintain governance each slice             | E-BOOT-001                    |
+| Bootstrap.1 | Done    | -         | JAC-GOV-004,JAC-GOV-007,JAC-ARCH-003,JAC-ARCH-004                                                                                                                                                                                                                                                       | Boundary, counted-line and progress-checker negative tests pass                                                                                     | Maintain gates each slice                  | E-BOOT-002                    |
+| Bootstrap.2 | Done    | -         | JAC-GOV-001,JAC-GOV-002,JAC-GOV-003,JAC-ARCH-001                                                                                                                                                                                                                                                        | Repository, crates, binary, requirement prefix and environment namespace renamed from lapis-acp to jj-acp with the change map keyed on crate layer  | Maintain governance each slice             | E-BOOT-003                    |
+| M1          | Done    | Bootstrap | JAC-COMPAT-001,JAC-COMPAT-002,JAC-COMPAT-003,JAC-COMPAT-007,JAC-SEC-001                                                                                                                                                                                                                                 | Pinned upstream lock, attribution and digest-verified drift detection                                                                               | Implement M2 protocol crate                | E-M1-001                      |
+| M2          | Done    | Bootstrap | JAC-PROTO-001,JAC-PROTO-002,JAC-PROTO-003,JAC-PROTO-004,JAC-PROTO-005,JAC-PROTO-006                                                                                                                                                                                                                     | Bounded ACP framing, version negotiation and session methods under unit test                                                                        | Implement M3 runner catalog                | E-M2-001                      |
+| M3          | Done    | M2        | JAC-AGENT-001,JAC-AGENT-002,JAC-AGENT-003,JAC-AGENT-004,JAC-AGENT-005,JAC-AGENT-006,JAC-COMPAT-005                                                                                                                                                                                                      | Tiered runner catalog, reserved-key stripping and deterministic fixture peer                                                                        | Implement M4 task runner                   | E-M3-001                      |
+| M4          | Done    | M3        | JAC-CTRL-002,JAC-CTRL-003,JAC-CTRL-004,JAC-CTRL-005,JAC-CTRL-006,JAC-CTRL-007,JAC-CLI-001,JAC-CLI-002,JAC-CLI-003,JAC-CLI-004,JAC-CLI-005,JAC-CLI-006,JAC-RUN-001,JAC-RUN-002,JAC-RUN-003,JAC-RUN-004,JAC-ARCH-005,JAC-ARCH-006,JAC-SEC-002,JAC-SEC-003,JAC-SEC-004,JAC-SEC-005,JAC-SEC-006,JAC-SEC-007 | One-shot prepared task runner with sanitized record, published exit codes, signal cleanup and clean stdout                                          | Qualify M5 process-group containment       | E-M4-001                      |
+| M5          | Done    | M4        | JAC-RUN-005,JAC-RUN-007                                                                                                                                                                                                                                                                                 | Descendant containment on both the forced and the graceful path, crash reporting distinct from a timeout, and no re-dispatch                        | Qualify M6 against a real installed runner | E-M5-001                      |
+| M6          | Done    | M5        | JAC-COMPAT-006,JAC-PROTO-002                                                                                                                                                                                                                                                                            | Real installed-runner qualification against cursor-agent acp recorded separately from fixture evidence                                              | Implement M7 session configuration         | E-M6-001,E-M6-002             |
+| M7          | Done    | M6        | JAC-RUN-006                                                                                                                                                                                                                                                                                             | Model, effort and mode resolved per session with transport-versus-rejection classification, qualified live on two adapters                          | Implement M8 persistent transport          | E-M7-001                      |
+| M8          | Done    | M7        | JAC-CTRL-001                                                                                                                                                                                                                                                                                            | Persistent versioned control protocol over stdio with concurrent cancellation, frame-level refusals and one shape for every task outcome            | Implement M9 standing pool                 | E-M8-001                      |
+| M9          | Done    | M8        | JAC-RUN-001,JAC-RUN-005                                                                                                                                                                                                                                                                                 | Caller-named scopes with one turn in flight each, concurrent distinct scopes, bounded queue admission and slot release on crash without re-dispatch | Implement M10 consumer acceptance          | E-M9-001                      |
+| M10         | Planned | M9        | JAC-ARCH-005                                                                                                                                                                                                                                                                                            | Controlling-application consumer acceptance in a real host                                                                                          | Future release                             | -                             |
+| M11         | Done    | M9        | JAC-CTRL-008,JAC-RUN-008,JAC-PROTO-007,JAC-CLI-007                                                                                                                                                                                                                                                      | Persistent interactive sessions, streamed activity, permission decisions and bounded cleanup                                                        | Qualify real jj-store consumer in M10      | E-M11-001,E-M11-002,E-M11-003 |
 
 ## Evidence
 
@@ -1117,6 +1117,76 @@ coexist with an acknowledged gap.
     "versions": "Rust 1.98.1; control version 2",
     "formats": "control/v2; terminal record/v1 unchanged",
     "note": "Consumer integration uncovered a completed-turn race after event output overflow. Coverage loss now remains latched after queue recovery and closes the session; terminal records report outcome_unknown/activity_coverage_lost. watch::send_replace also retains cancellation without a current subscriber. M11 review: fixture gate remains Done after all four required source gates passed; M10 real host acceptance stays separate.",
+    "result": "pass"
+  },
+  {
+    "id": "E-M11-003",
+    "tasks": ["M11"],
+    "date": "2026-10-06",
+    "kind": "queued-cancellation-regression",
+    "files": [
+      "crates/jj-acp-control/src/interactive_worker.rs",
+      "crates/jj-acp-cli/tests/interactive.rs",
+      "spec/src/control.md",
+      "spec/src/milestones.md",
+      "spec/src/verification.md",
+      "spec/src/cli.md",
+      "spec/src/runner.md"
+    ],
+    "tests": [
+      "crates/jj-acp-cli/tests/interactive.rs#cancelling_a_queued_prompt_keeps_the_warm_session_usable"
+    ],
+    "runs": [
+      {
+        "command": "cargo test -p jj-acp-cli --test interactive --locked cancelling_a_queued_prompt_keeps_the_warm_session_usable (before)",
+        "result": "fail",
+        "failures": 1
+      },
+      {
+        "command": "cargo test -p jj-acp-cli --test interactive --locked cancelling_a_queued_prompt_keeps_the_warm_session_usable",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm check (before ledger update)",
+        "result": "fail",
+        "failures": 2
+      },
+      {
+        "command": "pnpm check (partial was not an accepted ledger result)",
+        "result": "fail",
+        "failures": 1
+      },
+      {
+        "command": "pnpm check",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm test",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm build",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm spec:check (before mapped CLI chapter update)",
+        "result": "fail",
+        "failures": 1
+      },
+      {
+        "command": "pnpm spec:check",
+        "result": "pass",
+        "failures": 0
+      }
+    ],
+    "remaining": [],
+    "versions": "Rust 1.98.1; control version 2",
+    "formats": "control/v2; terminal record/v1 unchanged",
+    "note": "Enclosing revision mkmlwqzt. Queued cancellation previously omitted sessionUsable even while retaining the warm session; jj-store would mark that live session interrupted. The terminal frame now reports usability and the next explicit prompt succeeds. M11 review: remains Done after its required wider gates were rerun; M10 real host acceptance remains separate.",
     "result": "pass"
   }
 ]

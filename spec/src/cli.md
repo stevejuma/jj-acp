@@ -153,3 +153,8 @@ has nothing to size.
 The additive --control-version option accepts 1 or 2 and defaults to 1. Version
 2 requires an explicit --runner. Signal and owner EOF request bounded
 interactive cleanup.
+
+Queued prompt cancellation in explicit control v2 reports sessionUsable while
+retaining the warm session. The next explicit follow-up reuses it; connection
+shutdown still closes it. Version-1 command and terminal record shapes remain
+unchanged. E-M11-003 records the binary regression and source gates.

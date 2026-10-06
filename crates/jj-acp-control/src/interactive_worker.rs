@@ -43,7 +43,8 @@ pub async fn run(
             events.emit(
                 "record",
                 &id,
-                json!({"record":{"version":1,"taskId":id,"status":"cancelled"},"quiescent":true}),
+                json!({"record":{"version":1,"taskId":id,"status":"cancelled"},"quiescent":true,
+                    "sessionUsable":session.is_some() && !*events.cancel.borrow()}),
             );
         } else {
             match job.command {

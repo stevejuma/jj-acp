@@ -114,6 +114,50 @@ async fn follow_up_reuses_the_session_and_streams_activity() {
     peer.close().await;
 }
 #[tokio::test]
+async fn cancelling_a_queued_prompt_keeps_the_warm_session_usable() {
+    let scratch = Scratch::new("interactive-queued-cancel");
+    let mut peer = Peer::start(&scratch).await;
+    peer.open().await;
+    peer.send(
+        "active",
+        "prompt",
+        json!({"text":"permission", "maxDurationMs":10000}),
+    )
+    .await;
+    let permission = peer.until("permission").await;
+    peer.send(
+        "queued",
+        "prompt",
+        json!({"text":"hello", "maxDurationMs":10000}),
+    )
+    .await;
+    assert_eq!(peer.until("queued").await["requestId"], "queued");
+    peer.send("cancel-queued", "cancel", json!({"target":"queued"}))
+        .await;
+    peer.until("ack").await;
+    peer.send(
+        "allow",
+        "permission",
+        json!({"permissionId":permission["permissionId"], "optionId":"allow"}),
+    )
+    .await;
+    assert_eq!(peer.until("record").await["requestId"], "active");
+    let cancelled = peer.until("record").await;
+    assert_eq!(cancelled["requestId"], "queued");
+    assert_eq!(cancelled["record"]["status"], "cancelled");
+    assert_eq!(cancelled["sessionUsable"], true);
+    peer.send(
+        "follow-up",
+        "prompt",
+        json!({"text":"hello", "maxDurationMs":10000}),
+    )
+    .await;
+    let follow_up = peer.until("record").await;
+    assert_eq!(follow_up["record"]["status"], "completed");
+    assert_eq!(follow_up["sessionUsable"], true);
+    peer.close().await;
+}
+#[tokio::test]
 async fn permissions_validate_exact_options_and_expire_after_resolution() {
     let scratch = Scratch::new("interactive-permissions");
     let mut peer = Peer::start(&scratch).await;
