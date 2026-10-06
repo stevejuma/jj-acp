@@ -117,7 +117,9 @@ pub async fn run(
                             let mut quiescent = matches!(
                                 outcome.status,
                                 TurnStatus::Completed | TurnStatus::Cancelled
-                            );
+                            ) && !events
+                                .coverage_lost
+                                .load(std::sync::atomic::Ordering::Acquire);
                             if !quiescent && let Some(value) = session.take() {
                                 quiescent = value.close(&config).await;
                             }

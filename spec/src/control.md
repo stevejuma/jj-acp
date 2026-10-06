@@ -253,4 +253,6 @@ Permission options retain the exact adapter identifiers. Decisions are valid
 only for that live permission and its advertised options. Timeout, cancellation,
 EOF and close cancel pending permissions. Queue and event capacities are
 bounded; output backpressure or overflow ends execution with an explicit unknown
-outcome. A control connection never retries work.
+outcome. A control connection never retries work. Coverage loss remains latched
+after the output queue drains. A racing completed turn cannot report success or
+a reusable session after any activity frame was lost.

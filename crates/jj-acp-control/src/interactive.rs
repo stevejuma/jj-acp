@@ -6,7 +6,10 @@ use crate::invocation::InvocationConfig;
 use crate::transport::{FrameSource, LineSink};
 use serde_json::{Value, json};
 use std::collections::{HashMap, HashSet};
-use std::sync::{Arc, Mutex, atomic::AtomicU64};
+use std::sync::{
+    Arc, Mutex,
+    atomic::{AtomicBool, AtomicU64},
+};
 use std::time::Duration;
 use tokio::io::AsyncWrite;
 use tokio::sync::{mpsc, watch};
@@ -25,6 +28,7 @@ pub async fn serve<S: FrameSource, W: AsyncWrite + Unpin + Send + 'static>(
         output,
         sequence: Arc::new(AtomicU64::new(0)),
         cancel,
+        coverage_lost: Arc::new(AtomicBool::new(false)),
     };
     let permissions: Permissions = Arc::new(Mutex::new(HashMap::new()));
     let requests: Requests = Arc::new(Mutex::new(HashMap::new()));

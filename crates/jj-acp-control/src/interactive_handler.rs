@@ -7,7 +7,7 @@ use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::sync::{
     Arc, Mutex,
-    atomic::{AtomicU64, Ordering},
+    atomic::{AtomicBool, AtomicU64, Ordering},
 };
 use std::time::Duration;
 use tokio::sync::{mpsc, oneshot, watch};
@@ -25,16 +25,23 @@ pub struct Events {
     pub output: mpsc::Sender<Value>,
     pub sequence: Arc<AtomicU64>,
     pub cancel: watch::Sender<bool>,
+    pub coverage_lost: Arc<AtomicBool>,
 }
 impl Events {
     /// Queue a complete frame or cancel on bounded backpressure.
     pub fn emit(&self, kind: &str, id: &str, mut body: Value) {
+        if kind == "record" && self.coverage_lost.load(Ordering::Acquire) {
+            body["record"]["status"] = json!("outcome_unknown");
+            body["record"]["error"] = json!("activity_coverage_lost");
+            body["sessionUsable"] = json!(false);
+        }
         body["sequence"] = json!(self.sequence.fetch_add(1, Ordering::Relaxed) + 1);
         let value = frame(kind, Some(id), body);
         if serde_json::to_vec(&value).map_or(true, |bytes| bytes.len() > MAX_FRAME)
             || self.output.try_send(value).is_err()
         {
-            let _ = self.cancel.send(true);
+            self.coverage_lost.store(true, Ordering::Release);
+            self.cancel.send_replace(true);
         }
     }
 }
