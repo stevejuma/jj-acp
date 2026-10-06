@@ -154,3 +154,9 @@ requirement identifier prefix to `JAC-`. All three are read by other programs: a
 controlling application that set `LAPIS_ACP_MODEL` would silently get the
 default instead, which is why the rename belongs in one atomic change with its
 ledger entry rather than being spread across slices.
+
+## Interactive session integration
+
+Interactive control version 2 is implemented within the existing protocol,
+runner and control layers. It adds no network, database or identity dependency
+and retains the one-shot interface.

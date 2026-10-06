@@ -17,6 +17,7 @@
 pub mod configuration;
 pub mod launch;
 pub mod outcome;
+pub mod persistent;
 pub mod process;
 pub mod turn;
 

@@ -50,23 +50,51 @@ pub trait FrameSink: Send + Sync {
 #[derive(Debug)]
 pub struct LineSource<R> {
     input: R,
+    pending: Vec<u8>,
 }
 
 impl<R: AsyncBufRead + Unpin + Send> LineSource<R> {
     /// Wrap a buffered byte stream.
     pub fn new(input: R) -> Self {
-        Self { input }
+        Self {
+            input,
+            pending: Vec::new(),
+        }
     }
 }
 
 impl<R: AsyncBufRead + Unpin + Send> FrameSource for LineSource<R> {
     async fn next_line(&mut self) -> io::Result<Option<String>> {
-        let mut line = String::new();
-        let read = self.input.read_line(&mut line).await?;
-        if read == 0 {
-            return Ok(None);
+        loop {
+            let bytes = self.input.fill_buf().await?;
+            if bytes.is_empty() {
+                if self.pending.is_empty() {
+                    return Ok(None);
+                }
+                return String::from_utf8(std::mem::take(&mut self.pending))
+                    .map(Some)
+                    .map_err(|_| {
+                        io::Error::new(io::ErrorKind::InvalidData, "invalid control UTF-8")
+                    });
+            }
+            let newline = bytes.iter().position(|byte| *byte == b'\n');
+            let count = newline.map_or(bytes.len(), |position| position + 1);
+            if self.pending.len() + count > 2_097_152 {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "control frame exceeds limit",
+                ));
+            }
+            self.pending.extend_from_slice(&bytes[..count]);
+            self.input.consume(count);
+            if newline.is_some() {
+                return String::from_utf8(std::mem::take(&mut self.pending))
+                    .map(Some)
+                    .map_err(|_| {
+                        io::Error::new(io::ErrorKind::InvalidData, "invalid control UTF-8")
+                    });
+            }
         }
-        Ok(Some(line))
     }
 }
 
@@ -77,6 +105,21 @@ pub struct LineSink<W> {
 }
 
 impl<W: AsyncWrite + Unpin + Send> LineSink<W> {
+    /// Write an explicitly versioned control value atomically.
+    pub async fn send_value(&self, value: &serde_json::Value) -> io::Result<()> {
+        let mut line = serde_json::to_vec(value)?;
+        if line.len() > 1_048_576 {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "control frame exceeds limit",
+            ));
+        }
+        line.push(b'\n');
+        let mut guard = self.output.lock().await;
+        guard.write_all(&line).await?;
+        guard.flush().await
+    }
+
     /// Wrap a byte stream.
     pub fn new(output: W) -> Self {
         Self {

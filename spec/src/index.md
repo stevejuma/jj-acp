@@ -12,6 +12,7 @@ controlling application is the trust boundary. The pinned upstream source and
 the per-file disposition of the port are recorded in `docs/upstream-lock.md`,
 and adopted-source attribution lives in `docs/licenses/NOTICE.md`.
 
-The first delivery is a one-shot prepared task runner. A persistent control
-transport, a standing agent pool and the `jj-store` agent-runner integration
-remain explicitly deferred and are tracked in the ledger rather than assumed.
+The first delivery is a one-shot prepared task runner. Persistent version 1 adds
+scoped scheduling; explicit version 2 adds warm interactive sessions. The
+jj-store controlling-application integration remains separately qualified
+through the progress ledger.

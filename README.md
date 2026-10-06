@@ -29,12 +29,11 @@ recorded in `docs/upstream-lock.md`, and attribution lives in
 
 ## Status
 
-The one-shot task runner is implemented and exercised end to end against a
-deterministic fixture agent: a prepared task document in, one sanitized terminal
-record out, and a published exit code. What is not implemented is concurrency
-and durability — one process runs exactly one turn — and no real installed
-adapter has been qualified yet. The roadmap and the real evidence for each slice
-live in the [progress ledger](spec/src/milestones.md).
+The one-shot runner and version-1 persistent scoped scheduler are implemented.
+Interactive version 2 retains a session across turns and streams activity and
+permission requests. The deterministic consumer suite qualifies its control
+behavior; real interactive Codex/Cursor consumer acceptance remains outstanding.
+Two installed adapters have separate read-only one-shot qualification.
 
 ```sh
 jj-acp run --task task.json --catalog runners.json --runner codex
@@ -42,18 +41,20 @@ jj-acp run --task task.json --catalog runners.json --runner codex
 jj-acp agents   # one JSON object per line: id, label, availability, install hint
 ```
 
-| Slice     | Scope                                                                 | Status   |
-| --------- | --------------------------------------------------------------------- | -------- |
-| Bootstrap | Specification, ledger, crate skeleton, boundary and line-budget gates | Done     |
-| M1        | Pinned upstream lock, attribution and drift detection                 | Done     |
-| M2        | ACP framing, negotiation and session methods                          | Done     |
-| M3        | Runner catalog, launch environment and deterministic fixture peer     | Done     |
-| M4        | One-shot `run --task` with sanitized terminal record and exit codes   | Done     |
-| M5        | Descendant containment, crash reporting and no re-dispatch            | Done     |
-| M6        | Real installed-runner qualification against `cursor-agent acp`        | Done     |
-| M7        | Model, reasoning-effort and execution-mode application                | Planned  |
-| M8        | Persistent control transport and standing session pool                | Deferred |
-| M9        | Controlling-application consumer acceptance                           | Planned  |
+| Slice     | Scope                                                                 | Status  |
+| --------- | --------------------------------------------------------------------- | ------- |
+| Bootstrap | Specification, ledger, crate skeleton, boundary and line-budget gates | Done    |
+| M1        | Pinned upstream lock, attribution and drift detection                 | Done    |
+| M2        | ACP framing, negotiation and session methods                          | Done    |
+| M3        | Runner catalog, launch environment and deterministic fixture peer     | Done    |
+| M4        | One-shot `run --task` with sanitized terminal record and exit codes   | Done    |
+| M5        | Descendant containment, crash reporting and no re-dispatch            | Done    |
+| M6        | Real installed-runner qualification against `cursor-agent acp`        | Done    |
+| M7        | Model, reasoning-effort and execution-mode application                | Done    |
+| M8        | Persistent control transport                                          | Done    |
+| M9        | Scoped concurrent scheduler and bounded queues                        | Done    |
+| M10       | Controlling-application consumer acceptance                           | Planned |
+| M11       | Interactive version-2 session lifecycle                               | Done    |
 
 ## Requirements
 
@@ -85,3 +86,12 @@ book with `pnpm spec:build`; generated output is ignored and non-normative.
 ## License
 
 Apache-2.0. See [LICENSE.md](LICENSE.md).
+
+## Interactive controlling application
+
+`jj-acp serve --control-version 2 --runner codex --cwd /approved/workspace`
+opens the explicit version-2 stdio interface. Send open, configure and prompt
+frames; activity and permission frames arrive before the terminal record. The
+parent sanitizes and persists content. The runner requires an applied execution
+mode before prompting, and never retries a turn. See the controlling application
+chapter for request fields and lifecycle semantics.

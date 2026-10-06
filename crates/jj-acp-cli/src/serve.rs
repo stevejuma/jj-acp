@@ -33,6 +33,22 @@ pub async fn execute(launch: &LaunchOptions) -> i32 {
             return ExitCode::Failure.as_i32();
         }
     };
+    if launch.control_version == 2 {
+        if launch.runner.is_none() {
+            eprintln!("jj-acp: interactive serve requires --runner");
+            return ExitCode::Invalid.as_i32();
+        }
+        let (mut source, sink) = stdio();
+        jj_acp_control::interactive::serve(
+            &mut source,
+            sink,
+            config,
+            launch.queue_capacity,
+            installed.receiver.clone(),
+        )
+        .await;
+        return installed.signal_exit().unwrap_or(ExitCode::Ok.as_i32());
+    }
     // A signal ends the loop rather than cancelling one task: a controlling
     // application that is gone has nobody to receive a record, so the honest
     // outcome is a bounded shutdown and the signal's own exit code.

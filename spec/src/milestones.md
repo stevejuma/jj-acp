@@ -22,6 +22,7 @@ in its enclosing Jujutsu change.
 | M8          | Done    | M7        | JAC-CTRL-001                                                                                                                                                                                                                                                                                            | Persistent versioned control protocol over stdio with concurrent cancellation, frame-level refusals and one shape for every task outcome            | Implement M9 standing pool                 | E-M8-001          |
 | M9          | Done    | M8        | JAC-RUN-001,JAC-RUN-005                                                                                                                                                                                                                                                                                 | Caller-named scopes with one turn in flight each, concurrent distinct scopes, bounded queue admission and slot release on crash without re-dispatch | Implement M10 consumer acceptance          | E-M9-001          |
 | M10         | Planned | M9        | JAC-ARCH-005                                                                                                                                                                                                                                                                                            | Controlling-application consumer acceptance in a real host                                                                                          | Future release                             | -                 |
+| M11         | Done    | M9        | JAC-CTRL-008,JAC-RUN-008,JAC-PROTO-007,JAC-CLI-007                                                                                                                                                                                                                                                      | Persistent interactive sessions, streamed activity, permission decisions and bounded cleanup                                                        | Qualify real jj-store consumer in M10      | E-M11-001         |
 
 ## Evidence
 
@@ -953,6 +954,110 @@ coexist with an acknowledged gap.
     "versions": "Rust 1.98.1; Node v24.10.0; pnpm 10.34.5; @lapismd/spec-validator 0.1.0; binary jj-acp 0.1.0",
     "formats": "requirement identifiers JAC-<AREA>-NNN; environment namespace JJ_ACP_*; reserved task identity JJ_ACP_TASK_*; crate names jj-acp-<layer>",
     "note": "Renamed the repository, six crates, the binary, the npm package, the requirement prefix and the environment namespace from lapis-acp to jj-acp in one atomic change. The rename exposed a change-map defect: crate rules keyed on the literal product name, so deletions at the old paths matched the protected list but no rule and the rename commit failed as unmapped. The rules now key on the crate layer, which is what actually determines the owning chapter, and still fail closed for a crate whose layer is not listed. It also exposed that the signals test startup bound was tuned to an idle machine; a full workspace run starts roughly fifteen binaries in parallel and the 30 second wait tripped intermittently, so the bound is now set so that only a genuine failure trips it. Three consecutive full workspace runs are clean."
+  },
+  {
+    "id": "E-M11-001",
+    "tasks": ["M11"],
+    "date": "2026-10-06",
+    "kind": "interactive-control",
+    "files": [
+      "README.md",
+      "crates/jj-acp-cli/src/args.rs",
+      "crates/jj-acp-cli/src/control_version.rs",
+      "crates/jj-acp-cli/src/lib.rs",
+      "crates/jj-acp-cli/src/serve.rs",
+      "crates/jj-acp-cli/tests/interactive.rs",
+      "crates/jj-acp-control/src/interactive.rs",
+      "crates/jj-acp-control/src/interactive_handler.rs",
+      "crates/jj-acp-control/src/interactive_session.rs",
+      "crates/jj-acp-control/src/interactive_wire.rs",
+      "crates/jj-acp-control/src/interactive_worker.rs",
+      "crates/jj-acp-control/src/lib.rs",
+      "crates/jj-acp-control/src/transport.rs",
+      "crates/jj-acp-control/tests/interactive_wire.rs",
+      "crates/jj-acp-protocol/src/client.rs",
+      "crates/jj-acp-protocol/src/handler.rs",
+      "crates/jj-acp-runner/src/launch.rs",
+      "crates/jj-acp-runner/src/lib.rs",
+      "crates/jj-acp-runner/src/persistent.rs",
+      "crates/jj-acp-runner/src/process.rs",
+      "spec/src/architecture.md",
+      "spec/src/cli.md",
+      "spec/src/compatibility.md",
+      "spec/src/control.md",
+      "spec/src/index.md",
+      "spec/src/milestones.md",
+      "spec/src/protocol.md",
+      "spec/src/runner.md",
+      "spec/src/verification.md",
+      "tests/fixtures/interactive_agent.py"
+    ],
+    "tests": [
+      "crates/jj-acp-cli/tests/interactive.rs#follow_up_reuses_the_session_and_streams_activity",
+      "crates/jj-acp-cli/tests/interactive.rs#permissions_validate_exact_options_and_expire_after_resolution",
+      "crates/jj-acp-cli/tests/interactive.rs#cancellation_remains_serviceable_during_permission_wait",
+      "crates/jj-acp-cli/tests/interactive.rs#permission_wait_is_inside_the_absolute_deadline",
+      "crates/jj-acp-cli/tests/interactive.rs#unsupported_modes_block_prompts_and_duplicates_never_run_again",
+      "crates/jj-acp-cli/tests/interactive.rs#resume_is_explicit_and_does_not_send_a_prompt",
+      "crates/jj-acp-control/tests/interactive_wire.rs#partial_frames_survive_cancelled_reads"
+    ],
+    "runs": [
+      {
+        "command": "cargo test -p jj-acp-cli --test serve --locked (before)",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "cargo test -p jj-acp-cli --test interactive -p jj-acp-control --test interactive_wire --locked",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "cargo clippy --workspace --all-targets --locked -- -D warnings (initial)",
+        "result": "fail",
+        "failures": 4
+      },
+      {
+        "command": "cargo clippy --workspace --all-targets --locked -- -D warnings",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "node scripts/rust-architecture.mjs (initial)",
+        "result": "fail",
+        "failures": 1
+      },
+      {
+        "command": "node scripts/rust-architecture.mjs",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm check",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm test",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm build",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm spec:check",
+        "result": "pass",
+        "failures": 0
+      }
+    ],
+    "result": "pass",
+    "remaining": [],
+    "versions": "Rust 1.98.1; macOS ARM64; control v2; deterministic Python peer",
+    "formats": "Explicit interactive control v2; existing task/record/v1 control contracts retained",
+    "note": "Before: v1 serve 11/11 and no interactive control. New target: six binary and three transport/input tests pass. Two compile/format repair attempts preceded the passing target; four clippy findings and one 301-line budget failure were repaired without suppressions. Signal/drop containment has a process-group fallback. Cross-layer changes require the full source check/test/build/spec lanes. All four required wider gates passed. Real interactive host qualification remains a distinct M10 gate."
   }
 ]
 ```
@@ -965,11 +1070,10 @@ flight, distinct scopes overlap up to the worker limit, and a bounded queue
 refuses admission rather than growing. A crashed agent releases its slot and is
 never re-dispatched.
 
-Agents are not reused across turns. Each submission spawns an agent process,
-runs one turn and tears it down, so warm process and session reuse — the reason
-upstream keeps a standing pool at all — is still absent. For an adapter with
-slow startup that is a real cost per task, and closing it needs session caching,
-rotation and health tracking that this slice does not have.
+Version 1 does not reuse agents across scoped submissions. Explicit version 2
+retains its agent and session across follow-ups and supports capability-gated
+loading without prompting. Installed interactive consumer qualification remains
+M10; the fixture result does not establish shipping-adapter behavior.
 
 Inbound batching is also absent. Upstream drains all queued events for a scope
 into one prompt; here each submission is one turn, so a controlling application
@@ -979,12 +1083,6 @@ that wants batching must do it before submitting.
 one-shot path and nothing used it; the loop now depends on a `FrameSource` and a
 shared `FrameSink`, and the scheduler is tested in process over an in-memory
 pair as well as through the spawned binary.
-
-`ControlTransport` remains unused by either path. It was drawn as the seam a
-non-stdio transport would implement, and `serve` currently reads and writes
-stdio directly rather than through it, so the abstraction is still unexercised.
-Wiring it in belongs with M9, where a second transport would give it something
-to prove.
 
 Descendant containment is proven on macOS ARM64 for both the forced and the
 graceful path, but only on Unix. On other platforms cleanup signals the direct
@@ -1032,9 +1130,6 @@ consequence of the trust boundary rather than a defect, and it bounds which
 adapters are reachable without a controlling application supplying credentials
 its own way.
 
-Nothing has consumed this harness. The `jj-store` agent-runner integration is M9
-and depends on M8, so no controlling application has yet driven a task document
-over a transport other than the one-shot stdio path. Wiring it in is not a
-packaging change either: `jj-store` records controller dispatch as deferred in
-its own canonical specification, so that slice needs a spec change in that
-repository under its own governance.
+The jj-store controlling-application consumer is M10. Its local execution,
+authorization, isolated workspace and publication acceptance must be qualified
+in the owning host repository. Interactive fixture proof does not close it.

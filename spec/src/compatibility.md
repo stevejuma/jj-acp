@@ -272,3 +272,9 @@ The `thought_level` path is proven against the committed capture but was not
 reproduced live, because the adapter no longer advertises that option. It is
 recorded as fixture-proven rather than live-proven rather than being claimed
 outright.
+
+## Interactive session integration
+
+The interactive fixture proves persistent session identity, streamed
+tool/text/plan activity, permission handling and cancellation. It is distinct
+from installed-adapter interactive qualification.

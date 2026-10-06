@@ -69,7 +69,11 @@ impl ProcessGuard {
 
     /// Report whether the child has already exited.
     pub async fn poll(&mut self) -> bool {
-        matches!(self.child.try_wait(), Ok(Some(_)))
+        let stopped = matches!(self.child.try_wait(), Ok(Some(_)));
+        if stopped {
+            self.pid = None;
+        }
+        stopped
     }
 
     /// Stop the child and its process group within bounded grace and reap
@@ -80,6 +84,14 @@ impl ProcessGuard {
     /// protocol. This then signals the group, waits `grace` for a voluntary exit,
     /// and escalates to a fatal group signal followed by a bounded reap.
     pub async fn terminate(&mut self, grace: Duration, reap: Duration) -> Termination {
+        let termination = self.terminate_owned(grace, reap).await;
+        if termination.reaped {
+            self.pid = None;
+        }
+        termination
+    }
+
+    async fn terminate_owned(&mut self, grace: Duration, reap: Duration) -> Termination {
         let group_signalled = self.signal_group(Signal::Stop);
         if let Ok(Ok(status)) = tokio::time::timeout(grace, self.child.wait()).await {
             return Termination {
@@ -168,4 +180,14 @@ enum Signal {
     Stop,
     /// Fatal: do not wait for the group to cooperate.
     Kill,
+}
+
+impl Drop for ProcessGuard {
+    fn drop(&mut self) {
+        // An unreaped leader still owns its group identifier. This is the fallback
+        // for an interrupted interactive owner, never a signal after successful reap.
+        if self.pid.is_some() {
+            self.signal_group(Signal::Kill);
+        }
+    }
 }

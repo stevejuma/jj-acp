@@ -21,6 +21,7 @@ treats it as an opaque key.
 | JAC-RUN-005 | A crashed agent MUST be reported as a distinct outcome from a bound that elapsed, and a restart MUST NOT silently re-dispatch a turn that was already sent.                                                                                                                                                |
 | JAC-RUN-006 | Session creation MUST apply a configured model, reasoning effort and execution mode where the adapter advertises them, MUST resolve each against the current session rather than a cached one, and MUST retain the adapter default rather than fail the turn when a setting is unsupported or unavailable. |
 | JAC-RUN-007 | On Unix, cleanup MUST signal the whole process group before reaping its leader so ordinary descendants cannot outlive the turn, and MUST report whether the stop was confirmed.                                                                                                                            |
+| JAC-RUN-008 | Interactive sessions MUST negotiate once, apply configuration before prompting, load only advertised sessions, preserve cancellation and absolute deadlines during permission waits, and close their process ownership within bounded intervals.                                                           |
 
 ## Deadline composition
 
@@ -227,3 +228,10 @@ Matching is exact first and normalized second. Exact match is what keeps
 adapter-specific levels selectable when they exist in no portable vocabulary;
 normalization is what lets a caller asking for `off` reach an adapter that
 advertises `none`. The value sent is always the adapter's own spelling.
+
+## Interactive session integration
+
+Interactive open and load retain their agent connection. Follow-up prompts reuse
+the same session and serialized process; close, protocol loss and timeout
+release process ownership. Configuration and permission handling use bounded
+application callbacks rather than the accumulating one-shot recording handler.

@@ -46,12 +46,21 @@ impl LaunchSpec {
 /// Nothing here logs the environment: it can carry credentials the controlling
 /// application supplied, and the spawn is the one place they are used.
 pub fn spawn(spec: &LaunchSpec) -> std::io::Result<Child> {
+    spawn_with_stderr(spec, Stdio::inherit())
+}
+
+/// Interactive parents receive classified diagnostics; raw child stderr is discarded.
+pub fn spawn_quiet(spec: &LaunchSpec) -> std::io::Result<Child> {
+    spawn_with_stderr(spec, Stdio::null())
+}
+
+fn spawn_with_stderr(spec: &LaunchSpec, stderr: Stdio) -> std::io::Result<Child> {
     let mut command = Command::new(&spec.command.command);
     command
         .args(&spec.command.args)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        .stderr(Stdio::inherit())
+        .stderr(stderr)
         .kill_on_drop(true);
     if let Some(cwd) = &spec.cwd {
         command.current_dir(cwd);

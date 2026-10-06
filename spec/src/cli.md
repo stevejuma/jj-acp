@@ -18,6 +18,7 @@ rather than implying parity.
 | JAC-CLI-004 | Every launch option MUST be settable by a command-line flag and by a matching environment variable, with the flag taking precedence.                                                                    |
 | JAC-CLI-005 | The binary MUST NOT write diagnostics, prompts or agent output to stdout on any path, including startup failure and signal handling.                                                                    |
 | JAC-CLI-006 | A task run MUST NOT start a subscription, a standing pool, a heartbeat or any other service facility, and inherited service-only options MUST NOT enable one.                                           |
+| JAC-CLI-007 | serve --control-version 2 MUST select the interactive protocol explicitly while the default and one-shot commands retain version-1 behavior.                                                            |
 
 ## Commands
 
@@ -146,3 +147,9 @@ workers are capped at 32.
 
 The one-shot path ignores both, because a process that runs one task and exits
 has nothing to size.
+
+## Interactive session integration
+
+The additive --control-version option accepts 1 or 2 and defaults to 1. Version
+2 requires an explicit --runner. Signal and owner EOF request bounded
+interactive cleanup.

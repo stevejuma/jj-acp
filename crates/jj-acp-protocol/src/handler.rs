@@ -19,6 +19,11 @@ use crate::update::SessionUpdate;
 /// still yields a `Send` future and the connection stays usable inside a spawned
 /// task. The trait is consumed through generics, never through `dyn`.
 pub trait SessionHandler {
+    /// An unanswered permission's RPC identity, for cooperative cancellation.
+    fn pending_permission(&self) -> Option<Value> {
+        None
+    }
+
     /// A `session/update` notification arrived.
     fn session_update(&mut self, _update: SessionUpdate) {}
 

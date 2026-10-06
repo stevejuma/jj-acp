@@ -17,6 +17,11 @@
 #![forbid(unsafe_code)]
 
 pub mod input;
+pub mod interactive;
+pub mod interactive_handler;
+pub mod interactive_session;
+pub mod interactive_wire;
+mod interactive_worker;
 pub mod invocation;
 pub mod protocol;
 pub mod record;

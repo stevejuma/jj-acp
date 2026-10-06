@@ -296,7 +296,11 @@ impl<R: AsyncRead + Unpin, W: AsyncWrite + Unpin> Connection<R, W> {
                 return Err(Error::AgentExited);
             };
             idle = Instant::now() + budget.idle;
-            if let Some(result) = self.dispatch(handler, &frame, expected).await? {
+            let dispatched =
+                tokio::time::timeout_at(absolute, self.dispatch(handler, &frame, expected))
+                    .await
+                    .map_err(|_| Error::Timeout(budget.absolute))??;
+            if let Some(result) = dispatched {
                 return Ok(result);
             }
         }

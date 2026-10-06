@@ -12,15 +12,16 @@ have no analogue here and are not partially reimplemented.
 
 ## Requirements
 
-| ID           | Requirement                                                                                                                                                                                 |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| JAC-CTRL-001 | The controlling application MUST drive `jj-acp` over a versioned newline-delimited JSON control protocol with no authentication and no network listener.                                    |
-| JAC-CTRL-002 | `jj-acp` MUST accept one prepared task document of at most 1 MiB from a file or stdin and MUST reject unknown fields, duplicate fields, wrong types, trailing documents and malformed JSON. |
-| JAC-CTRL-003 | Every attempted invocation MUST emit exactly one terminal record on stdout and MUST NOT include the prompt, credentials, agent final text or raw adapter errors.                            |
-| JAC-CTRL-004 | Diagnostics and child stderr MUST stay on stderr so that stdout remains unconditionally parseable by the controlling application.                                                           |
-| JAC-CTRL-005 | The task document MUST NOT change the working directory, executable, tools or credentials, which come only from trusted launch configuration.                                               |
-| JAC-CTRL-006 | A control frame MUST carry an explicit integer version, and an unsupported version MUST be rejected before any agent subprocess is started.                                                 |
-| JAC-CTRL-007 | Reading a task document from a file or stdin MUST have its own bounded interval, separate from the execution deadline.                                                                      |
+| ID           | Requirement                                                                                                                                                                                                                                                |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| JAC-CTRL-001 | The controlling application MUST drive `jj-acp` over a versioned newline-delimited JSON control protocol with no authentication and no network listener.                                                                                                   |
+| JAC-CTRL-002 | `jj-acp` MUST accept one prepared task document of at most 1 MiB from a file or stdin and MUST reject unknown fields, duplicate fields, wrong types, trailing documents and malformed JSON.                                                                |
+| JAC-CTRL-003 | Every attempted invocation MUST emit exactly one terminal record on stdout and MUST NOT include the prompt, credentials, agent final text or raw adapter errors.                                                                                           |
+| JAC-CTRL-004 | Diagnostics and child stderr MUST stay on stderr so that stdout remains unconditionally parseable by the controlling application.                                                                                                                          |
+| JAC-CTRL-005 | The task document MUST NOT change the working directory, executable, tools or credentials, which come only from trusted launch configuration.                                                                                                              |
+| JAC-CTRL-006 | A control frame MUST carry an explicit integer version, and an unsupported version MUST be rejected before any agent subprocess is started.                                                                                                                |
+| JAC-CTRL-007 | Reading a task document from a file or stdin MUST have its own bounded interval, separate from the execution deadline.                                                                                                                                     |
+| JAC-CTRL-008 | Interactive control version 2 MUST retain one caller-configured ACP session across ordered turns, stream correlated bounded activity and permission requests, and accept only current permission decisions without changing the version-1 record contract. |
 
 ## Task document, version 1
 
@@ -232,3 +233,24 @@ Shutdown cancels running submissions and waits for slots to return, bounded by
 the same cleanup intervals a single invocation uses. When the bound elapses
 first that is reported as a diagnostic rather than concealed, because a peer
 told the shutdown was clean has no way to detect an orphan.
+
+## Interactive control version 2
+
+One trusted launch owns one session, runner and working directory. Frames carry
+version 2 and requestId. Requests are open (optional loadSessionId), configure
+(model, effort, mode), prompt (text, maxDurationMs), cancel (target), permission
+(permissionId, optionId or null), status and close. Unknown fields and oversized
+frames are refused. No request accepts a path, executable or environment.
+
+Responses are ready, queued, opened, configured, activity, permission, record,
+status, ack, error and closed. Every activity has an increasing sequence and
+request identity; content is separate from terminal records. The parent owns
+redaction and durable history. Session and raw adapter capabilities are facts,
+not publication authority. Configuration reports expose classified outcomes;
+unsupported requested modes prevent prompting until corrected.
+
+Permission options retain the exact adapter identifiers. Decisions are valid
+only for that live permission and its advertised options. Timeout, cancellation,
+EOF and close cancel pending permissions. Queue and event capacities are
+bounded; output backpressure or overflow ends execution with an explicit unknown
+outcome. A control connection never retries work.

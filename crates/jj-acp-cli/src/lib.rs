@@ -17,6 +17,7 @@
 
 pub mod agents;
 pub mod args;
+mod control_version;
 pub mod run_task;
 pub mod serve;
 pub mod signals;

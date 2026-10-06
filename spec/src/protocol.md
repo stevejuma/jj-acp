@@ -20,6 +20,7 @@ malfunctioning agent that emits an endless line.
 | JAC-PROTO-004 | A turn MUST terminate in exactly one stop reason drawn from `end_turn`, `max_tokens`, `max_turn_requests`, `refusal` and `cancelled`.                                                             |
 | JAC-PROTO-005 | An agent error MUST be surfaced as a typed protocol error preserving the agent's numeric code, and MUST substitute the whole error object when no message is present so provider detail survives. |
 | JAC-PROTO-006 | The protocol crate MUST remain free of process spawning, scheduling, credential handling and transport policy.                                                                                    |
+| JAC-PROTO-007 | Session loading MUST use the advertised loadSession capability and the caller-pinned working directory; permission waits MUST remain bounded by their request and turn lifetimes.                 |
 
 ## Method direction
 
@@ -205,3 +206,9 @@ the key-value pairs, and `advertised_effort` applies a fixed key precedence so
 `model[thinking=true,effort=high]` reports the level regardless of the order the
 adapter emitted the attributes. A malformed or keyless bracket yields nothing
 rather than a guess.
+
+## Interactive session integration
+
+Interactive loading calls session/load only after loadSession was advertised.
+Loading never prompts. Permission callback waits remain inside the overall
+request bound, including when no new frame arrives.

@@ -55,6 +55,8 @@ impl std::fmt::Display for ArgError {
 /// Trusted launch configuration assembled from flags and environment.
 #[derive(Debug, Clone, PartialEq)]
 pub struct LaunchOptions {
+    /// Explicit controlling application protocol; one-shot tasks always use v1.
+    pub control_version: u64,
     /// The runner this process acts as, pinning which tasks it will accept.
     pub runner: Option<String>,
     /// Path to a catalog file supplying additional runners.
@@ -88,6 +90,7 @@ pub struct LaunchOptions {
 impl Default for LaunchOptions {
     fn default() -> Self {
         Self {
+            control_version: 1,
             runner: None,
             catalog: None,
             model: None,
@@ -186,6 +189,7 @@ Run options:
   --reap-timeout <secs>      reap bound (JJ_ACP_REAP_TIMEOUT)
   --system-prompt-file <p>   standing instructions (JJ_ACP_SYSTEM_PROMPT_FILE)
   --prompt-transport <kind>  field | meta | meta-append (JJ_ACP_PROMPT_TRANSPORT)
+  --control-version <1|2>   select interactive version 2 explicitly
   --workers <n>              concurrent submissions for serve (JJ_ACP_WORKERS)
   --queue-capacity <n>       waiting submissions for serve (JJ_ACP_QUEUE_CAPACITY)
 
@@ -250,6 +254,7 @@ fn parse_launch(
     env: &Env,
 ) -> Result<(LaunchOptions, Option<TaskSource>), ArgError> {
     let mut launch = LaunchOptions {
+        control_version: 1,
         runner: env("JJ_ACP_RUNNER"),
         catalog: env("JJ_ACP_CATALOG"),
         model: env("JJ_ACP_MODEL"),
@@ -281,6 +286,10 @@ fn parse_launch(
     let mut task: Option<TaskSource> = None;
     while let Some(argument) = items.next() {
         match argument.as_str() {
+            "--control-version" => {
+                launch.control_version =
+                    crate::control_version::parse(&next_value(items, "--control-version")?)?;
+            }
             "--task" => task = Some(TaskSource::parse(&next_value(items, "--task")?)),
             flag if flag.starts_with("--task=") => {
                 task = Some(TaskSource::parse(&flag["--task=".len()..]));
