@@ -31,6 +31,8 @@ use crate::task::{TaskDocument, TaskRejection, code, requested_cap};
 pub struct InvocationConfig {
     /// Runners the caller may select from.
     pub catalog: Catalog,
+    /// Tools fixed by trusted launch, never task/control input.
+    pub mcp_servers: Vec<jj_acp_protocol::McpServer>,
     /// The runner this process was launched to act as, when the caller pinned one.
     pub configured_runner: Option<String>,
     /// Working directory. A task document cannot change it.
@@ -214,7 +216,7 @@ pub async fn invoke_with_probe(
             }
         }),
         session_title: None,
-        mcp_servers: Vec::new(),
+        mcp_servers: config.mcp_servers.clone(),
         budget: TurnBudget::new(config.idle, absolute),
         cancel_grace: config.cancel_grace,
         configuration: config.configuration.clone(),

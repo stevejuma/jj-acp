@@ -176,3 +176,15 @@ prompt; warming and context preparation do not submit preliminary turns.
 Interactive v2/v3 callers may submit a comments-only turn using empty `text` and
 nonblank prepared `context`. The CLI retains both fields without inventing user
 text; an entirely empty prompt remains invalid (E-M12-003).
+
+## Trusted coding-tool declarations
+
+The controlling application may select a bounded JSON file of stdio MCP
+declarations through `--tools` or `JJ_ACP_TOOLS`. This is trusted launch
+configuration, independent of tasks and v2/v3 control input. Session creation
+and supported loading receive the same declarations. Warm initialization does
+not start a tool session. The file is bounded to 64 KiB and eight unique stdio
+servers; only absolute executable paths are accepted, with bounded
+arguments/environment and no reserved harness identity names. Errors disclose
+stable codes, not file contents or credentials. ACP continues to own no tool
+policy, authentication, network or durable settings.

@@ -5,6 +5,9 @@
 //! run either way. Parsing is hand-rolled: the surface is small, and depending on
 //! a parser would not reduce it.
 
+use crate::argument_values::{
+    count, next_value, optional_count, optional_duration, reject_trailing,
+};
 use std::path::PathBuf;
 use std::time::Duration;
 
@@ -61,6 +64,8 @@ pub struct LaunchOptions {
     pub runner: Option<String>,
     /// Path to a catalog file supplying additional runners.
     pub catalog: Option<String>,
+    /// Trusted file containing bounded stdio MCP server declarations.
+    pub tools: Option<String>,
     /// Model to request when the agent offers it.
     pub model: Option<String>,
     /// Reasoning effort to request when the agent offers one.
@@ -93,6 +98,7 @@ impl Default for LaunchOptions {
             control_version: 1,
             runner: None,
             catalog: None,
+            tools: None,
             model: None,
             effort: None,
             mode: None,
@@ -139,7 +145,7 @@ pub enum Command {
 /// Read one environment variable, injectable so parsing is testable.
 pub type Env = dyn Fn(&str) -> Option<String>;
 
-fn duration(value: &str, option: &str) -> Result<Duration, ArgError> {
+pub(crate) fn duration(value: &str, option: &str) -> Result<Duration, ArgError> {
     let seconds: u64 = value
         .trim()
         .parse()
@@ -178,6 +184,7 @@ error and diagnostic out. There is no listener, no port and no authentication.
 Run options:
   --task <path|->            prepared task document; '-' reads stdin
   --runner <id>              runner this process acts as (JJ_ACP_RUNNER)
+  --tools <path>             trusted stdio MCP server declarations (JJ_ACP_TOOLS)
   --catalog <path>           additional runner catalog (JJ_ACP_CATALOG)
   --model <id>               model to request (JJ_ACP_MODEL)
   --effort <level>           reasoning effort to request (JJ_ACP_EFFORT)
@@ -257,6 +264,7 @@ fn parse_launch(
         control_version: 1,
         runner: env("JJ_ACP_RUNNER"),
         catalog: env("JJ_ACP_CATALOG"),
+        tools: env("JJ_ACP_TOOLS"),
         model: env("JJ_ACP_MODEL"),
         effort: env("JJ_ACP_EFFORT"),
         mode: env("JJ_ACP_MODE"),
@@ -295,6 +303,7 @@ fn parse_launch(
                 task = Some(TaskSource::parse(&flag["--task=".len()..]));
             }
             "--runner" => launch.runner = Some(next_value(items, "--runner")?),
+            "--tools" => launch.tools = Some(next_value(items, "--tools")?),
             "--catalog" => launch.catalog = Some(next_value(items, "--catalog")?),
             "--model" => launch.model = Some(next_value(items, "--model")?),
             "--effort" => launch.effort = Some(next_value(items, "--effort")?),
@@ -337,54 +346,6 @@ fn parse_launch(
         }
     }
     Ok((launch, task))
-}
-
-/// Refuse arguments that no subcommand would read.
-///
-/// Silently ignoring them is worse than refusing: `agents --catalog x` that drops
-/// the catalog reports a runner set the operator did not ask for, and looks like a
-/// correct answer.
-fn reject_trailing(items: &mut std::vec::IntoIter<String>) -> Result<(), ArgError> {
-    match items.next() {
-        Some(argument) => Err(ArgError::Usage(format!("unexpected argument {argument:?}"))),
-        None => Ok(()),
-    }
-}
-
-fn next_value(items: &mut std::vec::IntoIter<String>, flag: &str) -> Result<String, ArgError> {
-    items
-        .next()
-        .ok_or_else(|| ArgError::Usage(format!("{flag} needs a value")))
-}
-
-fn count(value: &str, option: &str) -> Result<usize, ArgError> {
-    let parsed: usize = value
-        .trim()
-        .parse()
-        .map_err(|_| ArgError::Invalid(format!("{option} must be a whole number")))?;
-    if parsed == 0 {
-        return Err(ArgError::Invalid(format!("{option} must be at least 1")));
-    }
-    if parsed > MAX_WORKERS && option == "--workers" {
-        return Err(ArgError::Invalid(format!(
-            "{option} must be at most {MAX_WORKERS}"
-        )));
-    }
-    Ok(parsed)
-}
-
-fn optional_count(env: &Env, name: &str, flag: &str) -> Result<Option<usize>, ArgError> {
-    match env(name) {
-        Some(value) => Ok(Some(count(&value, flag)?)),
-        None => Ok(None),
-    }
-}
-
-fn optional_duration(env: &Env, name: &str, flag: &str) -> Result<Option<Duration>, ArgError> {
-    match env(name) {
-        Some(value) => Ok(Some(duration(&value, flag)?)),
-        None => Ok(None),
-    }
 }
 
 /// The environment lookup used in production.

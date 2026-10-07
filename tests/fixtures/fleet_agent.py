@@ -13,6 +13,9 @@ for line in sys.stdin:
     with open(os.environ["FLEET_LOG"], "a", encoding="utf-8") as log:
         log.write(str(method) + "\n")
     result = {}
+    if method == "session/new" and os.environ.get("FLEET_TOOLS_LOG"):
+        with open(os.environ["FLEET_TOOLS_LOG"], "a", encoding="utf-8") as tools:
+            tools.write(json.dumps(params.get("mcpServers")) + "\n")
     if method == "initialize":
         result = {"protocolVersion": 2, "agentCapabilities": {"loadSession": True, "promptCapabilities": {"embeddedContext": True}}}
     elif method == "session/new":

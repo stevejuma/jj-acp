@@ -173,3 +173,8 @@ and managed owner lifetime are separately recorded in E-M10-001. These live
 turns raised no permission requests; exact permission/cancellation/deadline
 proof remains fixture evidence. Packaging, additional platforms/adapters and
 live permission qualification remain separate from this host profile.
+
+Trusted MCP declaration parsing stays in the CLI composition layer and uses
+existing Serde data types. Protocol/runner/control receive fixed declarations
+without introducing any network, authentication, storage or tool-policy
+dependencies.

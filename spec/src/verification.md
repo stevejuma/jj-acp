@@ -82,3 +82,8 @@ wire tests, with separate fleet CLI block evidence in E-M12-002.
 
 Context-only prompts are covered by `interactive_wire` rejection/acceptance
 cases and the version-3 fleet test (E-M12-003).
+
+Trusted MCP launch declarations are covered by crates/jj-acp-cli/tests/fleet.rs:
+warmup emits no tool session and both independent session/new calls receive the
+same trusted declarations. Installed local-agent tool acceptance remains
+consumer evidence.

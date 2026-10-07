@@ -229,3 +229,15 @@ Prepared prompt context is an ordered content block independent of authored
 text. Embedded resource support is selected from negotiated capabilities by the
 caller. The protocol helper emits an inline text resource or separate text
 block, then the unchanged authored text. It performs no URI or file access.
+
+## Trusted coding-tool declarations
+
+The controlling application may select a bounded JSON file of stdio MCP
+declarations through `--tools` or `JJ_ACP_TOOLS`. This is trusted launch
+configuration, independent of tasks and v2/v3 control input. Session creation
+and supported loading receive the same declarations. Warm initialization does
+not start a tool session. The file is bounded to 64 KiB and eight unique stdio
+servers; only absolute executable paths are accepted, with bounded
+arguments/environment and no reserved harness identity names. Errors disclose
+stable codes, not file contents or credentials. ACP continues to own no tool
+policy, authentication, network or durable settings.

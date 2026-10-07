@@ -21,11 +21,18 @@ async fn warm_worker_opens_distinct_sessions_without_reinitializing() {
         "elif method == \"session/new\":",
         "elif method == \"session/load\":\n        print(json.dumps({\"jsonrpc\":\"2.0\",\"id\":frame[\"id\"],\"error\":{\"code\":-32603,\"message\":\"fixture rejected load\"}}), flush=True)\n        continue\n    elif method == \"session/new\":"
     )).unwrap();
+    let tools = scratch.join("tools.json");
+    let tools_log = scratch.join("tools.log");
+    std::fs::write(
+        &tools,
+        json!([{"name":"coding","command":"/bin/false","args":[],"env":[]}]).to_string(),
+    )
+    .unwrap();
     let catalog = scratch.join("catalog.json");
     std::fs::write(
         &catalog,
         json!({"runners":[{"id":"fixture","label":"Fixture",
-        "command":"python3","args":[fixture],"env":{"FLEET_LOG":log}}]})
+        "command":"python3","args":[fixture],"env":{"FLEET_LOG":log,"FLEET_TOOLS_LOG":tools_log}}]})
         .to_string(),
     )
     .unwrap();
@@ -39,6 +46,8 @@ async fn warm_worker_opens_distinct_sessions_without_reinitializing() {
             "--catalog",
         ])
         .arg(catalog)
+        .arg("--tools")
+        .arg(tools)
         .arg("--cwd")
         .arg(&root)
         .stdin(Stdio::piped())
@@ -86,6 +95,7 @@ async fn warm_worker_opens_distinct_sessions_without_reinitializing() {
     let before = std::fs::read_to_string(&log).unwrap();
     assert!(before.contains("initialize"));
     assert!(!before.contains("session/new"));
+    assert!(!tools_log.exists());
     assert!(!before.contains("session/prompt"));
     for scope in ["a", "b"] {
         send(
@@ -185,6 +195,13 @@ async fn warm_worker_opens_distinct_sessions_without_reinitializing() {
         true
     );
     assert!(child.wait().await.unwrap().success());
+    let declarations = std::fs::read_to_string(tools_log).unwrap();
+    assert_eq!(declarations.lines().count(), 2);
+    for line in declarations.lines() {
+        let tools: Value = serde_json::from_str(line).unwrap();
+        assert_eq!(tools[0]["name"], "coding");
+        assert_eq!(tools[0]["command"], "/bin/false");
+    }
     let log = std::fs::read_to_string(log).unwrap();
     assert_eq!(log.lines().filter(|line| *line == "initialize").count(), 1);
     assert_eq!(log.lines().filter(|line| *line == "session/new").count(), 2);

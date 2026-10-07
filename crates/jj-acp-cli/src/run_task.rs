@@ -151,6 +151,7 @@ pub fn invocation_config(
     };
     Ok(InvocationConfig {
         catalog,
+        mcp_servers: crate::tools::read(options.tools.as_deref())?,
         configured_runner: options.runner.clone(),
         cwd,
         idle: options.idle_timeout,

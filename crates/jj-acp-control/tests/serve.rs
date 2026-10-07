@@ -143,6 +143,7 @@ fn configuration(dir: &Path, mode: &str, limits: ServeLimits) -> ServeConfig {
     ServeConfig {
         limits,
         invocation: InvocationConfig {
+            mcp_servers: vec![],
             catalog,
             configured_runner: None,
             cwd: dir.to_path_buf(),

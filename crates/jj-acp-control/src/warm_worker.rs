@@ -83,7 +83,7 @@ impl WarmWorker {
         let budget = TurnBudget::new(config.idle, config.absolute_cap);
         let request = SessionNewRequest {
             cwd: &cwd,
-            mcp_servers: vec![],
+            mcp_servers: config.mcp_servers.clone(),
             session_title: None,
             system_prompt: config.system_prompt.as_deref().map(|text| SystemPrompt {
                 transport: config.prompt_transport,
@@ -102,7 +102,7 @@ impl WarmWorker {
                     .call_within(
                         handler,
                         "session/load",
-                        serde_json::json!({"sessionId":id,"cwd":cwd,"mcpServers":[]}),
+                        serde_json::json!({"sessionId":id,"cwd":cwd,"mcpServers":config.mcp_servers}),
                         budget,
                     )
                     .await?;

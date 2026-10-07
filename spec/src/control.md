@@ -304,3 +304,15 @@ context URI and text/plain MIME type; absent or false capability uses a separate
 text block. Context is never fetched from the URI. No preliminary turn, retry or
 session-configuration side effect is introduced. Existing text-only callers
 retain their wire shape and lifecycle.
+
+## Trusted coding-tool declarations
+
+The controlling application may select a bounded JSON file of stdio MCP
+declarations through `--tools` or `JJ_ACP_TOOLS`. This is trusted launch
+configuration, independent of tasks and v2/v3 control input. Session creation
+and supported loading receive the same declarations. Warm initialization does
+not start a tool session. The file is bounded to 64 KiB and eight unique stdio
+servers; only absolute executable paths are accepted, with bounded
+arguments/environment and no reserved harness identity names. Errors disclose
+stable codes, not file contents or credentials. ACP continues to own no tool
+policy, authentication, network or durable settings.

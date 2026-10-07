@@ -51,7 +51,7 @@ impl WarmSession {
         let cwd = config.cwd.to_string_lossy();
         let request = SessionNewRequest {
             cwd: &cwd,
-            mcp_servers: vec![],
+            mcp_servers: config.mcp_servers.clone(),
             session_title: None,
             system_prompt: config.system_prompt.as_deref().map(|text| SystemPrompt {
                 transport: config.prompt_transport,

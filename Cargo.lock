@@ -61,6 +61,7 @@ dependencies = [
  "jj-acp-protocol",
  "jj-acp-runner",
  "jj-acp-testkit",
+ "serde",
  "serde_json",
  "tokio",
 ]

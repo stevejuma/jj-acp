@@ -289,3 +289,12 @@ fixture assertions. The fixture advertises embeddedContext and records block
 boundaries while preserving session fencing. These results do not qualify
 installed-adapter resource interpretation, permissions or other platforms. Text
 fallback remains available when the capability is absent or false.
+
+## Trusted tool declaration fixtures
+
+The fleet fixture records the trusted `mcpServers` received by both distinct
+session/new calls. Warm initialization opens neither a session nor coding tools.
+Its inert tool declaration never executes a command. CLI rejection tests cover
+bounded input, duplicate names, relative commands and reserved task identities.
+These are source/fixture proofs only; local model coding tools and installed
+permission/cancellation exchange remain controlling-application qualification.
