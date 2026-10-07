@@ -56,7 +56,48 @@ pub async fn prompt<H: SessionHandler>(
     grace: Duration,
     cancel: &mut watch::Receiver<bool>,
 ) -> TurnOutcome {
-    let params = jj_acp_protocol::session::prompt_text_params(session_id, &[text]);
+    prompt_input(
+        agent,
+        handler,
+        session_id,
+        PromptInput {
+            text,
+            context: None,
+            embedded_context: false,
+        },
+        budget,
+        grace,
+        cancel,
+    )
+    .await
+}
+
+/// Caller-prepared content, with capability selection owned by the session.
+pub struct PromptInput<'a> {
+    /// Original authored text.
+    pub text: &'a str,
+    /// Bounded context prepared by the controlling application.
+    pub context: Option<&'a str>,
+    /// Whether the negotiated adapter accepts embedded context resources.
+    pub embedded_context: bool,
+}
+
+/// Submit context and authored text in one turn without a preliminary prompt.
+pub async fn prompt_input<H: SessionHandler>(
+    agent: &mut Agent,
+    handler: &mut H,
+    session_id: &str,
+    input: PromptInput<'_>,
+    budget: TurnBudget,
+    grace: Duration,
+    cancel: &mut watch::Receiver<bool>,
+) -> TurnOutcome {
+    let params = jj_acp_protocol::session::prompt_context_params(
+        session_id,
+        input.text,
+        input.context,
+        input.embedded_context,
+    );
     let id = match agent
         .connection
         .send_request("session/prompt", params)

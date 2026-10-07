@@ -101,7 +101,7 @@ async fn warm_worker_opens_distinct_sessions_without_reinitializing() {
         send(
             &mut input,
             json!({"version":3,"type":"prompt","requestId":format!("turn-{scope}"),
-            "sessionId":scope,"text":scope,"maxDurationMs":10000}),
+            "sessionId":scope,"text":scope,"context":"<agent_context>exact repository facts</agent_context>","maxDurationMs":10000}),
         )
         .await;
         let activity = receive(&mut output, "activity").await;
@@ -111,6 +111,21 @@ async fn warm_worker_opens_distinct_sessions_without_reinitializing() {
             receive(&mut output, "record").await["record"]["status"],
             "completed"
         );
+    }
+    let capture = std::fs::read_to_string(&log).unwrap();
+    let prompts = capture
+        .lines()
+        .filter_map(|line| line.strip_prefix("prompt-blocks:"))
+        .map(|line| serde_json::from_str::<Value>(line).unwrap())
+        .collect::<Vec<_>>();
+    assert_eq!(prompts.len(), 2);
+    for (index, blocks) in prompts.iter().enumerate() {
+        assert_eq!(blocks[0]["type"], "resource");
+        assert_eq!(
+            blocks[0]["resource"]["text"],
+            "<agent_context>exact repository facts</agent_context>"
+        );
+        assert_eq!(blocks[1]["text"], if index == 0 { "a" } else { "b" });
     }
     send(&mut input, json!({"version":3,"type":"prompt","requestId":"permission-turn","sessionId":"a","text":"permission","maxDurationMs":10000})).await;
     let permission = receive(&mut output, "permission").await;

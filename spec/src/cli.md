@@ -163,3 +163,8 @@ unchanged. E-M11-003 records the binary regression and source gates.
 Warm worker integration explicitly selects --control-version 3 and a fixed
 managed cwd root. The flag default remains version 1; version 2 remains a single
 interactive session with no request-supplied paths.
+
+Serve controls v2/v3 accept optional prepared context independently of text.
+This adds no launch flag, filesystem selection or credential surface. The CLI
+preserves caller session/request fencing and emits one terminal outcome per real
+prompt; warming and context preparation do not submit preliminary turns.

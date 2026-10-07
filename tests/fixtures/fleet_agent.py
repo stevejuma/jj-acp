@@ -14,13 +14,15 @@ for line in sys.stdin:
         log.write(str(method) + "\n")
     result = {}
     if method == "initialize":
-        result = {"protocolVersion": 2, "agentCapabilities": {"loadSession": True}}
+        result = {"protocolVersion": 2, "agentCapabilities": {"loadSession": True, "promptCapabilities": {"embeddedContext": True}}}
     elif method == "session/new":
         sessions += 1
         result = {"sessionId": "adapter-" + str(sessions), "configOptions": [{"id":"mode","name":"Mode","category":"mode","type":"select","currentValue":"ask","options":[{"value":"ask","name":"Ask"}]}], "modes": {
             "currentModeId": "ask", "availableModes": [{"id": "ask", "name": "Ask"}]}}
     elif method == "session/prompt":
-        text = params["prompt"][0]["text"]
+        text = params["prompt"][-1]["text"]
+        with open(os.environ["FLEET_LOG"], "a", encoding="utf-8") as log:
+            log.write("prompt-blocks:" + json.dumps(params["prompt"]) + "\n")
         if previous_session and previous_session != params["sessionId"]:
             print(json.dumps({"jsonrpc":"2.0","method":"session/update","params":{"sessionId":previous_session,"update":{"sessionUpdate":"agent_message_chunk","content":{"type":"text","text":"stale inactive update"}}}}), flush=True)
         previous_session = params["sessionId"]
@@ -31,7 +33,7 @@ for line in sys.stdin:
                 log.write("decision:" + answer["result"]["outcome"]["optionId"] + "\n")
         print(json.dumps({"jsonrpc": "2.0", "method": "session/update", "params": {
             "sessionId": "foreign" if text == "foreign" else params["sessionId"], "update": {"sessionUpdate": "agent_message_chunk",
-            "content": {"type": "text", "text": params["prompt"][0]["text"]}}}}), flush=True)
+            "content": {"type": "text", "text": params["prompt"][-1]["text"]}}}}), flush=True)
         result = {"stopReason": "end_turn"}
     if "id" in frame:
         print(json.dumps({"jsonrpc": "2.0", "id": frame["id"], "result": result}), flush=True)

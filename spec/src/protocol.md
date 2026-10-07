@@ -224,3 +224,8 @@ automatically cancels their permission requests. Unknown or mismatched active
 identities still invalidate the worker; inactive traffic never enters the
 current application transcript. Only fixed failure classifications and numeric
 agent codes are exposed, never untrusted diagnostic details.
+
+Prepared prompt context is an ordered content block independent of authored
+text. Embedded resource support is selected from negotiated capabilities by the
+caller. The protocol helper emits an inline text resource or separate text
+block, then the unchanged authored text. It performs no URI or file access.

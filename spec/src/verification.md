@@ -72,3 +72,6 @@ passing concrete tests linked from the progress ledger.
 | JAC-RUN-009    | Implemented | `crates/jj-acp-cli/tests/fleet.rs`; [warm worker evidence](milestones.md)                                                                                                                                             |
 | JAC-PROTO-008  | Implemented | `crates/jj-acp-cli/tests/fleet.rs`; [warm worker evidence](milestones.md)                                                                                                                                             |
 | JAC-CLI-008    | Implemented | `crates/jj-acp-cli/tests/fleet.rs`; [warm worker evidence](milestones.md)                                                                                                                                             |
+
+Optional v2/v3 prompt context is verified by the protocol payload and control
+wire tests, with separate fleet CLI block evidence in E-M12-002.

@@ -570,7 +570,7 @@ coexist with an acknowledged gap.
     ],
     "runs": [
       {
-        "command": "cursor-agent acp — initialize and session/new handshake probe, no prompt",
+        "command": "cursor-agent acp \u2014 initialize and session/new handshake probe, no prompt",
         "result": "pass",
         "failures": 0
       },
@@ -1396,6 +1396,110 @@ coexist with an acknowledged gap.
       "Cold native jj-store integration, other version-3 adapters/platforms and real permission/cancellation exchange are separate qualification gates."
     ],
     "note": "Enclosing change yxwxpvkv. Warm initialization sends neither session/new nor a prompt. Multiple session directories share one initialized adapter. Exact application scopes fence permissions, cancellation and events. Release cancels active/queued turns in its own scope. The installed Codex regression exposed delayed known-inactive session updates; these are now discarded and stale permissions cancelled, while unknown identities fail the worker. No uncertain prompt is replayed. M12 remains In progress with fixture and installed Codex gates passing; native cold consumer and other adapters remain separately qualified."
+  },
+  {
+    "id": "E-M12-002",
+    "tasks": ["M12"],
+    "date": "2026-10-07",
+    "kind": "separate prepared context blocks",
+    "versions": "macOS ARM64; Rust 1.98.1; JJ 0.45.1; enclosing change ylkuyxzx; fixture evidence only",
+    "formats": "additive optional context in controls v2/v3; ordered ACP text/resource blocks; terminal record v1 unchanged",
+    "files": [
+      "crates/jj-acp-control/src/interactive_wire.rs",
+      "crates/jj-acp-control/src/interactive_worker.rs",
+      "crates/jj-acp-control/src/fleet_worker.rs",
+      "crates/jj-acp-runner/src/persistent.rs",
+      "crates/jj-acp-protocol/src/session.rs",
+      "crates/jj-acp-protocol/tests/payload.rs",
+      "crates/jj-acp-control/tests/interactive_wire.rs",
+      "crates/jj-acp-cli/tests/fleet.rs",
+      "tests/fixtures/fleet_agent.py",
+      "spec/src/cli.md",
+      "spec/src/compatibility.md",
+      "spec/src/runner.md",
+      "spec/src/control.md",
+      "spec/src/protocol.md",
+      "spec/src/verification.md",
+      "spec/src/milestones.md"
+    ],
+    "tests": [
+      "crates/jj-acp-protocol/tests/payload.rs#context_blocks_are_capability_gated_and_preserve_authored_bytes",
+      "crates/jj-acp-control/tests/interactive_wire.rs#prompt_context_is_optional_bounded_data_without_launch_authority",
+      "crates/jj-acp-cli/tests/fleet.rs#warm_worker_opens_distinct_sessions_without_reinitializing"
+    ],
+    "runs": [
+      {
+        "command": "cargo test -p jj-acp-protocol --test payload -p jj-acp-control --test interactive_wire --locked",
+        "result": "pass",
+        "detail": "27 protocol tests and 4 control tests pass.",
+        "failures": 0
+      },
+      {
+        "command": "pnpm test",
+        "result": "pass",
+        "detail": "Full source tests passed before the later fixture assertion addition.",
+        "failures": 0
+      },
+      {
+        "command": "pnpm build",
+        "result": "pass",
+        "detail": "All source binaries built before package cache cleanup.",
+        "failures": 0
+      },
+      {
+        "command": "CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 cargo test -p jj-acp-cli --test fleet --locked",
+        "result": "pass",
+        "failures": 0,
+        "note": "Exact resource/authored block assertions and scope fencing pass after cache cleanup."
+      },
+      {
+        "command": "pnpm check",
+        "result": "pass",
+        "failures": 0,
+        "detail": "Full source formatting, types, boundaries, architecture and clippy all targets pass."
+      },
+      {
+        "command": "pnpm spec:check",
+        "result": "pass",
+        "failures": 0,
+        "detail": "All 11 specification lanes pass after the runner, CLI and compatibility topic updates."
+      },
+      {
+        "command": "CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 pnpm test",
+        "result": "fail",
+        "failures": 1,
+        "detail": "The forced descendant cleanup fixture missed its PID under load; no product assertion was loosened."
+      },
+      {
+        "command": "CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 cargo test -p jj-acp-cli --test cleanup a_forced_termination_takes_the_agents_descendant_with_it --locked -- --exact",
+        "result": "pass",
+        "failures": 0,
+        "detail": "The exact cleanup regression passes unchanged."
+      },
+      {
+        "command": "CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 pnpm test",
+        "result": "pass",
+        "failures": 0,
+        "detail": "Final complete source test and doctest rerun passes, including resource/authored block fixture assertions."
+      },
+      {
+        "command": "CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 pnpm build",
+        "result": "pass",
+        "failures": 0,
+        "detail": "Final locked build passes."
+      },
+      {
+        "command": "pnpm spec:check",
+        "result": "fail",
+        "failures": 1,
+        "detail": "Progress validation requires pending while a live interpretation gap remains; restored the scoped pending result without removing that gate."
+      }
+    ],
+    "result": "pending",
+    "remaining": [
+      "Installed adapter interpretation of embedded context resources remains an independent live qualification gate; these results are fixture and source evidence."
+    ],
+    "note": "Prepared context is separate from authored text. Embedded resources require advertised support, otherwise context uses an independent text block in the same turn. No preliminary turn or replay. Initial check refused the missing evidence update; the first fixture assertion used a text-only prompt and was repaired to send context. Its next compilation ran out of disk space; generated package caches were cleared. M12 remains In progress and real installed-adapter qualification is not inferred from fixture block assertions. Exact cleanup retry and the final full test rerun pass unchanged. Full check, all specification lanes and final build pass. No package was published, installed binary replaced or real prompt sent."
   }
 ]
 ```
@@ -1477,3 +1581,6 @@ publication, cold Chromium/restart and managed owner lifetime. Fixture-only
 permission/cancellation/deadline evidence remains distinct; these real turns
 raised zero permission requests. Signed desktop/WKWebView distribution and other
 platforms/adapters remain separate qualification.
+
+E-M12-002 reviews separate prepared context blocks without expanding the real
+adapter or lifecycle qualification. M12 stays In progress.

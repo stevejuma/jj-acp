@@ -112,6 +112,26 @@ pub fn prompt_text_params(session_id: &str, texts: &[impl AsRef<str>]) -> Value 
     prompt_params(session_id, crate::content::text_blocks(texts))
 }
 
+/// Keep caller-prepared context separate from the authored prompt. Embedded
+/// resources require negotiated support; the fallback is an ordered text block.
+pub fn prompt_context_params(
+    session_id: &str,
+    text: &str,
+    context: Option<&str>,
+    embedded: bool,
+) -> Value {
+    let mut blocks = Vec::new();
+    if let Some(context) = context.filter(|value| !value.is_empty()) {
+        blocks.push(if embedded {
+            json!({"type":"resource","resource":{"uri":"context://jj-acp/session-context","mimeType":"text/plain","text":context}})
+        } else {
+            crate::content::text_block(context)
+        });
+    }
+    blocks.push(crate::content::text_block(text));
+    prompt_params(session_id, blocks)
+}
+
 /// Build `session/cancel` params.
 ///
 /// Cancellation is sent as a notification, so no response is expected and a

@@ -28,6 +28,9 @@ pub enum Command {
         #[serde(rename = "requestId")]
         request_id: String,
         text: String,
+        /// Context is data in a separate block, never session configuration.
+        #[serde(default)]
+        context: Option<String>,
         #[serde(rename = "maxDurationMs")]
         max_duration_ms: u64,
     },
@@ -92,8 +95,16 @@ pub fn parse(line: &str) -> Result<Command, &'static str> {
         Command::Prompt {
             text,
             max_duration_ms,
+            context,
             ..
-        } if text.trim().is_empty() || *max_duration_ms == 0 => return Err("invalid_request"),
+        } if text.trim().is_empty()
+            || *max_duration_ms == 0
+            || context
+                .as_ref()
+                .is_some_and(|value| value.len() > 512 * 1024 || value.contains('\0')) =>
+        {
+            return Err("invalid_request");
+        }
         Command::Open {
             load_session_id: Some(id),
             ..

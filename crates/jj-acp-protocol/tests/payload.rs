@@ -490,3 +490,26 @@ fn only_tool_activity_counts_as_progress() {
     assert!(!text.is_activity());
     assert_eq!(tool.raw()["sessionUpdate"], json!("tool_call"));
 }
+
+#[test]
+fn context_blocks_are_capability_gated_and_preserve_authored_bytes() {
+    let authored = "Please edit this file\n";
+    let context = "<agent_context>repository facts</agent_context>";
+    let embedded = session::prompt_context_params("s", authored, Some(context), true);
+    assert_eq!(embedded["prompt"][0]["type"], "resource");
+    assert_eq!(embedded["prompt"][0]["resource"]["text"], context);
+    assert_eq!(embedded["prompt"][0]["resource"]["mimeType"], "text/plain");
+    assert_eq!(
+        embedded["prompt"][1],
+        json!({"type":"text","text":authored})
+    );
+    let fallback = session::prompt_context_params("s", authored, Some(context), false);
+    assert_eq!(
+        fallback["prompt"],
+        json!([{"type":"text","text":context},{"type":"text","text":authored}])
+    );
+    assert_eq!(
+        session::prompt_context_params("s", authored, None, true),
+        session::prompt_text_params("s", &[authored])
+    );
+}

@@ -39,3 +39,28 @@ async fn endless_control_input_is_bounded_before_a_newline() {
     assert!(source.next_line().await.is_err());
     writer.abort();
 }
+
+#[test]
+fn prompt_context_is_optional_bounded_data_without_launch_authority() {
+    use jj_acp_control::interactive_wire::Command;
+    let valid = r#"{"version":2,"type":"prompt","requestId":"one","text":"authored","context":"<context>facts</context>","maxDurationMs":1000}"#;
+    assert!(matches!(
+        parse(valid).unwrap(),
+        Command::Prompt {
+            context: Some(_),
+            ..
+        }
+    ));
+    for context in [
+        serde_json::json!(12),
+        serde_json::json!("x".repeat(512 * 1024 + 1)),
+        serde_json::json!("bad\0context"),
+    ] {
+        let mut value: serde_json::Value = serde_json::from_str(valid).unwrap();
+        value["context"] = context;
+        assert_eq!(parse(&value.to_string()).unwrap_err(), "invalid_request");
+    }
+    let mut value: serde_json::Value = serde_json::from_str(valid).unwrap();
+    value["cwd"] = serde_json::json!("/unsafe");
+    assert_eq!(parse(&value.to_string()).unwrap_err(), "invalid_request");
+}

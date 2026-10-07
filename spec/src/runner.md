@@ -248,3 +248,9 @@ Cancellation, absolute deadlines and bounded process-group cleanup apply to
 opening and every turn. Unknown outcomes invalidate every session; no implicit
 restart or prompt replay occurs. Multi-session fixture qualification is separate
 from qualification of each real installed adapter.
+
+Interactive PromptInput retains authored bytes separately from caller-prepared
+context. One turn uses ordered context and text blocks, with embedded-resource
+selection supplied from the negotiated session. Existing text-only prompt
+callers, deadlines, cancellation, quiescence and unusable-session outcomes are
+unchanged.

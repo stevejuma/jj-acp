@@ -283,3 +283,9 @@ The fleet fixture records initialization, distinct adapter sessions and prompt
 counts. It proves application scope fencing and zero warmup prompts separately
 from installed adapter qualification. Control version 3 requires fresh real
 Codex/Cursor acceptance; earlier version-2 evidence is unchanged.
+
+E-M12-002 qualifies separate prompt context with payload, control-wire and fleet
+fixture assertions. The fixture advertises embeddedContext and records block
+boundaries while preserving session fencing. These results do not qualify
+installed-adapter resource interpretation, permissions or other platforms. Text
+fallback remains available when the capability is absent or false.

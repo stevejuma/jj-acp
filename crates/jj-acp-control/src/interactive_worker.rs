@@ -89,6 +89,7 @@ pub async fn run(
                 }
                 Command::Prompt {
                     text,
+                    context,
                     max_duration_ms,
                     ..
                 } => {
@@ -101,11 +102,11 @@ pub async fn run(
                                 config.idle,
                                 Duration::from_millis(max_duration_ms).min(config.absolute_cap),
                             );
-                            let outcome = jj_acp_runner::persistent::prompt(
+                            let outcome = jj_acp_runner::persistent::prompt_input(
                                 &mut value.agent,
                                 &mut handler,
                                 &value.session.id,
-                                &text,
+                                jj_acp_runner::persistent::PromptInput { text: &text, context: context.as_deref(), embedded_context: value.initialized["promptCapabilities"]["embeddedContext"] == true },
                                 budget,
                                 config.cancel_grace,
                                 &mut job.cancel,

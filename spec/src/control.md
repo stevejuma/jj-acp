@@ -239,9 +239,10 @@ told the shutdown was clean has no way to detect an orphan.
 
 One trusted launch owns one session, runner and working directory. Frames carry
 version 2 and requestId. Requests are open (optional loadSessionId), configure
-(model, effort, mode), prompt (text, maxDurationMs), cancel (target), permission
-(permissionId, optionId or null), status and close. Unknown fields and oversized
-frames are refused. No request accepts a path, executable or environment.
+(model, effort, mode), prompt (text, optional context, maxDurationMs), cancel
+(target), permission (permissionId, optionId or null), status and close. Unknown
+fields and oversized frames are refused. No request accepts a path, executable
+or environment.
 
 Responses are ready, queued, opened, configured, activity, permission, record,
 status, ack, error and closed. Every activity has an increasing sequence and
@@ -289,3 +290,12 @@ automatically cancels their permission requests. Unknown or mismatched active
 identities still invalidate the worker; inactive traffic never enters the
 current application transcript. Only fixed failure classifications and numeric
 agent codes are exposed, never untrusted diagnostic details.
+
+Version-2 and version-3 prompts accept bounded optional context separately from
+nonempty authored text. This data cannot alter launch policy. A single
+session/prompt sends the context first and authored text last. An advertised
+promptCapabilities.embeddedContext selects a text resource with an opaque
+context URI and text/plain MIME type; absent or false capability uses a separate
+text block. Context is never fetched from the URI. No preliminary turn, retry or
+session-configuration side effect is introduced. Existing text-only callers
+retain their wire shape and lifecycle.
