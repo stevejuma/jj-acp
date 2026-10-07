@@ -16,6 +16,7 @@ use tokio::sync::{mpsc, oneshot, watch};
 pub struct PendingPermission {
     pub options: Vec<String>,
     pub answer: oneshot::Sender<Option<String>>,
+    pub scope: Option<String>,
 }
 /// Live permission decisions; independent of any durable application state.
 pub type Permissions = Arc<Mutex<HashMap<String, PendingPermission>>>;
@@ -26,6 +27,8 @@ pub struct Events {
     pub sequence: Arc<AtomicU64>,
     pub cancel: watch::Sender<bool>,
     pub coverage_lost: Arc<AtomicBool>,
+    pub scope: Option<String>,
+    pub version: u64,
 }
 impl Events {
     /// Queue a complete frame or cancel on bounded backpressure.
@@ -36,7 +39,11 @@ impl Events {
             body["sessionUsable"] = json!(false);
         }
         body["sequence"] = json!(self.sequence.fetch_add(1, Ordering::Relaxed) + 1);
-        let value = frame(kind, Some(id), body);
+        if let Some(scope) = &self.scope {
+            body["sessionId"] = json!(scope);
+        }
+        let mut value = frame(kind, Some(id), body);
+        value["version"] = json!(self.version);
         if serde_json::to_vec(&value).map_or(true, |bytes| bytes.len() > MAX_FRAME)
             || self.output.try_send(value).is_err()
         {
@@ -63,8 +70,31 @@ pub struct Handler {
     pub permissions: Permissions,
     pub timeout: Duration,
     pub pending_rpc: Option<Value>,
+    pub adapter_session: Option<String>,
+    pub known_sessions: std::collections::HashSet<String>,
 }
 impl SessionHandler for Handler {
+    fn accept_session(&self, session_id: Option<&str>) -> Result<bool, jj_acp_protocol::Error> {
+        if session_id != self.adapter_session.as_deref()
+            && session_id.is_some_and(|id| self.known_sessions.contains(id))
+        {
+            return Ok(false);
+        }
+        self.validate_session(session_id)?;
+        Ok(true)
+    }
+    fn validate_session(&self, session_id: Option<&str>) -> Result<(), jj_acp_protocol::Error> {
+        if self
+            .adapter_session
+            .as_deref()
+            .is_some_and(|expected| Some(expected) != session_id)
+        {
+            return Err(jj_acp_protocol::Error::Protocol(
+                "session_scope_mismatch".into(),
+            ));
+        }
+        Ok(())
+    }
     fn pending_permission(&self) -> Option<Value> {
         self.pending_rpc.clone()
     }
@@ -90,6 +120,7 @@ impl SessionHandler for Handler {
                 PendingPermission {
                     options,
                     answer: sender,
+                    scope: self.events.scope.clone(),
                 },
             );
         } else {

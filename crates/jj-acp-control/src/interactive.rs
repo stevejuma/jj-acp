@@ -29,6 +29,8 @@ pub async fn serve<S: FrameSource, W: AsyncWrite + Unpin + Send + 'static>(
         sequence: Arc::new(AtomicU64::new(0)),
         cancel,
         coverage_lost: Arc::new(AtomicBool::new(false)),
+        scope: None,
+        version: 2,
     };
     let permissions: Permissions = Arc::new(Mutex::new(HashMap::new()));
     let requests: Requests = Arc::new(Mutex::new(HashMap::new()));

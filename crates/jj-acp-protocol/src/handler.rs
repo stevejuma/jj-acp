@@ -24,6 +24,16 @@ pub trait SessionHandler {
         None
     }
 
+    /// Validate inbound adapter session identity before delivering traffic.
+    fn validate_session(&self, _session_id: Option<&str>) -> Result<(), crate::Error> {
+        Ok(())
+    }
+    /// Known inactive session traffic can be discarded without changing the current scope.
+    fn accept_session(&self, session_id: Option<&str>) -> Result<bool, crate::Error> {
+        self.validate_session(session_id)?;
+        Ok(true)
+    }
+
     /// A `session/update` notification arrived.
     fn session_update(&mut self, _update: SessionUpdate) {}
 

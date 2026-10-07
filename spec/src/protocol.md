@@ -21,6 +21,7 @@ malfunctioning agent that emits an endless line.
 | JAC-PROTO-005 | An agent error MUST be surfaced as a typed protocol error preserving the agent's numeric code, and MUST substitute the whole error object when no message is present so provider detail survives. |
 | JAC-PROTO-006 | The protocol crate MUST remain free of process spawning, scheduling, credential handling and transport policy.                                                                                    |
 | JAC-PROTO-007 | Session loading MUST use the advertised loadSession capability and the caller-pinned working directory; permission waits MUST remain bounded by their request and turn lifetimes.                 |
+| JAC-PROTO-008 | Inbound session updates and permission requests MUST expose their adapter session identity to caller validation before delivery; default handlers MUST preserve existing single-session behavior. |
 
 ## Method direction
 
@@ -212,3 +213,14 @@ rather than a guess.
 Interactive loading calls session/load only after loadSession was advertised.
 Loading never prompts. Permission callback waits remain inside the overall
 request bound, including when no new frame arrives.
+
+Warm worker handlers validate sessionId before inbound session updates or
+permission requests are delivered. Single-session handlers default to accepting
+the existing traffic. A scope mismatch is a protocol failure, never permission
+approval or activity reassignment.
+
+Version 3 ignores delayed updates from exact known inactive adapter sessions and
+automatically cancels their permission requests. Unknown or mismatched active
+identities still invalidate the worker; inactive traffic never enters the
+current application transcript. Only fixed failure classifications and numeric
+agent codes are exposed, never untrusted diagnostic details.

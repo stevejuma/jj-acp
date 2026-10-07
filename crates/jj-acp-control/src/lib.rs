@@ -16,6 +16,9 @@
 
 #![forbid(unsafe_code)]
 
+pub mod fleet;
+mod fleet_wire;
+mod fleet_worker;
 pub mod input;
 pub mod interactive;
 pub mod interactive_handler;
@@ -29,6 +32,7 @@ pub mod scheduler;
 pub mod serve;
 pub mod task;
 pub mod transport;
+mod warm_worker;
 
 pub use input::{TaskSource, read, read_bytes, read_path, read_stdin};
 pub use invocation::{Invocation, InvocationConfig, invoke, invoke_with_probe};

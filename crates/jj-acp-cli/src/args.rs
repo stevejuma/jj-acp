@@ -189,7 +189,7 @@ Run options:
   --reap-timeout <secs>      reap bound (JJ_ACP_REAP_TIMEOUT)
   --system-prompt-file <p>   standing instructions (JJ_ACP_SYSTEM_PROMPT_FILE)
   --prompt-transport <kind>  field | meta | meta-append (JJ_ACP_PROMPT_TRANSPORT)
-  --control-version <1|2>   select interactive version 2 explicitly
+  --control-version <1|2|3> select interactive or warm worker control explicitly
   --workers <n>              concurrent submissions for serve (JJ_ACP_WORKERS)
   --queue-capacity <n>       waiting submissions for serve (JJ_ACP_QUEUE_CAPACITY)
 

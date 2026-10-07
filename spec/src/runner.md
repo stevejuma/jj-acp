@@ -22,6 +22,7 @@ treats it as an opaque key.
 | JAC-RUN-006 | Session creation MUST apply a configured model, reasoning effort and execution mode where the adapter advertises them, MUST resolve each against the current session rather than a cached one, and MUST retain the adapter default rather than fail the turn when a setting is unsupported or unavailable. |
 | JAC-RUN-007 | On Unix, cleanup MUST signal the whole process group before reaping its leader so ordinary descendants cannot outlive the turn, and MUST report whether the stop was confirmed.                                                                                                                            |
 | JAC-RUN-008 | Interactive sessions MUST negotiate once, apply configuration before prompting, load only advertised sessions, preserve cancellation and absolute deadlines during permission waits, and close their process ownership within bounded intervals.                                                           |
+| JAC-RUN-009 | Warm workers MUST negotiate once, preserve distinct session configuration, invalidate all sessions after uncertain execution, never replay work, and bound both active and lifetime session counts.                                                                                                        |
 
 ## Deadline composition
 
@@ -240,3 +241,10 @@ Queued prompt cancellation in explicit control v2 reports sessionUsable while
 retaining the warm session. The next explicit follow-up reuses it; connection
 shutdown still closes it. Version-1 command and terminal record shapes remain
 unchanged. E-M11-003 records the binary regression and source gates.
+
+Warm worker initialization is independent of session creation. Serial sessions
+share one initialized connection but retain separate negotiated mode state.
+Cancellation, absolute deadlines and bounded process-group cleanup apply to
+opening and every turn. Unknown outcomes invalidate every session; no implicit
+restart or prompt replay occurs. Multi-session fixture qualification is separate
+from qualification of each real installed adapter.

@@ -38,6 +38,8 @@ pub async fn run(
             permissions: permissions.clone(),
             timeout: config.absolute_cap,
             pending_rpc: None,
+            adapter_session: None,
+            known_sessions: Default::default(),
         };
         if *job.cancel.borrow() || *events.cancel.borrow() {
             events.emit(

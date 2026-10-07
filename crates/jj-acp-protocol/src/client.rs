@@ -324,7 +324,9 @@ impl<R: AsyncRead + Unpin, W: AsyncWrite + Unpin> Connection<R, W> {
             Inbound::Response { .. } | Inbound::Failure { .. } => Ok(None),
             Inbound::Notification { method, params } => {
                 if method == m::SESSION_UPDATE {
-                    handler.session_update(update::parse(&params));
+                    if handler.accept_session(params.get("sessionId").and_then(Value::as_str))? {
+                        handler.session_update(update::parse(&params));
+                    }
                 } else {
                     handler.notification(&method, &params);
                 }
@@ -336,8 +338,14 @@ impl<R: AsyncRead + Unpin, W: AsyncWrite + Unpin> Connection<R, W> {
             }
             Inbound::Request { id, method, params } => {
                 if method == m::SESSION_REQUEST_PERMISSION {
+                    let active =
+                        handler.accept_session(params.get("sessionId").and_then(Value::as_str))?;
                     let request = PermissionRequest::from_parts(id.clone(), params.clone())?;
-                    let decision = handler.permission(request).await;
+                    let decision = if active {
+                        handler.permission(request).await
+                    } else {
+                        PermissionDecision::Cancel
+                    };
                     self.write_frame(&permission::response(&id, &decision))
                         .await?;
                 } else {

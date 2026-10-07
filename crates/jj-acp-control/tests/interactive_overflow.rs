@@ -14,6 +14,8 @@ async fn output_overflow_never_reports_completed_or_reusable_session() {
         cancel,
         sequence: Arc::new(AtomicU64::new(0)),
         coverage_lost: Arc::new(AtomicBool::new(false)),
+        scope: None,
+        version: 2,
     };
     events.emit("activity", "turn", json!({"update":{}}));
     events.emit("activity", "turn", json!({"update":{}}));

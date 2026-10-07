@@ -19,6 +19,7 @@ rather than implying parity.
 | JAC-CLI-005 | The binary MUST NOT write diagnostics, prompts or agent output to stdout on any path, including startup failure and signal handling.                                                                    |
 | JAC-CLI-006 | A task run MUST NOT start a subscription, a standing pool, a heartbeat or any other service facility, and inherited service-only options MUST NOT enable one.                                           |
 | JAC-CLI-007 | serve --control-version 2 MUST select the interactive protocol explicitly while the default and one-shot commands retain version-1 behavior.                                                            |
+| JAC-CLI-008 | serve --control-version 3 MUST explicitly select warm worker control; versions 1 and 2 MUST retain their existing contracts.                                                                            |
 
 ## Commands
 
@@ -158,3 +159,7 @@ Queued prompt cancellation in explicit control v2 reports sessionUsable while
 retaining the warm session. The next explicit follow-up reuses it; connection
 shutdown still closes it. Version-1 command and terminal record shapes remain
 unchanged. E-M11-003 records the binary regression and source gates.
+
+Warm worker integration explicitly selects --control-version 3 and a fixed
+managed cwd root. The flag default remains version 1; version 2 remains a single
+interactive session with no request-supplied paths.

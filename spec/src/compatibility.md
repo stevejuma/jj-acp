@@ -278,3 +278,8 @@ outright.
 The interactive fixture proves persistent session identity, streamed
 tool/text/plan activity, permission handling and cancellation. It is distinct
 from installed-adapter interactive qualification.
+
+The fleet fixture records initialization, distinct adapter sessions and prompt
+counts. It proves application scope fencing and zero warmup prompts separately
+from installed adapter qualification. Control version 3 requires fresh real
+Codex/Cursor acceptance; earlier version-2 evidence is unchanged.

@@ -22,6 +22,7 @@ have no analogue here and are not partially reimplemented.
 | JAC-CTRL-006 | A control frame MUST carry an explicit integer version, and an unsupported version MUST be rejected before any agent subprocess is started.                                                                                                                |
 | JAC-CTRL-007 | Reading a task document from a file or stdin MUST have its own bounded interval, separate from the execution deadline.                                                                                                                                     |
 | JAC-CTRL-008 | Interactive control version 2 MUST retain one caller-configured ACP session across ordered turns, stream correlated bounded activity and permission requests, and accept only current permission decisions without changing the version-1 record contract. |
+| JAC-CTRL-009 | Explicit control version 3 MUST initialize a worker without opening or prompting, serialize bounded caller-scoped sessions under its launch directory, and fence cancellation, activity and permissions by exact session identity.                         |
 
 ## Task document, version 1
 
@@ -261,3 +262,30 @@ Canceling an admitted prompt while it is still queued reports cancelled without
 discarding a warm session. Its terminal frame explicitly reports sessionUsable;
 an individual queued cancellation retains usability, while connection shutdown
 does not. The next explicit prompt can reuse the retained session.
+
+## Warm worker control version 3
+
+A trusted launch fixes one runner and a managed directory root. `warm` only
+spawns and initializes; it sends neither session/new nor a prompt. `open`
+carries an opaque application sessionId and an existing cwd whose canonical path
+is inside that root. It optionally loads an advertised adapter session.
+Executables, environment and arbitrary paths remain launch policy.
+
+Configure, prompt, cancel and permission require the application sessionId.
+Every session response includes that ID; opened additionally includes the
+adapterSessionId. Inbound updates and permissions from a different adapter
+session fail the worker. Status and close address the whole worker.
+close_session releases application participation without stopping other
+sessions. There is no provider session-delete claim. At most 64 sessions may be
+opened over one worker lifetime, preventing retained provider sessions from
+growing without bound. One turn runs at a time; queue capacity and request
+identity limits match v2. A failed or uncertain operation closes the worker and
+invalidates all scopes. The application owns generation fencing, durable
+identities, history and explicit continuation. No prompt is retried by this
+protocol.
+
+Version 3 ignores delayed updates from exact known inactive adapter sessions and
+automatically cancels their permission requests. Unknown or mismatched active
+identities still invalidate the worker; inactive traffic never enters the
+current application transcript. Only fixed failure classifications and numeric
+agent codes are exposed, never untrusted diagnostic details.
