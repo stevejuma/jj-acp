@@ -168,3 +168,7 @@ Serve controls v2/v3 accept optional prepared context independently of text.
 This adds no launch flag, filesystem selection or credential surface. The CLI
 preserves caller session/request fencing and emits one terminal outcome per real
 prompt; warming and context preparation do not submit preliminary turns.
+
+Interactive v2/v3 callers may submit a comments-only turn using empty `text` and
+nonblank prepared `context`. The CLI retains both fields without inventing user
+text; an entirely empty prompt remains invalid (E-M12-003).

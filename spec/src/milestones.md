@@ -1500,6 +1500,92 @@ coexist with an acknowledged gap.
       "Installed adapter interpretation of embedded context resources remains an independent live qualification gate; these results are fixture and source evidence."
     ],
     "note": "Prepared context is separate from authored text. Embedded resources require advertised support, otherwise context uses an independent text block in the same turn. No preliminary turn or replay. Initial check refused the missing evidence update; the first fixture assertion used a text-only prompt and was repaired to send context. Its next compilation ran out of disk space; generated package caches were cleared. M12 remains In progress and real installed-adapter qualification is not inferred from fixture block assertions. Exact cleanup retry and the final full test rerun pass unchanged. Full check, all specification lanes and final build pass. No package was published, installed binary replaced or real prompt sent."
+  },
+  {
+    "id": "E-M12-003",
+    "tasks": ["M12"],
+    "date": "2026-10-09",
+    "kind": "comments-only prepared prompt context",
+    "versions": "macOS ARM64; Rust 1.98.1; enclosing Jujutsu change lwlxyuwu",
+    "formats": "control versions 2/3; optional prepared context; record v1 unchanged",
+    "files": [
+      "crates/jj-acp-control/src/interactive_wire.rs",
+      "crates/jj-acp-control/tests/interactive_wire.rs",
+      "crates/jj-acp-cli/tests/fleet.rs",
+      "spec/src/control.md",
+      "spec/src/verification.md",
+      "spec/src/milestones.md",
+      "spec/src/cli.md"
+    ],
+    "tests": [
+      "crates/jj-acp-control/tests/interactive_wire.rs#context_only_prompt_requires_nonempty_prepared_content",
+      "crates/jj-acp-cli/tests/fleet.rs#warm_worker_opens_distinct_sessions_without_reinitializing"
+    ],
+    "runs": [
+      {
+        "command": "cargo test -p jj-acp-control --test interactive_wire context_only_prompt_requires_nonempty_prepared_content --locked -- --exact (initial test)",
+        "result": "fail",
+        "failures": 1,
+        "detail": "Test initially referenced a private module; removed that access and kept version-3 coverage in the CLI fleet test."
+      },
+      {
+        "command": "cargo test -p jj-acp-control --test interactive_wire context_only_prompt_requires_nonempty_prepared_content --locked -- --exact",
+        "result": "fail",
+        "failures": 1,
+        "detail": "Empty authored text with nonempty prepared context was refused."
+      },
+      {
+        "command": "cargo test -p jj-acp-control --test interactive_wire --locked",
+        "result": "pass",
+        "failures": 0,
+        "detail": "5 tests."
+      },
+      {
+        "command": "pnpm build",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm test",
+        "result": "pass",
+        "failures": 0,
+        "detail": "Full source tests, governance and doctests including version-3 context-only fixture."
+      },
+      {
+        "command": "pnpm check",
+        "result": "fail",
+        "failures": 1,
+        "detail": "Evidence test references needed file paths; corrected the references."
+      },
+      {
+        "command": "pnpm spec:check",
+        "result": "fail",
+        "failures": 1,
+        "detail": "Evidence test references needed file paths; corrected the references."
+      },
+      {
+        "command": "pnpm check (corrected evidence)",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm spec:check (corrected evidence)",
+        "result": "fail",
+        "failures": 1,
+        "detail": "Spec-first requires the owning CLI chapter for its fleet-test change; added comments-only CLI contract."
+      },
+      {
+        "command": "pnpm spec:check (CLI chapter updated)",
+        "result": "pass",
+        "failures": 0,
+        "detail": "11 lanes, including full tests, formatting and spec-first."
+      }
+    ],
+    "result": "pending",
+    "remaining": [
+      "Other v3 adapters/platforms and real permission/cancellation exchanges remain separate M12 gates."
+    ],
+    "note": "The jj-store consumer exposed an old staged binary rejecting the optional context field and the current parser rejecting comments-only sends. Rebuilt source accepts nonblank context with empty authored text, still refuses fully empty prompts, and preserves the exact text/context blocks without manufactured message content. M12 remains In progress; no added credentials, launch authority or retries. The rebuilt helper was staged only in the jj-store-chat-body ignored development runtime. Its installed Codex consumer completed a read-only sample prompt and a comments-only turn answering three comments at two anchors, with two committed answer links. Consumer evidence is E-CHAT-LIVE-007; no release or installed CLI replacement."
   }
 ]
 ```

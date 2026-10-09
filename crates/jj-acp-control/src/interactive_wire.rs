@@ -97,7 +97,8 @@ pub fn parse(line: &str) -> Result<Command, &'static str> {
             max_duration_ms,
             context,
             ..
-        } if text.trim().is_empty()
+        } if (text.trim().is_empty()
+            && context.as_ref().is_none_or(|value| value.trim().is_empty()))
             || *max_duration_ms == 0
             || context
                 .as_ref()

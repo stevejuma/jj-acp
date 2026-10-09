@@ -64,3 +64,17 @@ fn prompt_context_is_optional_bounded_data_without_launch_authority() {
     value["cwd"] = serde_json::json!("/unsafe");
     assert_eq!(parse(&value.to_string()).unwrap_err(), "invalid_request");
 }
+
+#[test]
+fn context_only_prompt_requires_nonempty_prepared_content() {
+    let mut value = serde_json::json!({"version":2,"type":"prompt","requestId":"comments","text":"","context":"<comments>Review this</comments>","maxDurationMs":1000});
+    assert!(parse(&value.to_string()).is_ok());
+    for context in [
+        serde_json::Value::Null,
+        serde_json::json!(""),
+        serde_json::json!(" \n "),
+    ] {
+        value["context"] = context;
+        assert_eq!(parse(&value.to_string()).unwrap_err(), "invalid_request");
+    }
+}

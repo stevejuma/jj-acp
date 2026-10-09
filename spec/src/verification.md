@@ -75,3 +75,6 @@ passing concrete tests linked from the progress ledger.
 
 Optional v2/v3 prompt context is verified by the protocol payload and control
 wire tests, with separate fleet CLI block evidence in E-M12-002.
+
+Context-only prompts are covered by `interactive_wire` rejection/acceptance
+cases and the version-3 fleet test (E-M12-003).

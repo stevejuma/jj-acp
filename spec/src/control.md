@@ -291,6 +291,9 @@ identities still invalidate the worker; inactive traffic never enters the
 current application transcript. Only fixed failure classifications and numeric
 agent codes are exposed, never untrusted diagnostic details.
 
+Version-2 and version-3 prompts allow empty authored text only when bounded
+prepared context is nonblank, enabling comments-only submissions without dummy
+prompt text. Both text and context empty or whitespace remains invalid.
 Version-2 and version-3 prompts accept bounded optional context separately from
 nonempty authored text. This data cannot alter launch policy. A single
 session/prompt sends the context first and authored text last. An advertised
