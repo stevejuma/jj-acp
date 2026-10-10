@@ -56,6 +56,11 @@ silently assumed to be equivalent.
 
 ## Recovery
 
+JAC-RUN-009 distinguishes a valid RPC rejection of session preparation from a
+failed connection. Rejected open/configure reports a classified error without
+retiring unrelated warm scopes. Uncertain prompt execution still invalidates the
+worker, with no replay or automatic fallback.
+
 A turn that ends without a stop reason is an unknown outcome. The runner records
 what it observed and stops. It does not retry, because a retry can execute the
 same side effects twice, and it does not fabricate a terminal state to make the

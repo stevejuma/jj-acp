@@ -280,10 +280,12 @@ close_session releases application participation without stopping other
 sessions. There is no provider session-delete claim. At most 64 sessions may be
 opened over one worker lifetime, preventing retained provider sessions from
 growing without bound. One turn runs at a time; queue capacity and request
-identity limits match v2. A failed or uncertain operation closes the worker and
-invalidates all scopes. The application owns generation fencing, durable
-identities, history and explicit continuation. No prompt is retried by this
-protocol.
+identity limits match v2. A valid RPC rejection during open/configure reports
+agent_rejected for that request and preserves the warm worker and other scopes.
+It does not imply process failure or uncertain execution. Protocol failure,
+process exit, timeout or interrupted execution closes the worker and invalidates
+all scopes. The application owns generation fencing, durable identities, history
+and explicit continuation. No prompt is retried by this protocol.
 
 Version 3 ignores delayed updates from exact known inactive adapter sessions and
 automatically cancels their permission requests. Unknown or mismatched active

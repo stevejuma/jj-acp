@@ -164,6 +164,10 @@ Warm worker integration explicitly selects --control-version 3 and a fixed
 managed cwd root. The flag default remains version 1; version 2 remains a single
 interactive session with no request-supplied paths.
 
+A version-3 adapter rejection of open/configure remains request-scoped. Other
+opened sessions stay usable on the initialized process. Protocol errors,
+timeouts and process exits retain worker-wide invalidation (E-M12-004).
+
 Serve controls v2/v3 accept optional prepared context independently of text.
 This adds no launch flag, filesystem selection or credential surface. The CLI
 preserves caller session/request fencing and emits one terminal outcome per real

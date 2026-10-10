@@ -23,7 +23,7 @@ in its enclosing Jujutsu change.
 | M9          | Done        | M8        | JAC-RUN-001,JAC-RUN-005                                                                                                                                                                                                                                                                                 | Caller-named scopes with one turn in flight each, concurrent distinct scopes, bounded queue admission and slot release on crash without re-dispatch | Implement M10 consumer acceptance                   | E-M9-001                      |
 | M10         | Done        | M9        | JAC-ARCH-005                                                                                                                                                                                                                                                                                            | Controlling-application consumer acceptance in a real host                                                                                          | Maintain qualified macOS jj-store profile           | E-M10-001                     |
 | M11         | Done        | M9        | JAC-CTRL-008,JAC-RUN-008,JAC-PROTO-007,JAC-CLI-007                                                                                                                                                                                                                                                      | Persistent interactive sessions, streamed activity, permission decisions and bounded cleanup                                                        | Maintain interactive session contract               | E-M11-001,E-M11-002,E-M11-003 |
-| M12         | In progress | M11       | JAC-CTRL-009,JAC-RUN-009,JAC-PROTO-008,JAC-CLI-008                                                                                                                                                                                                                                                      | Warm worker and scoped sessions with real installed-runner acceptance                                                                               | Qualify installed adapters and jj-store integration | E-M12-001                     |
+| M12         | In progress | M11       | JAC-CTRL-009,JAC-RUN-009,JAC-PROTO-008,JAC-CLI-008                                                                                                                                                                                                                                                      | Warm worker and scoped sessions with real installed-runner acceptance                                                                               | Qualify installed adapters and jj-store integration | E-M12-001,E-M12-004           |
 
 ## Evidence
 
@@ -570,7 +570,7 @@ coexist with an acknowledged gap.
     ],
     "runs": [
       {
-        "command": "cursor-agent acp \u2014 initialize and session/new handshake probe, no prompt",
+        "command": "cursor-agent acp — initialize and session/new handshake probe, no prompt",
         "result": "pass",
         "failures": 0
       },
@@ -1586,6 +1586,84 @@ coexist with an acknowledged gap.
       "Other v3 adapters/platforms and real permission/cancellation exchanges remain separate M12 gates."
     ],
     "note": "The jj-store consumer exposed an old staged binary rejecting the optional context field and the current parser rejecting comments-only sends. Rebuilt source accepts nonblank context with empty authored text, still refuses fully empty prompts, and preserves the exact text/context blocks without manufactured message content. M12 remains In progress; no added credentials, launch authority or retries. The rebuilt helper was staged only in the jj-store-chat-body ignored development runtime. Its installed Codex consumer completed a read-only sample prompt and a comments-only turn answering three comments at two anchors, with two committed answer links. Consumer evidence is E-CHAT-LIVE-007; no release or installed CLI replacement."
+  },
+  {
+    "id": "E-M12-004",
+    "tasks": ["M12"],
+    "date": "2026-10-10",
+    "kind": "request-scoped session rejection",
+    "versions": "macOS ARM64; Rust 1.98.1; enclosing Jujutsu change mtvyswyw",
+    "formats": "control v3 unchanged; version-1 records unchanged",
+    "files": [
+      "crates/jj-acp-control/src/fleet_worker.rs",
+      "crates/jj-acp-cli/tests/fleet.rs",
+      "spec/src/control.md",
+      "spec/src/runner.md",
+      "spec/src/cli.md",
+      "spec/src/verification.md",
+      "spec/src/milestones.md"
+    ],
+    "tests": [
+      "crates/jj-acp-cli/tests/fleet.rs#warm_worker_opens_distinct_sessions_without_reinitializing"
+    ],
+    "runs": [
+      {
+        "command": "cargo test -p jj-acp-cli --test fleet warm_worker_opens_distinct_sessions_without_reinitializing --locked -- --exact (before)",
+        "result": "fail",
+        "failures": 1,
+        "detail": "A valid rejected load invalidated another configured scope; next configure reported session_not_open."
+      },
+      {
+        "command": "cargo test -p jj-acp-cli --test fleet warm_worker_opens_distinct_sessions_without_reinitializing --locked -- --exact",
+        "result": "pass",
+        "failures": 0,
+        "detail": "Rejected load leaves existing configured scope usable; foreign-session uncertainty still invalidates it."
+      },
+      {
+        "command": "pnpm check (initial)",
+        "result": "fail",
+        "failures": 1,
+        "detail": "Three edited canonical Markdown files needed formatting."
+      },
+      {
+        "command": "pnpm exec prettier --write spec/src/control.md spec/src/runner.md spec/src/cli.md spec/src/verification.md spec/src/milestones.md",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm check (formatted)",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm test",
+        "result": "pass",
+        "failures": 0,
+        "detail": "Full governance, crate tests and doctests."
+      },
+      {
+        "command": "pnpm build",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "jj-store cold UI Send with staged rebuilt helper",
+        "result": "pass",
+        "failures": 0,
+        "detail": "Exact MIT prompt completed, request 2481f6b2b8cd46fcb747e5860b281a55; one LICENSE change, published 435/435. Consumer E-AGENT-RESUME-001."
+      },
+      {
+        "command": "pnpm spec:check",
+        "result": "pass",
+        "failures": 0,
+        "detail": "All 11 source lanes including full tests, mdBook and spec-first."
+      }
+    ],
+    "result": "pending",
+    "remaining": [
+      "Other adapters/platforms and independent live permission/cancellation gates remain."
+    ],
+    "note": "M12 remains In progress. Valid RPC open/configure rejection preserves the initialized worker and unrelated scopes, invalidating only the rejected scope. Uncertain prompt execution, timeout, protocol failure and process exit retain worker-wide invalidation. No prompt retry or raw diagnostic publication."
   }
 ]
 ```

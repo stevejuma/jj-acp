@@ -15,7 +15,12 @@ async fn warm_worker_opens_distinct_sessions_without_reinitializing() {
     std::fs::create_dir_all(root.join("a")).unwrap();
     std::fs::create_dir_all(root.join("b")).unwrap();
     let log = scratch.log();
-    let fixture = jj_acp_testkit::fixture_script().with_file_name("fleet_agent.py");
+    let source = jj_acp_testkit::fixture_script().with_file_name("fleet_agent.py");
+    let fixture = scratch.join("fleet_agent.py");
+    std::fs::write(&fixture, std::fs::read_to_string(source).unwrap().replace(
+        "elif method == \"session/new\":",
+        "elif method == \"session/load\":\n        print(json.dumps({\"jsonrpc\":\"2.0\",\"id\":frame[\"id\"],\"error\":{\"code\":-32603,\"message\":\"fixture rejected load\"}}), flush=True)\n        continue\n    elif method == \"session/new\":"
+    )).unwrap();
     let catalog = scratch.join("catalog.json");
     std::fs::write(
         &catalog,
@@ -130,6 +135,12 @@ async fn warm_worker_opens_distinct_sessions_without_reinitializing() {
         );
         assert_eq!(blocks[1]["text"], if index == 0 { "a" } else { "" });
     }
+    send(&mut input, json!({"version":3,"type":"open","requestId":"rejected-load","sessionId":"missing","cwd":root.join("a"),"loadSessionId":"missing-rollout"})).await;
+    let rejected = receive(&mut output, "error").await;
+    assert_eq!(rejected["code"], "agent_rejected");
+    assert_eq!(rejected["sessionId"], "missing");
+    send(&mut input, json!({"version":3,"type":"configure","requestId":"still-usable","sessionId":"b","mode":"ask"})).await;
+    assert_eq!(receive(&mut output, "configured").await["modeReady"], true);
     send(&mut input, json!({"version":3,"type":"prompt","requestId":"permission-turn","sessionId":"a","text":"permission","maxDurationMs":10000})).await;
     let permission = receive(&mut output, "permission").await;
     send(&mut input, json!({"version":3,"type":"permission","requestId":"wrong-scope","sessionId":"b","permissionId":permission["permissionId"],"optionId":"once"})).await;

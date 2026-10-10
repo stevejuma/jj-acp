@@ -211,6 +211,7 @@ pub async fn run(
     };
     while let Some(mut job) = queue.recv().await {
         let id = job.request.id().to_owned();
+        let scope = job.request.scope().map(str::to_owned);
         let mut scoped = events.clone();
         scoped.scope = job.request.scope().map(str::to_owned);
         if let Ok(mut value) = active.lock() {
@@ -231,9 +232,14 @@ pub async fn run(
             .execute(job.request, &config, &mut handler, &mut job.cancel)
             .await
         {
+            if code == "agent_rejected"
+                && let Some(scope) = scope
+            {
+                worker.scopes.remove(&scope);
+            }
             if matches!(
                 code,
-                "timed_out" | "agent_exited" | "protocol_error" | "agent_rejected" | "cancelled"
+                "timed_out" | "agent_exited" | "protocol_error" | "cancelled"
             ) {
                 worker.stop(&config).await;
             }

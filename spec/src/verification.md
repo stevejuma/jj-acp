@@ -3,6 +3,10 @@
 Planned rows name a gate, not completed evidence. Mark Implemented only after
 passing concrete tests linked from the progress ledger.
 
+E-M12-004 strengthens the JAC-CTRL-009/JAC-RUN-009/JAC-CLI-008 fleet binary
+regression: a rejected load preserves the other configured scopes, while a
+foreign-session protocol failure still invalidates them.
+
 | ID             | Status      | Evidence                                                                                                                                                                                                              |
 | -------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | JAC-ARCH-001   | Implemented | `scripts/check-boundaries.mjs`; `scripts/governance.test.mjs`; [bootstrap evidence](milestones.md)                                                                                                                    |
