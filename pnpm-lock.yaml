@@ -18,8 +18,8 @@ importers:
         specifier: ^2.2.5
         version: 2.2.5
       '@lapismd/spec-validator':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.1.4
+        version: 0.1.4
       prettier:
         specifier: ^3.6.2
         version: 3.9.9
@@ -97,8 +97,8 @@ packages:
       '@types/node':
         optional: true
 
-  '@lapismd/spec-validator@0.1.0':
-    resolution: {integrity: sha512-LixMQdIgdh96K4nEq3G31cRa26zQ830SvhLSp1AFufhP6lc1AS6PTyc/bV6JhlN6NC94PtgmBOBeq0VJGhQCFA==}
+  '@lapismd/spec-validator@0.1.4':
+    resolution: {integrity: sha512-/y2jWDEZsxI9uKvUQNiUYz9mCYz3dRj8nzOXC8WH7AoAbE4KBNyXpSv2zTEx8o+gFdAQQXFg3um0YMdr61QvRw==}
     engines: {deno: 2.9.5, node: '>=22'}
     hasBin: true
     peerDependencies:
@@ -578,7 +578,7 @@ snapshots:
       chardet: 2.2.0
       iconv-lite: 0.7.3
 
-  '@lapismd/spec-validator@0.1.0':
+  '@lapismd/spec-validator@0.1.4':
     dependencies:
       jiti: 2.7.0
       typescript: 5.9.3
