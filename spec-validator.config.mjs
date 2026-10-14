@@ -3,8 +3,9 @@ import {
   singleIdVerification,
   tableRequirements,
 } from "@lapismd/spec-validator";
+import { automationExempt } from "./scripts/ci-automation.mjs";
 
-export default defineConfig(tableRequirements(), {
+const config = defineConfig(tableRequirements(), {
   name: "jj-acp",
   idPattern: /^JAC-[A-Z]+-\d{3}$/,
   tableSection: "Requirements",
@@ -157,6 +158,7 @@ export default defineConfig(tableRequirements(), {
           "scripts/registry-check.test.mjs",
           "scripts/changesets.test.mjs",
           "scripts/release-orchestration.test.mjs",
+          "scripts/ci-automation.test.mjs",
         ],
       },
       {
@@ -169,3 +171,6 @@ export default defineConfig(tableRequirements(), {
     first: true,
   },
 });
+
+if (automationExempt()) config.validators.specFirst = false;
+export default config;

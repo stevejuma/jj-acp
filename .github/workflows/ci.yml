@@ -11,6 +11,7 @@ on:
         type: string
 permissions:
   contents: read
+  pull-requests: read
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -53,6 +54,7 @@ jobs:
         run: cargo fetch --locked
       - name: Select committed revision range
         env:
+          GITHUB_TOKEN: ${{ github.token }}
           CI_EVENT: ${{ github.event_name }}
           CI_BASE_SHA:
             ${{ github.event.pull_request.base.sha || github.event.before }}

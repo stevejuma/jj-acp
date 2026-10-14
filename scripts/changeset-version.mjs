@@ -8,7 +8,6 @@ import {
   pendingChangesets,
   read,
 } from "./release-state.mjs";
-import { recordPreparation } from "./release-evidence.mjs";
 
 export function synchronizeVersion(root, selected) {
   const previous = version(root);
@@ -55,14 +54,8 @@ export async function prepareVersion(
   const notes = await pendingChangesets(root);
   if (!notes.some((note) => note.releases.length))
     return { changed: false, version: original };
-  const runs = [];
   const run = (command, args) => {
     execute(command, args);
-    runs.push({
-      command: [command, ...args].join(" "),
-      result: "pass",
-      failures: 0,
-    });
   };
   // Fail before consuming notes if the cold-checkout dependency bootstrap is missing.
   try {
@@ -78,12 +71,6 @@ export async function prepareVersion(
   run("cargo", ["update", "--workspace", "--offline"]);
   run("pnpm", ["install", "--lockfile-only", "--offline", "--ignore-pnpmfile"]);
   run("pnpm", ["release:check"]);
-  recordPreparation(
-    root,
-    selected,
-    notes.map((note) => `.changeset/${note.id}.md`),
-    runs,
-  );
   run("pnpm", [
     "exec",
     "prettier",
@@ -92,10 +79,6 @@ export async function prepareVersion(
     "README.md",
     "CHANGELOG.md",
     "crates/jj-acp-cli/README.md",
-    "spec/src/architecture.md",
-    "spec/src/cli.md",
-    "spec/src/release.md",
-    "spec/src/milestones.md",
   ]);
   return { changed: true, version: selected };
 }

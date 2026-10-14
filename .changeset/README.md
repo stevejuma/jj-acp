@@ -6,9 +6,10 @@ all six Cargo crates together. The npm package stays private.
 
 `pnpm release:status` shows pending notes. The main workflow creates or updates
 a **Version Packages** PR using `pnpm release:version`. Review its changelog,
-coordinated Cargo metadata and canonical preparation evidence, then merge after
-all required checks pass. The workflow qualifies the merged source, creates its
-immutable `v<version>` tag and dispatches the existing Cargo/native release.
+coordinated Cargo metadata, changelog and installation examples, then merge
+after all required checks pass. The workflow qualifies the merged source,
+creates its immutable `v<version>` tag and dispatches the existing Cargo/native
+release.
 
 For local preparation, use `pnpm release:version`; do not run raw
 `changeset version`, which would leave Cargo metadata unsynchronized. This

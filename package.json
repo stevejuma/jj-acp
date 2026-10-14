@@ -16,7 +16,7 @@
     "check:architecture": "node scripts/rust-architecture.mjs",
     "check:progress": "node scripts/check-progress.mjs",
     "test": "pnpm test:governance && cargo test --workspace --locked",
-    "test:governance": "node --test scripts/governance.test.mjs scripts/rust-architecture.test.mjs scripts/upstream-lock.test.mjs scripts/progress-vcs.test.mjs scripts/release.test.mjs scripts/registry-check.test.mjs scripts/changesets.test.mjs scripts/release-orchestration.test.mjs",
+    "test:governance": "node --test scripts/governance.test.mjs scripts/rust-architecture.test.mjs scripts/upstream-lock.test.mjs scripts/progress-vcs.test.mjs scripts/release.test.mjs scripts/registry-check.test.mjs scripts/changesets.test.mjs scripts/release-orchestration.test.mjs scripts/ci-automation.test.mjs",
     "upstream:self-test": "node scripts/upstream-sync.mjs --self-test",
     "upstream:write": "node scripts/upstream-sync.mjs --write",
     "upstream:fetch": "node scripts/upstream-sync.mjs --fetch",
