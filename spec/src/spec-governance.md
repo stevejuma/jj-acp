@@ -158,3 +158,9 @@ actionlint 1.7.12 from its official release archive with an explicit SHA-256
 check. actionlint is not a supported taiki-e/install-action tool. The initial
 hosted job failed at tool setup before source gates; corrected setup must pass
 those gates before release.
+
+Registry existence is established by the version metadata endpoint before
+downloading an archive. An unpublished CDN object can return HTTP 403; that is
+not a credential failure and must not be used to decide existence. Metadata 404
+admits publication, while any error downloading a known version blocks
+publication and any checksum mismatch still refuses replacement.

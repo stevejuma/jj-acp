@@ -186,3 +186,9 @@ crates/jj-acp-cli and its library remains jj_acp_cli. All internal path
 dependencies also specify a registry version. Each crate packages its own
 README, full license and attribution. The testkit fixtures and fixture lookup
 live inside the published crate rather than depending on a repository root.
+
+Registry existence is established by the version metadata endpoint before
+downloading an archive. An unpublished CDN object can return HTTP 403; that is
+not a credential failure and must not be used to decide existence. Metadata 404
+admits publication, while any error downloading a known version blocks
+publication and any checksum mismatch still refuses replacement.

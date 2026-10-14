@@ -80,7 +80,7 @@ foreign-session protocol failure still invalidates them.
 | JAC-REL-002    | Implemented | `scripts/release.test.mjs`; `scripts/progress-vcs.test.mjs`; `scripts/package-check.mjs`; [release evidence](milestones.md)                                                                                           |
 | JAC-REL-003    | Implemented | `scripts/release.test.mjs`; `scripts/progress-vcs.test.mjs`; `scripts/package-check.mjs`; [release evidence](milestones.md)                                                                                           |
 | JAC-REL-004    | Implemented | `scripts/release.test.mjs`; `scripts/progress-vcs.test.mjs`; `scripts/package-check.mjs`; [release evidence](milestones.md)                                                                                           |
-| JAC-REL-005    | Implemented | `scripts/release.test.mjs`; `scripts/progress-vcs.test.mjs`; `scripts/package-check.mjs`; [release evidence](milestones.md)                                                                                           |
+| JAC-REL-005    | Implemented | `scripts/registry-check.test.mjs`; `scripts/release-registry.mjs`; [release evidence](milestones.md)                                                                                                                  |
 
 Optional v2/v3 prompt context is verified by the protocol payload and control
 wire tests, with separate fleet CLI block evidence in E-M12-002.

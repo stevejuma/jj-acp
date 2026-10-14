@@ -141,6 +141,7 @@ export default defineConfig(tableRequirements(), {
           "scripts/upstream-lock.test.mjs",
           "scripts/progress-vcs.test.mjs",
           "scripts/release.test.mjs",
+          "scripts/registry-check.test.mjs",
         ],
       },
       {

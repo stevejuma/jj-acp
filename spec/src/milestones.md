@@ -1965,10 +1965,17 @@ coexist with an acknowledged gap.
     "files": [
       ".github/workflows/ci.yml",
       "spec/src/spec-governance.md",
-      "spec/src/release.md"
+      "spec/src/release.md",
+      "scripts/release-registry.mjs",
+      "scripts/registry-check.mjs",
+      "scripts/registry-check.test.mjs",
+      "package.json",
+      "spec-validator.config.mjs"
     ],
     "tests": [
-      "scripts/progress-vcs.test.mjs#explicit_git_range_wins_over_local_jj"
+      "scripts/progress-vcs.test.mjs#explicit_git_range_wins_over_local_jj",
+      "scripts/registry-check.test.mjs#missing_version_checks_metadata_before_cdn_download",
+      "scripts/registry-check.test.mjs#existing_version_must_match_the_verified_package"
     ],
     "runs": [
       {
@@ -1994,6 +2001,30 @@ coexist with an acknowledged gap.
         "result": "pass",
         "failures": 0,
         "detail": "No substantive changes outside main in either workspace, clean working copies, no extra files to preserve. Forgot and removed both leftover workspaces; default remains."
+      },
+      {
+        "command": "GitHub CI run 38601625239",
+        "result": "pass",
+        "failures": 0,
+        "detail": "Canonical checks and all three additional native targets pass after tool setup correction."
+      },
+      {
+        "command": "node scripts/release-registry.mjs --publish (initial registry existence check)",
+        "result": "fail",
+        "failures": 1,
+        "detail": "No upload attempted: nonexistent CDN archive returned HTTP 403. Existence now checked through version metadata."
+      },
+      {
+        "command": "node --test scripts/registry-check.test.mjs; node scripts/release-registry.mjs --status",
+        "result": "pass",
+        "failures": 0,
+        "detail": "3 retry/existence regressions pass; live metadata confirms all six versions absent."
+      },
+      {
+        "command": "pnpm spec:check; pnpm check; pnpm test; pnpm build (registry preflight correction)",
+        "result": "pass",
+        "failures": 0,
+        "detail": "All source gates including 62 governance tests and 180 Rust tests/doctests pass."
       }
     ],
     "result": "pending",

@@ -1,31 +1,11 @@
-import { readFileSync, writeFileSync } from "node:fs";
-import { createHash } from "node:crypto";
+import { writeFileSync } from "node:fs";
+import { verifyExisting } from "./registry-check.mjs";
 import { execFileSync } from "node:child_process";
 import { crates, version } from "./release-version.mjs";
 const selectedVersion = version();
 const missing = [];
 for (const name of crates) {
-  const response = await fetch(
-    `https://crates.io/api/v1/crates/${name}/${selectedVersion}/download`,
-    {
-      headers: {
-        "User-Agent":
-          "jj-acp release verification (github.com/stevejuma/jj-acp)",
-      },
-    },
-  );
-  if (response.status === 404) {
-    missing.push(name);
-    continue;
-  }
-  if (!response.ok) throw Error(`registry ${name}: HTTP ${response.status}`);
-  const data = Buffer.from(await response.arrayBuffer());
-  const local = readFileSync(`target/package/${name}-${selectedVersion}.crate`);
-  const digest = (bytes) => createHash("sha256").update(bytes).digest("hex");
-  if (digest(data) !== digest(local))
-    throw Error(
-      `${name} already exists with different package contents; stop publication`,
-    );
+  if (!(await verifyExisting(name, selectedVersion))) missing.push(name);
 }
 if (process.argv.includes("--publish") && missing.length) {
   execFileSync(
