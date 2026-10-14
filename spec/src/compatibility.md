@@ -313,3 +313,8 @@ creation. Timestamp collisions must never share state, and peer teardown must
 preserve live test directories. The scratch regression reproduced 31 directories
 for 32 simultaneous callers before this fix. Signal exit-code and record
 assertions remain unchanged.
+
+Changesets prepares coordinated Cargo metadata and changelog history through
+development tooling. Publication still uses immutable version tags, the existing
+native qualification profile and the configured crates.io trusted publishers.
+Initial 0.1.0 artifacts remain attached to their original source.

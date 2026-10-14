@@ -47,7 +47,8 @@ repository ports are far larger than jj-store's Rust budget would allow.
 
 A protected path that matches no rule above fails closed as unmapped rather than
 passing silently. A path that matches more than one rule requires every mapped
-chapter in the same change, so the rules stay disjoint on purpose.
+chapter in the same change, as specified for workflow and Changesets
+configuration changes.
 
 Passing bookkeeping MUST NOT substitute for passing product tests. A ledger
 entry records the commands actually run and their real failure counts; it never
@@ -164,3 +165,10 @@ downloading an archive. An unpublished CDN object can return HTTP 403; that is
 not a credential failure and must not be used to decide existence. Metadata 404
 admits publication, while any error downloading a known version blocks
 publication and any checksum mismatch still refuses replacement.
+
+Changesets configuration and guidance map to release.md; configuration also maps
+to this chapter. Active release notes are prose and do not require a
+release-chapter edit with every feature. The generated version PR updates
+architecture.md, cli.md and release.md plus the evidence ledger in the same
+change as manifests and the packaged README. Normal check/specification lanes
+validate coordinated versions and release automation regressions.

@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 export const crates = [
   "jj-acp-protocol",
   "jj-acp-agent",
@@ -18,4 +18,18 @@ export function version(root = ".") {
 export function validateTag(tag, selectedVersion) {
   if (tag !== `v${selectedVersion}`)
     throw Error("tag does not match workspace version");
+}
+
+export function validateReleaseSource(root = ".") {
+  const directory = `${root}/.changeset`;
+  if (
+    existsSync(directory) &&
+    readdirSync(directory, { withFileTypes: true }).some(
+      (entry) =>
+        entry.isDirectory() ||
+        entry.name === "pre.json" ||
+        (entry.name.endsWith(".md") && entry.name !== "README.md"),
+    )
+  )
+    throw Error("tagged release source contains pending changesets");
 }

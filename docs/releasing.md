@@ -1,9 +1,29 @@
 # Releasing jj-acp
 
-Prepare one coordinated version across the workspace. Update Cargo.lock,
-internal dependency versions, the README installation version, changelog and
-canonical release evidence. Refresh each crate's packaged license/notice and the
-CLI README when their authoritative root files change.
+Use Changesets for one coordinated version across the six Cargo crates. Add a
+note with `pnpm changeset`, targeting the private @lapismd/jj-acp coordinator.
+Choose patch, minor or major and describe the release-worthy behavior. Inspect
+the queue with `pnpm release:status` or `pnpm release:plan`.
+
+After feature notes merge into main, the Changesets workflow creates or updates
+a Version Packages PR. It runs `pnpm release:version`: Changesets bumps the
+coordinator and generates CHANGELOG.md, then the wrapper synchronizes the Cargo
+workspace/internal versions, Cargo.lock, pnpm lockfile, README installation
+example and packaged CLI README. The same PR contains canonical candidate
+metadata and preparation evidence. All required CI checks and a Pages build are
+explicitly dispatched for the bot PR. Review and merge only after they pass.
+
+The merged candidate is qualified again before a missing immutable v<version>
+tag is created. The workflow dispatches release.yml for that exact tag,
+preserving the configured crates.io trusted publishers and native archive
+pipeline. Existing tags are retained; ordinary main updates at an already
+published version do not publish again. The npm coordinator is never published
+or tagged by Changesets.
+
+For local preparation use `pnpm release:version`, followed by
+`pnpm release:check`. Raw `changeset version` leaves Cargo metadata stale and is
+not the repository's version command. With no pending notes the wrapper is a
+no-op. Refresh packaged licenses/notices when their authoritative files change.
 
 Run the exact affected regressions, then pnpm spec:check, pnpm check, pnpm test,
 pnpm build, pnpm check:workflow and pnpm release:dry-run. Packaging verification
@@ -12,11 +32,19 @@ must pass without --no-verify. Before committing, local dry runs may use
 clean committed source. CI supplies JJ_ACP_CHECK_BASE and JJ_ACP_CHECK_HEAD to
 validate committed ranges. Commit verified slices with Jujutsu.
 
-Push main and wait for all canonical and native CI checks and the Pages build.
-Use jj tag set v<version> -r main and jj git push --remote origin --tag
-v<version> for the verified source. Tags are immutable release identities.
-Manual release reruns take the existing tag; they never choose a new source
-revision.
+Submit prepared changes through a pull request and wait for canonical/native CI
+and Pages. The normal path uses the automatic tag handoff after the Version
+Packages merge. An explicit manual tag uses jj tag set v<version> -r main and jj
+git push --remote origin --tag v<version> only for qualified source with no
+pending notes. Tags are immutable release identities. Manual release reruns take
+the existing tag; they never choose a new source revision.
+
+GitHub must allow Actions to create pull requests. The Changesets job grants
+only the contents, pull-request and workflow-dispatch permissions needed for
+that handoff. No personal GitHub or long-lived registry token is required.
+
+The published 0.1.0 release is recorded in CHANGELOG.md and releases/0.1.0.md.
+It has no active Changeset and must not be backfilled as a new pending bump.
 
 ## Initial crates.io bootstrap
 

@@ -208,3 +208,7 @@ the test verifies exit 124, a deadline-exceeded terminal record, exactly one
 prompt dispatch, bounded completion and disappearance of the recorded process. A
 two-second delayed interpreter reproduces the previous premature timeout and
 passes the corrected setup. This is fixture timing, not a runtime limit change.
+
+Changesets version preparation refreshes the root installation example and
+packaged CLI README together. The CLI Cargo package continues to inherit the
+coordinated workspace version; version preparation adds no command or protocol.

@@ -11,12 +11,12 @@
   "type": "module",
   "scripts": {
     "build": "cargo build --workspace --locked",
-    "check": "pnpm spec:validate && pnpm check:boundaries && pnpm check:architecture && pnpm check:progress && pnpm upstream:self-test && pnpm format:check && cargo clippy --workspace --all-targets --locked -- -D warnings",
+    "check": "pnpm spec:validate && pnpm release:check && pnpm check:boundaries && pnpm check:architecture && pnpm check:progress && pnpm upstream:self-test && pnpm format:check && cargo clippy --workspace --all-targets --locked -- -D warnings",
     "check:boundaries": "node scripts/check-boundaries.mjs",
     "check:architecture": "node scripts/rust-architecture.mjs",
     "check:progress": "node scripts/check-progress.mjs",
     "test": "pnpm test:governance && cargo test --workspace --locked",
-    "test:governance": "node --test scripts/governance.test.mjs scripts/rust-architecture.test.mjs scripts/upstream-lock.test.mjs scripts/progress-vcs.test.mjs scripts/release.test.mjs scripts/registry-check.test.mjs",
+    "test:governance": "node --test scripts/governance.test.mjs scripts/rust-architecture.test.mjs scripts/upstream-lock.test.mjs scripts/progress-vcs.test.mjs scripts/release.test.mjs scripts/registry-check.test.mjs scripts/changesets.test.mjs scripts/release-orchestration.test.mjs",
     "upstream:self-test": "node scripts/upstream-sync.mjs --self-test",
     "upstream:write": "node scripts/upstream-sync.mjs --write",
     "upstream:fetch": "node scripts/upstream-sync.mjs --fetch",
@@ -30,9 +30,17 @@
     "spec:validate": "spec-validator validate",
     "check:workflow": "actionlint",
     "package:check": "node scripts/package-check.mjs",
-    "release:dry-run": "pnpm package:check && cargo publish --workspace --locked --dry-run"
+    "release:dry-run": "pnpm package:check && cargo publish --workspace --locked --dry-run",
+    "changeset": "changeset",
+    "release:status": "node scripts/release-state.mjs --plan",
+    "release:plan": "node scripts/release-state.mjs --plan",
+    "release:check": "node scripts/release-state.mjs",
+    "release:version": "node scripts/changeset-version.mjs"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.31.1",
+    "@changesets/read": "^0.6.7",
+    "@iarna/toml": "^2.2.5",
     "@lapismd/spec-validator": "^0.1.0",
     "prettier": "^3.6.2"
   }
