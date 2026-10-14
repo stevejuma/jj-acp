@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
-import { appendFileSync } from "node:fs";
+import { appendFileSync, readFileSync } from "node:fs";
+import { associatedPullRequests, selectAutomation } from "./ci-automation.mjs";
 const git = (args, input) =>
   execFileSync("git", args, { encoding: "utf8", input }).trim();
 const head = git(["rev-parse", process.env.CI_HEAD_SHA || "HEAD"]);
@@ -17,8 +18,25 @@ if (base && /^0+$/.test(base)) {
 }
 if (!/^[a-f0-9]{40,64}$/.test(base) || !/^[a-f0-9]{40,64}$/.test(head))
   throw Error("invalid CI revision");
+let parent;
+try {
+  parent = git(["rev-parse", `${head}^`]);
+} catch {}
+const automation = await selectAutomation({
+  eventName: process.env.CI_EVENT,
+  event: JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, "utf8")),
+  repository: process.env.GITHUB_REPOSITORY,
+  head,
+  base,
+  parent,
+  associated: () => associatedPullRequests(process.env.GITHUB_REPOSITORY, head),
+});
 appendFileSync(
   process.env.GITHUB_ENV,
-  `JJ_ACP_CHECK_BASE=${base}\nJJ_ACP_CHECK_HEAD=${head}\n`,
+  `JJ_ACP_CHECK_BASE=${base}\nJJ_ACP_CHECK_HEAD=${head}\nJJ_ACP_CHECK_AUTOMATION=${automation}\n`,
 );
 console.log(`Checking ${base}..${head}`);
+if (automation)
+  console.log(
+    `${automation}: exempt from same-change spec/evidence bookkeeping; all other checks remain required`,
+  );

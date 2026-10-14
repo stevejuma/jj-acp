@@ -81,7 +81,7 @@ foreign-session protocol failure still invalidates them.
 | JAC-REL-003    | Implemented | `scripts/release.test.mjs`; `scripts/progress-vcs.test.mjs`; `scripts/package-check.mjs`; [release evidence](milestones.md)                                                                                           |
 | JAC-REL-004    | Implemented | `scripts/release.test.mjs`; `scripts/progress-vcs.test.mjs`; `scripts/package-check.mjs`; [release evidence](milestones.md)                                                                                           |
 | JAC-REL-005    | Implemented | `scripts/registry-check.test.mjs`; `scripts/release-registry.mjs`; [release evidence](milestones.md)                                                                                                                  |
-| JAC-REL-006    | Implemented | Changesets version-preparation and orchestration regressions; E-CHANGESETS-001 and E-CHANGESETS-COLD-001 in milestones.md.                                                                                            |
+| JAC-REL-006    | Implemented | Changesets version-preparation and orchestration regressions; automation recognition and selective bookkeeping exemptions in `scripts/ci-automation.test.mjs`; evidence in milestones.md.                             |
 
 Optional v2/v3 prompt context is verified by the protocol payload and control
 wire tests, with separate fleet CLI block evidence in E-M12-002.
