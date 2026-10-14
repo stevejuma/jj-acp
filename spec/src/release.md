@@ -53,3 +53,14 @@ downloading an archive. An unpublished CDN object can return HTTP 403; that is
 not a credential failure and must not be used to decide existence. Metadata 404
 admits publication, while any error downloading a known version blocks
 publication and any checksum mismatch still refuses replacement.
+
+## Initial publication evidence
+
+Version 0.1.0 is published for all six crates at tag v0.1.0. The four native
+archives and SHA256SUMS are public, registry installation and standalone testkit
+fixtures passed, and all six Rust API documentation builds are available. M14
+records the hosted source, Pages and release run IDs. A crates.io new-crate
+quota interrupted the sixth upload; checksum verification admitted only the
+missing CLI after the published retry time. All six crates enforce the
+configured trusted publisher. M12 remains experimental with its existing
+live-adapter gaps.

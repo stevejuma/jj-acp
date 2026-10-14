@@ -25,7 +25,7 @@ in its enclosing Jujutsu change.
 | M11         | Done        | M9        | JAC-CTRL-008,JAC-RUN-008,JAC-PROTO-007,JAC-CLI-007                                                                                                                                                                                                                                                      | Persistent interactive sessions, streamed activity, permission decisions and bounded cleanup                                                        | Maintain interactive session contract               | E-M11-001,E-M11-002,E-M11-003               |
 | M12         | In progress | M11       | JAC-CTRL-009,JAC-RUN-009,JAC-PROTO-008,JAC-CLI-008                                                                                                                                                                                                                                                      | Warm worker and scoped sessions with real installed-runner acceptance                                                                               | Qualify installed adapters and jj-store integration | E-M12-001,E-M12-004,E-TOOLS-001,E-TOOLS-002 |
 | M13         | Done        | M11       | JAC-REL-001,JAC-REL-002,JAC-REL-003,JAC-REL-004,JAC-REL-005                                                                                                                                                                                                                                             | Portable crate packaging, Git CI governance, Pages and native release automation                                                                    | Validate source and archives before publication     | E-RELEASE-001                               |
-| M14         | In progress | M13       | JAC-REL-003,JAC-REL-004,JAC-REL-005                                                                                                                                                                                                                                                                     | Public source, hosted CI/specification, registry installation and four native archives                                                              | Publish the verified source and version             | E-GITHUB-001                                |
+| M14         | Done        | M13       | JAC-REL-003,JAC-REL-004,JAC-REL-005                                                                                                                                                                                                                                                                     | Public source, hosted CI/specification, registry installation and four native archives                                                              | Publish the verified source and version             | E-GITHUB-001,E-PUBLISH-001                  |
 
 ## Evidence
 
@@ -2032,6 +2032,83 @@ coexist with an acknowledged gap.
       "Corrected hosted CI, registry bootstrap and native release artifacts pending."
     ],
     "note": "No source qualification was waived. M12 retains independent live-adapter gaps."
+  },
+  {
+    "id": "E-PUBLISH-001",
+    "tasks": ["M14"],
+    "date": "2026-10-14",
+    "kind": "public release acceptance",
+    "versions": "All six crates 0.1.0; release tag v0.1.0 at 07a53851d857e16f426ac0645c56904e8850de17; Rust 1.98.1; Node 22 hosted; mdBook 0.5.4",
+    "formats": "task/record v1; control v1/v2/v3; GNU/Linux and Darwin ARM64/x86-64 tar.gz; SHA256SUMS",
+    "files": [
+      "spec/src/milestones.md",
+      "spec/src/release.md",
+      "README.md",
+      ".github/workflows/release.yml"
+    ],
+    "tests": [
+      "scripts/registry-check.test.mjs#existing_version_must_match_the_verified_package",
+      "crates/jj-acp-testkit/tests/fixture.rs#the_fixture_completes_a_turn_without_a_model_provider"
+    ],
+    "runs": [
+      {
+        "command": "GitHub CI run 38602685961 and release qualification run 38603867724",
+        "result": "pass",
+        "failures": 0,
+        "detail": "Canonical checks and all native targets passed; Git-only checks, metadata, package compile and dry run passed."
+      },
+      {
+        "command": "node scripts/release-registry.mjs --publish (first new-crate batch)",
+        "result": "fail",
+        "failures": 1,
+        "detail": "Five libraries published; crates.io returned 429 for sixth new crate until 2026-10-14 17:12:50 UTC. No version overwritten."
+      },
+      {
+        "command": "node scripts/release-registry.mjs --publish (after specified quota reset)",
+        "result": "pass",
+        "failures": 0,
+        "detail": "Verified existing five package checksums and published only the missing CLI from the same source revision."
+      },
+      {
+        "command": "node scripts/release-registry.mjs; trusted-publisher configuration and public metadata verification",
+        "result": "pass",
+        "failures": 0,
+        "detail": "6/6 archive checksums match; all six enforce stevejuma/jj-acp release.yml with release environment and trusted-publishing-only."
+      },
+      {
+        "command": "cargo install jj-acp --version 0.1.0 --locked --root .local/publication/registry-install",
+        "result": "pass",
+        "failures": 0,
+        "detail": "Fresh registry installation reports jj-acp 0.1.0."
+      },
+      {
+        "command": "published testkit archive standalone cargo +1.98.1 test --locked",
+        "result": "pass",
+        "failures": 0,
+        "detail": "Seven tests and one doctest passed outside the checkout using published protocol/agent dependencies and packaged Python fixtures."
+      },
+      {
+        "command": "GitHub release run 38603867724",
+        "result": "pass",
+        "failures": 0,
+        "detail": "Four native archives tested and published; registry install and package identity gates passed; public v0.1.0 release finalized."
+      },
+      {
+        "command": "downloaded public native archives and SHA256SUMS acceptance",
+        "result": "pass",
+        "failures": 0,
+        "detail": "All four checksums match; downloaded macOS ARM64 binary passes --version and --help."
+      },
+      {
+        "command": "docs.rs API documentation and hosted specification acceptance",
+        "result": "pass",
+        "failures": 0,
+        "detail": "All six Rust API documents and canonical specification pages return HTTP 200."
+      }
+    ],
+    "result": "pass",
+    "remaining": [],
+    "note": "Publication gate complete. Source remains at tagged immutable version; main may advance for evidence. M12 remains In progress: no new live-adapter qualification claim. Scoped bootstrap-token API revocation returned 403; local Cargo credentials were removed. Server-side token cleanup remains an account operation, separate from the completed publication gate."
   }
 ]
 ```
