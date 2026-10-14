@@ -11,6 +11,7 @@ on:
         type: string
 permissions:
   contents: read
+  pull-requests: read
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -49,8 +50,11 @@ jobs:
           tar -xzf /tmp/actionlint.tar.gz -C /tmp actionlint
           sudo install -m 755 /tmp/actionlint /usr/local/bin/actionlint
       - run: pnpm install --frozen-lockfile --ignore-pnpmfile
+      - name: Fetch locked Rust dependencies before offline checks
+        run: cargo fetch --locked
       - name: Select committed revision range
         env:
+          GITHUB_TOKEN: ${{ github.token }}
           CI_EVENT: ${{ github.event_name }}
           CI_BASE_SHA:
             ${{ github.event.pull_request.base.sha || github.event.before }}

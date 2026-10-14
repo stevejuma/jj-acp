@@ -8,13 +8,14 @@ development entry point.
 
 ## Requirements
 
-| ID          | Requirement                                                                                                                                                                              |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| JAC-REL-001 | Published crates MUST declare versioned registry dependencies, portable metadata, packaged fixtures where applicable, and Apache-2.0 license and upstream notices.                       |
-| JAC-REL-002 | CI MUST check committed base/head ranges in Git checkouts, preserve local Jujutsu checks, and run canonical and native platform qualification without model credentials.                 |
-| JAC-REL-003 | GitHub Pages MUST publish the canonical mdBook from main with the repository site prefix; pull requests MUST build without deployment authority.                                         |
-| JAC-REL-004 | Releases MUST match workspace versions and main ancestry, validate package contents and native executable archives, and include SHA-256 checksums.                                       |
-| JAC-REL-005 | Initial crate publication MUST use explicitly configured token authentication; subsequent automation MUST use scoped trusted publishing and refuse mismatched existing package contents. |
+| ID          | Requirement                                                                                                                                                                                                                                |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| JAC-REL-001 | Published crates MUST declare versioned registry dependencies, portable metadata, packaged fixtures where applicable, and Apache-2.0 license and upstream notices.                                                                         |
+| JAC-REL-002 | CI MUST check committed base/head ranges in Git checkouts, preserve local Jujutsu checks, and run canonical and native platform qualification without model credentials.                                                                   |
+| JAC-REL-003 | GitHub Pages MUST publish the canonical mdBook from main with the repository site prefix; pull requests MUST build without deployment authority.                                                                                           |
+| JAC-REL-004 | Releases MUST match workspace versions and main ancestry, validate package contents and native executable archives, and include SHA-256 checksums.                                                                                         |
+| JAC-REL-005 | Initial crate publication MUST use explicitly configured token authentication; subsequent automation MUST use scoped trusted publishing and refuse mismatched existing package contents.                                                   |
+| JAC-REL-006 | Changesets MUST prepare one coordinated private coordinator/Cargo version and changelog; release PRs MUST pass canonical/native checks before a new immutable tag dispatches trusted publishing; released history MUST NOT remain pending. |
 
 ## Supported initial profile
 
@@ -64,3 +65,39 @@ quota interrupted the sixth upload; checksum verification admitted only the
 missing CLI after the published retry time. All six crates enforce the
 configured trusted publisher. M12 remains experimental with its existing
 live-adapter gaps.
+
+The user confirmed bootstrap-token revocation after local credentials were
+removed. Future publication uses the six configured trusted publishers. GitHub
+protects main with the canonical and three native CI checks, forbids
+force-push/deletion, and prevents updates or deletion of v* release tags.
+Contributors submit future source updates through a passing pull request;
+release tags continue to identify the exact published source.
+
+## Changesets orchestration
+
+The private @lapismd/jj-acp development package coordinates all six Cargo
+crates. Pending notes target that package with patch, minor or major intent.
+Changesets generates the changelog and coordinator version; release:version
+synchronizes Cargo workspace/internal versions, both lockfiles, installation
+examples and the packaged CLI README. Recognized Dependabot and Changesets PRs
+skip same-change specification/evidence bookkeeping under JAC-GOV-002's
+automation exception; all other qualification remains required. Version
+preparation does not modify canonical chapters or the ledger and never claims
+product qualification or publication.
+
+The main workflow creates or updates a Version Packages pull request. Explicit
+CI and Pages dispatches qualify bot-created PRs, because events produced with
+GITHUB_TOKEN do not otherwise start those workflows. Maintainers merge a passing
+version PR. With no pending notes, a missing version tag is admitted only after
+the canonical/native lanes pass; the workflow creates that tag once and
+dispatches release.yml. An existing tag is retained without repackaging newer
+main. Failed releases resume through the existing tagged release workflow.
+
+Version 0.1.0 is backfilled in CHANGELOG.md and docs/releases/0.1.0.md as
+already published history. The archive is outside the active note directory.
+Installing orchestration creates no pending bump, new tag or registry upload.
+
+Cold workflows fetch locked Cargo dependencies during setup. Version preparation
+requires an offline locked fetch before Changesets consumes notes, so missing
+registry metadata aborts without changing the coordinator or release queue. The
+bootstrap is dependency installation, separate from offline source gates.

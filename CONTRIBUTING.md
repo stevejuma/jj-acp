@@ -15,3 +15,12 @@ ordinary Git checkouts with an explicit base/head range. Submit a pull request
 against main; passing CI is required. Do not commit credentials, generated
 books, local configuration, or vendored upstream sources. See docs/releasing.md
 for publication and partial-release recovery.
+
+Add a `pnpm changeset` note for a change that should ship, selecting the private
+`@lapismd/jj-acp` coordinator. All six Cargo crates share its release version.
+Describe user-visible behavior and choose patch, minor or major intent. Keep
+published history under docs/releases; a completed release must not be requeued
+as an active note. Use `pnpm release:version` for local preparation so
+Changesets and Cargo metadata remain synchronized. Maintainers review the
+automated Version Packages PR before merging it to start tagged qualification
+and publication.

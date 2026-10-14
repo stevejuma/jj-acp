@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve, isAbsolute } from "node:path";
 import { fileURLToPath } from "node:url";
 import { snapshot } from "./progress-vcs.mjs";
+import { automationExempt } from "./ci-automation.mjs";
 
 export const ledgerPath = "spec/src/milestones.md";
 const statuses = new Set([
@@ -13,7 +14,7 @@ const statuses = new Set([
   "Deferred",
 ]);
 export const needsEvidence = (path) =>
-  /^(?:\.github\/|rustfmt\.toml$|crates\/|tests\/|scripts\/|Cargo\.(?:toml|lock)$|package\.json$|pnpm-lock\.yaml$|rust-toolchain\.toml$|AGENTS\.md$|spec-validator\.config\.mjs$|docs\/upstream-lock|spec\/src\/verification\.md$)/.test(
+  /^(?:\.changeset\/config\.json$|\.github\/|rustfmt\.toml$|crates\/|tests\/|scripts\/|Cargo\.(?:toml|lock)$|package\.json$|pnpm-lock\.yaml$|rust-toolchain\.toml$|AGENTS\.md$|spec-validator\.config\.mjs$|docs\/upstream-lock|spec\/src\/verification\.md$)/.test(
     path,
   );
 const list = (s) => (s === "-" ? [] : s.split(",").map((v) => v.trim()));
@@ -54,6 +55,7 @@ export function validateLedger({
   requirements,
   changed = [],
   previousEntries = [],
+  sameChange = true,
 }) {
   const errors = [];
   let parsed;
@@ -198,7 +200,7 @@ export function validateLedger({
     visited.add(id);
   }
   for (const task of tasks) visit(task.id);
-  if (changed.some(needsEvidence)) {
+  if (sameChange && changed.some(needsEvidence)) {
     if (!changed.includes(ledgerPath))
       errors.push("protected change requires a same-change ledger update");
     const old = new Map(previousEntries.map((e) => [e.id, JSON.stringify(e)]));
@@ -239,6 +241,7 @@ export function run(root) {
     requirements,
     changed,
     previousEntries,
+    sameChange: !automationExempt(),
   });
   if (errors.length) throw new Error(errors.join("\n"));
   console.log(
