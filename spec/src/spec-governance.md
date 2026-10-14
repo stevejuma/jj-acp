@@ -55,6 +55,20 @@ entry records the commands actually run and their real failure counts; it never
 converts a fixture-peer result into a real-runner qualification or a compile
 into a behavioral proof.
 
+### Generated automation changes
+
+Identified Dependabot and Changesets PRs MAY omit same-change canonical chapter
+and ledger/evidence updates. CI MUST identify the bot author, reserved branch,
+same-repository head and main base, and exact checked revision. Explicit bot PR
+dispatches and merged/tagged qualification use GitHub's associated PR metadata.
+Unrecognized or unrelated revisions MUST retain the ordinary gates; lookup
+errors MUST fail closed. A push spanning multiple changes is not exempt.
+
+Only spec-first and same-change evidence bookkeeping are exempt. Existing ledger
+integrity, specification validation/build, formatting, boundaries, tests,
+Clippy, native builds and packaging MUST still run. This follows the Lapis Notes
+generated Changesets exemption and extends it to Dependabot.
+
 ## Check lanes
 
 `spec-validator.config.mjs` declares the lanes that `pnpm spec:check` runs, and
@@ -168,10 +182,10 @@ publication and any checksum mismatch still refuses replacement.
 
 Changesets configuration and guidance map to release.md; configuration also maps
 to this chapter. Active release notes are prose and do not require a
-release-chapter edit with every feature. The generated version PR updates
-architecture.md, cli.md and release.md plus the evidence ledger in the same
-change as manifests and the packaged README. Normal check/specification lanes
-validate coordinated versions and release automation regressions.
+release-chapter edit with every feature. Generated version PRs update manifests,
+lockfiles, changelog and installation examples without manufactured canonical
+candidate prose or ledger evidence. Normal check/specification lanes validate
+coordinated versions and release automation regressions.
 
 Workflow setup fetches the committed Rust dependency graph before offline
 version-preparation acceptance. Source and fixture checks must not rely on a

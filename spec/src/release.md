@@ -79,8 +79,10 @@ The private @lapismd/jj-acp development package coordinates all six Cargo
 crates. Pending notes target that package with patch, minor or major intent.
 Changesets generates the changelog and coordinator version; release:version
 synchronizes Cargo workspace/internal versions, both lockfiles, installation
-examples and the packaged CLI README. It adds same-change canonical candidate
-metadata and actual preparation evidence. Version preparation never claims
+examples and the packaged CLI README. Recognized Dependabot and Changesets PRs
+skip same-change specification/evidence bookkeeping under JAC-GOV-002's
+automation exception; all other qualification remains required. Version
+preparation does not modify canonical chapters or the ledger and never claims
 product qualification or publication.
 
 The main workflow creates or updates a Version Packages pull request. Explicit

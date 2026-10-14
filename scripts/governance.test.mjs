@@ -138,6 +138,18 @@ test("rejects_touch_without_new_evidence", () =>
     ).join(),
     /new or updated evidence/,
   ));
+test("automation_exempts_same_change_evidence_but_preserves_ledger_integrity", () => {
+  const options = {
+    changed: ["Cargo.lock"],
+    previousEntries: [entry],
+    sameChange: false,
+  };
+  assert.deepEqual(validateLedger(fixture(undefined, undefined, options)), []);
+  assert.match(
+    validateLedger(fixture(undefined, [], options)).join(),
+    /missing evidence/,
+  );
+});
 test("allows_documentation_without_execution_ledger", () => {
   assert.equal(needsEvidence("docs/licenses/NOTICE.md"), false);
   assert.equal(needsEvidence("README.md"), false);

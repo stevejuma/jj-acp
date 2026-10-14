@@ -323,3 +323,8 @@ On a cold checkout, locked Cargo dependency bootstrap precedes offline
 Changesets preparation. A missing dependency cache preserves the pending note
 and previous coordinator metadata; it is not a reason to disable package
 verification.
+
+Release-preparation acceptance verifies that versioning consumes pending notes
+and synchronizes metadata without modifying canonical chapters or the ledger.
+The documented automation exception preserves deterministic/native product
+qualification and does not extend installed-runner compatibility claims.
