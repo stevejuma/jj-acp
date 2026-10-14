@@ -26,6 +26,7 @@ in its enclosing Jujutsu change.
 | M12         | In progress | M11       | JAC-CTRL-009,JAC-RUN-009,JAC-PROTO-008,JAC-CLI-008                                                                                                                                                                                                                                                      | Warm worker and scoped sessions with real installed-runner acceptance                                                                               | Qualify installed adapters and jj-store integration | E-M12-001,E-M12-004,E-TOOLS-001,E-TOOLS-002 |
 | M13         | Done        | M11       | JAC-REL-001,JAC-REL-002,JAC-REL-003,JAC-REL-004,JAC-REL-005                                                                                                                                                                                                                                             | Portable crate packaging, Git CI governance, Pages and native release automation                                                                    | Validate source and archives before publication     | E-RELEASE-001,E-CI-CLEANUP-001              |
 | M14         | Done        | M13       | JAC-REL-003,JAC-REL-004,JAC-REL-005                                                                                                                                                                                                                                                                     | Public source, hosted CI/specification, registry installation and four native archives                                                              | Publish the verified source and version             | E-GITHUB-001,E-PUBLISH-001,E-HANDOFF-001    |
+| M15         | Done        | M14       | JAC-REL-006,JAC-REL-004,JAC-REL-005,JAC-GOV-002,JAC-GOV-003                                                                                                                                                                                                                                             | Coordinated Changesets version preparation and protected automation configuration                                                                   | Use Version Packages PR for the next Cargo release  | E-CHANGESETS-001,E-CHANGESETS-COLD-001      |
 
 ## Evidence
 
@@ -2209,6 +2210,236 @@ coexist with an acknowledged gap.
     "result": "pass",
     "remaining": [],
     "note": "Test task allows ten seconds of startup/execution and PID readiness allows fifteen seconds. Timeout exit and descendant disappearance remain mandatory; added deadline-record, one-dispatch and bounded-completion assertions. No production or released package source changes. All local canonical lanes passed. Hosted merge requires the four protected CI checks."
+  },
+  {
+    "id": "E-CHANGESETS-001",
+    "tasks": ["M15"],
+    "date": "2026-10-14",
+    "kind": "changesets release orchestration",
+    "versions": "Changesets CLI 2.31.1; Node 22 hosted; pnpm 10.34.5; Cargo crates remain 0.1.0",
+    "formats": "Private npm coordinator; synchronized Cargo workspace; Version Packages PR; immutable v* tags",
+    "files": [
+      ".changeset/config.json",
+      ".changeset/README.md",
+      "docs/releases/0.1.0.md",
+      ".github/workflows/changesets.yml",
+      "scripts/changeset-version.mjs",
+      "scripts/release-evidence.mjs",
+      "scripts/release-state.mjs",
+      "scripts/release-orchestration.mjs",
+      "scripts/changesets.test.mjs",
+      "scripts/release-orchestration.test.mjs",
+      "package.json",
+      "pnpm-lock.yaml",
+      "spec-validator.config.mjs",
+      "scripts/check-progress.mjs",
+      "spec/src/release.md",
+      "spec/src/milestones.md",
+      "spec/src/verification.md",
+      "README.md",
+      "CHANGELOG.md",
+      "CONTRIBUTING.md",
+      "crates/jj-acp-cli/README.md",
+      "docs/releasing.md",
+      ".github/workflows/release.yml",
+      "scripts/release-version.mjs",
+      "spec/src/architecture.md",
+      "spec/src/cli.md",
+      "spec/src/compatibility.md",
+      "spec/src/spec-governance.md"
+    ],
+    "tests": [
+      "scripts/changesets.test.mjs#changesets_prepare_coordinated_cargo_version_and_consume_notes",
+      "scripts/changesets.test.mjs#released_history_is_not_a_pending_changeset",
+      "scripts/release-orchestration.test.mjs#already_released_history_never_retags_newer_main",
+      "scripts/release-orchestration.test.mjs#bot_version_pr_explicitly_dispatches_required_ci_and_pages_build"
+    ],
+    "runs": [
+      {
+        "command": "pnpm changeset status (before)",
+        "result": "fail",
+        "failures": 1,
+        "detail": "No Changesets command or configuration existed."
+      },
+      {
+        "command": "node --test scripts/changesets.test.mjs scripts/release-orchestration.test.mjs (first)",
+        "result": "fail",
+        "failures": 1,
+        "detail": "Configuration audit regex used an unescaped slash; corrected before continuing."
+      },
+      {
+        "command": "node --test scripts/changesets.test.mjs scripts/release-orchestration.test.mjs (archive prototype)",
+        "result": "fail",
+        "failures": 4,
+        "detail": "Changesets interprets subdirectories as legacy pending changesets. Moved published archive into docs/releases so it cannot enter the release queue."
+      },
+      {
+        "command": "node --test scripts/changesets.test.mjs scripts/release-orchestration.test.mjs (post-format)",
+        "result": "fail",
+        "failures": 1,
+        "detail": "New milestone row was separated from its table and formatted as prose. Restored the governed seven-column table layout."
+      },
+      {
+        "command": "pnpm release:status (raw changeset status prototype)",
+        "result": "fail",
+        "failures": 1,
+        "detail": "Raw Changesets status requires a note for local private tooling manifest changes. The project status command now reports the active queue directly without requiring a release bump for orchestration setup."
+      },
+      {
+        "command": "node --test scripts/changesets.test.mjs scripts/release-orchestration.test.mjs",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm install --frozen-lockfile --ignore-pnpmfile",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm release:status",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm release:plan",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm release:version",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm spec:first",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm spec:check",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm check",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm test",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm build",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm check:workflow",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "GitHub repository Actions workflow permissions update and readback",
+        "result": "pass",
+        "failures": 0,
+        "detail": "Global token remains read-only; repository allows Actions to create release PRs. Workflow jobs explicitly scope write permissions."
+      }
+    ],
+    "result": "pass",
+    "remaining": [],
+    "note": "Backfill initial 0.1.0 as historical archive, with no active release note or version bump. npm coordinator stays private. Actual isolated Changesets patch preparation passed, including offline Cargo/pnpm lock refresh and same-change specification/evidence. Empty-queue preparation is a no-op. All 180 Rust tests/doctests and 75 governance tests pass; no new version is published by this setup. Tagged source refuses active notes and existing-tag orchestration refuses replacement. Future new-version publication is performed by release.yml after maintainer merge and qualification."
+  },
+  {
+    "id": "E-CHANGESETS-COLD-001",
+    "tasks": ["M15"],
+    "date": "2026-10-14",
+    "kind": "cold Changesets Cargo dependency bootstrap",
+    "versions": "Node 22 hosted; Node 26.9.0 locally; Rust 1.98.1; CLI 2.31.1",
+    "formats": "Cargo.lock dependencies; candidate metadata unchanged on missing offline cache",
+    "files": [
+      ".github/workflows/ci.yml",
+      ".github/workflows/changesets.yml",
+      "scripts/changeset-version.mjs",
+      "scripts/changesets.test.mjs",
+      "docs/releasing.md",
+      "spec/src/release.md",
+      "spec/src/spec-governance.md",
+      "spec/src/compatibility.md",
+      "spec/src/milestones.md",
+      "spec/src/verification.md"
+    ],
+    "tests": [
+      "scripts/changesets.test.mjs#changesets_prepare_coordinated_cargo_version_and_consume_notes",
+      "scripts/changesets.test.mjs#missing_cargo_cache_preserves_pending_notes_and_version_metadata"
+    ],
+    "runs": [
+      {
+        "command": "GitHub canonical checks run 38612667838",
+        "result": "fail",
+        "failures": 1,
+        "detail": "Offline candidate lock refresh could not resolve serde on an empty restored Cargo registry cache."
+      },
+      {
+        "command": "CARGO_HOME=<new isolated empty cache> node --test --test-name-pattern=^changesets_prepare_coordinated_cargo_version_and_consume_notes$ scripts/changesets.test.mjs (before)",
+        "result": "fail",
+        "failures": 1,
+        "detail": "Reproduced the exact missing-serde failure with no inherited Cargo cache."
+      },
+      {
+        "command": "CARGO_HOME=<isolated empty cache> cargo fetch --locked",
+        "result": "pass",
+        "failures": 0,
+        "detail": "Committed dependencies downloaded into a fresh cache before offline acceptance."
+      },
+      {
+        "command": "CARGO_HOME=<same bootstrapped cache> node --test --test-name-pattern=^changesets_prepare_coordinated_cargo_version_and_consume_notes$ scripts/changesets.test.mjs",
+        "result": "pass",
+        "failures": 0,
+        "detail": "Exact original cold failure target now passes."
+      },
+      {
+        "command": "node --test scripts/changesets.test.mjs scripts/release-orchestration.test.mjs",
+        "result": "pass",
+        "failures": 0,
+        "detail": "14 release regressions pass, including preservation of pending notes when the dependency cache is missing."
+      },
+      {
+        "command": "node scripts/package-check.mjs --allow-dirty",
+        "result": "pass",
+        "failures": 0,
+        "detail": "All six crate metadata/content checks passed for the prepared local slice."
+      },
+      {
+        "command": "pnpm spec:check",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm check",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm test",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm build",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm check:workflow",
+        "result": "pass",
+        "failures": 0
+      }
+    ],
+    "result": "pass",
+    "remaining": [],
+    "note": "Bootstrap Cargo dependencies explicitly in workflow setup. The local wrapper checks cache completeness before changing versions or consuming notes; offline preparation remains deterministic. All canonical lanes pass after the fix: 180 Rust tests/doctests and 76 governance tests. Locked fetch remains a workflow dependency-setup step; version preparation and its regressions use offline Cargo operations."
   }
 ]
 ```
