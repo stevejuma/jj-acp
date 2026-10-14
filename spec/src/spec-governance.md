@@ -47,12 +47,27 @@ repository ports are far larger than jj-store's Rust budget would allow.
 
 A protected path that matches no rule above fails closed as unmapped rather than
 passing silently. A path that matches more than one rule requires every mapped
-chapter in the same change, so the rules stay disjoint on purpose.
+chapter in the same change, as specified for workflow and Changesets
+configuration changes.
 
 Passing bookkeeping MUST NOT substitute for passing product tests. A ledger
 entry records the commands actually run and their real failure counts; it never
 converts a fixture-peer result into a real-runner qualification or a compile
 into a behavioral proof.
+
+### Generated automation changes
+
+Identified Dependabot and Changesets PRs MAY omit same-change canonical chapter
+and ledger/evidence updates. CI MUST identify the bot author, reserved branch,
+same-repository head and main base, and exact checked revision. Explicit bot PR
+dispatches and merged/tagged qualification use GitHub's associated PR metadata.
+Unrecognized or unrelated revisions MUST retain the ordinary gates; lookup
+errors MUST fail closed. A push spanning multiple changes is not exempt.
+
+Only spec-first and same-change evidence bookkeeping are exempt. Existing ledger
+integrity, specification validation/build, formatting, boundaries, tests,
+Clippy, native builds and packaging MUST still run. This follows the Lapis Notes
+generated Changesets exemption and extends it to Dependabot.
 
 ## Check lanes
 
@@ -164,3 +179,15 @@ downloading an archive. An unpublished CDN object can return HTTP 403; that is
 not a credential failure and must not be used to decide existence. Metadata 404
 admits publication, while any error downloading a known version blocks
 publication and any checksum mismatch still refuses replacement.
+
+Changesets configuration and guidance map to release.md; configuration also maps
+to this chapter. Active release notes are prose and do not require a
+release-chapter edit with every feature. Generated version PRs update manifests,
+lockfiles, changelog and installation examples without manufactured canonical
+candidate prose or ledger evidence. Normal check/specification lanes validate
+coordinated versions and release automation regressions.
+
+Workflow setup fetches the committed Rust dependency graph before offline
+version-preparation acceptance. Source and fixture checks must not rely on a
+restored Cargo cache. The local wrapper checks cache completeness before
+consuming a note or editing version metadata.

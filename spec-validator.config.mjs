@@ -3,8 +3,9 @@ import {
   singleIdVerification,
   tableRequirements,
 } from "@lapismd/spec-validator";
+import { automationExempt } from "./scripts/ci-automation.mjs";
 
-export default defineConfig(tableRequirements(), {
+const config = defineConfig(tableRequirements(), {
   name: "jj-acp",
   idPattern: /^JAC-[A-Z]+-\d{3}$/,
   tableSection: "Requirements",
@@ -47,6 +48,14 @@ export default defineConfig(tableRequirements(), {
         "^spec/src/(?:SUMMARY|verification)\\.md$",
       ],
       rules: [
+        {
+          pattern: "^\\.changeset/(?:config\\.json$|README\\.md$)",
+          chapters: ["spec/src/release.md"],
+        },
+        {
+          pattern: "^\\.changeset/config\\.json$",
+          chapters: ["spec/src/spec-governance.md"],
+        },
         {
           pattern: "^\\.github/",
           chapters: ["spec/src/spec-governance.md", "spec/src/release.md"],
@@ -95,7 +104,7 @@ export default defineConfig(tableRequirements(), {
         },
       ],
       protected: [
-        "^(?:\\.github/|crates/|tests/|scripts/|docs/|Cargo\\.(?:toml|lock)$|rust-toolchain\\.toml$|rustfmt\\.toml$|package\\.json$|pnpm-lock\\.yaml$|README\\.md$|CHANGELOG\\.md$|CONTRIBUTING\\.md$|SECURITY\\.md$|\\.gitattributes$|LICENSE\\.md$|AGENTS\\.md$|spec-validator\\.config\\.mjs$|spec/book\\.toml$|\\.gitignore$|\\.prettier)",
+        "^(?:\\.changeset/(?:config\\.json$|README\\.md$)|\\.github/|crates/|tests/|scripts/|docs/|Cargo\\.(?:toml|lock)$|rust-toolchain\\.toml$|rustfmt\\.toml$|package\\.json$|pnpm-lock\\.yaml$|README\\.md$|CHANGELOG\\.md$|CONTRIBUTING\\.md$|SECURITY\\.md$|\\.gitattributes$|LICENSE\\.md$|AGENTS\\.md$|spec-validator\\.config\\.mjs$|spec/book\\.toml$|\\.gitignore$|\\.prettier)",
       ],
     },
   },
@@ -110,6 +119,11 @@ export default defineConfig(tableRequirements(), {
         name: "prettier",
         command: "pnpm",
         args: ["exec", "prettier", "--check", "."],
+      },
+      {
+        name: "release-metadata",
+        command: "node",
+        args: ["scripts/release-state.mjs"],
       },
       {
         name: "boundaries",
@@ -142,6 +156,9 @@ export default defineConfig(tableRequirements(), {
           "scripts/progress-vcs.test.mjs",
           "scripts/release.test.mjs",
           "scripts/registry-check.test.mjs",
+          "scripts/changesets.test.mjs",
+          "scripts/release-orchestration.test.mjs",
+          "scripts/ci-automation.test.mjs",
         ],
       },
       {
@@ -154,3 +171,6 @@ export default defineConfig(tableRequirements(), {
     first: true,
   },
 });
+
+if (automationExempt()) config.validators.specFirst = false;
+export default config;

@@ -64,6 +64,11 @@ quietly retain dead exceptions.
 
 ## Repository tooling
 
+The governance suite includes automation recognition and selective spec-first
+exemptions for Dependabot and Changesets. This CI setup reads GitHub PR
+metadata; normal source gates remain offline. Runtime crates and their
+dependency matrix are unchanged.
+
 Validation is first-party Node automation under `scripts/`, not a crate. It sits
 outside the Cargo workspace on purpose: the gates must be able to inspect the
 workspace as data, read `cargo metadata`, and fail on a crate that does not
@@ -192,3 +197,9 @@ downloading an archive. An unpublished CDN object can return HTTP 403; that is
 not a credential failure and must not be used to decide existence. Metadata 404
 admits publication, while any error downloading a known version blocks
 publication and any checksum mismatch still refuses replacement.
+
+Changesets versions the private development coordinator for the six Cargo
+crates. Its Node dependencies are development tooling and never enter the Rust
+runtime or npm publication. A version consistency check covers workspace
+inheritance, internal dependency ranges, Cargo.lock, changelog and installation
+examples before release preparation or publication.

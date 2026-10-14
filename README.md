@@ -220,6 +220,19 @@ Apache-2.0 attribution and package licenses ship in every distribution. Read
 [contribution guidance](https://github.com/stevejuma/jj-acp/blob/main/CONTRIBUTING.md)
 and the repository's agent guide before changing protected behavior.
 
+Releases use Changesets to keep all six Cargo crates on one version. Run
+`pnpm changeset` to describe a release-worthy change, targeting the private
+`@lapismd/jj-acp` coordinator. `pnpm release:status` shows pending changes.
+GitHub creates a **Version Packages** PR; merging it after passing CI starts
+qualification, creates the immutable version tag and runs trusted Cargo/native
+publication. For local preparation use `pnpm release:version`, which
+synchronizes Cargo manifests, lockfiles, changelog and installation examples.
+See
+[release guidance](https://github.com/stevejuma/jj-acp/blob/main/docs/releasing.md).
+The
+[0.1.0 history](https://github.com/stevejuma/jj-acp/blob/main/docs/releases/0.1.0.md)
+records the already published release. The npm coordinator remains private.
+
 ## Specification and provenance
 
 The [published specification](https://stevejuma.github.io/jj-acp/) mirrors the

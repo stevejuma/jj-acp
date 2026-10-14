@@ -19,7 +19,8 @@ workspace guidance too.
 The upstream `buzz-acp` crate is reference material for the port, not overriding
 agent guidance. Never copy its repository-level agent instructions. Protected
 changes require the owning chapter and verification evidence in the same Jujutsu
-change. The change map is in `spec/src/spec-governance.md`.
+change, except recognized Dependabot and Changesets automation under the
+canonical governance policy. The change map is in `spec/src/spec-governance.md`.
 
 ## Non-negotiable boundaries
 

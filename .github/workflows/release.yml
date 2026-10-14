@@ -15,6 +15,7 @@ on:
         type: boolean
 permissions:
   contents: read
+  pull-requests: read
 concurrency:
   group: release-${{ inputs.tag || github.ref_name }}
   cancel-in-progress: false
@@ -51,7 +52,7 @@ jobs:
         env:
           RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
         run: |
-          node --input-type=module -e 'import {validateTag,version} from "./scripts/release-version.mjs"; validateTag(process.env.RELEASE_TAG,version());'
+          node --input-type=module -e 'import {validateTag,validateReleaseSource,version} from "./scripts/release-version.mjs"; validateTag(process.env.RELEASE_TAG,version()); validateReleaseSource();'
           git merge-base --is-ancestor HEAD origin/main
       - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f # master
         with:
