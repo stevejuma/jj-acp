@@ -25,7 +25,7 @@ in its enclosing Jujutsu change.
 | M11         | Done        | M9        | JAC-CTRL-008,JAC-RUN-008,JAC-PROTO-007,JAC-CLI-007                                                                                                                                                                                                                                                      | Persistent interactive sessions, streamed activity, permission decisions and bounded cleanup                                                        | Maintain interactive session contract               | E-M11-001,E-M11-002,E-M11-003               |
 | M12         | In progress | M11       | JAC-CTRL-009,JAC-RUN-009,JAC-PROTO-008,JAC-CLI-008                                                                                                                                                                                                                                                      | Warm worker and scoped sessions with real installed-runner acceptance                                                                               | Qualify installed adapters and jj-store integration | E-M12-001,E-M12-004,E-TOOLS-001,E-TOOLS-002 |
 | M13         | Done        | M11       | JAC-REL-001,JAC-REL-002,JAC-REL-003,JAC-REL-004,JAC-REL-005                                                                                                                                                                                                                                             | Portable crate packaging, Git CI governance, Pages and native release automation                                                                    | Validate source and archives before publication     | E-RELEASE-001                               |
-| M14         | Done        | M13       | JAC-REL-003,JAC-REL-004,JAC-REL-005                                                                                                                                                                                                                                                                     | Public source, hosted CI/specification, registry installation and four native archives                                                              | Publish the verified source and version             | E-GITHUB-001,E-PUBLISH-001                  |
+| M14         | Done        | M13       | JAC-REL-003,JAC-REL-004,JAC-REL-005                                                                                                                                                                                                                                                                     | Public source, hosted CI/specification, registry installation and four native archives                                                              | Publish the verified source and version             | E-GITHUB-001,E-PUBLISH-001,E-HANDOFF-001    |
 
 ## Evidence
 
@@ -2109,6 +2109,34 @@ coexist with an acknowledged gap.
     "result": "pass",
     "remaining": [],
     "note": "Publication gate complete. Source remains at tagged immutable version; main may advance for evidence. M12 remains In progress: no new live-adapter qualification claim. Scoped bootstrap-token API revocation returned 403; local Cargo credentials were removed. Server-side token cleanup remains an account operation, separate from the completed publication gate."
+  },
+  {
+    "id": "E-HANDOFF-001",
+    "tasks": ["M14"],
+    "date": "2026-10-14",
+    "kind": "maintainer handoff",
+    "versions": "Version 0.1.0 unchanged; published tag 07a53851; main acceptance fec38de7",
+    "formats": "GitHub required-check protection and immutable v* tag rules; trusted publishing only",
+    "files": ["spec/src/milestones.md", "spec/src/release.md"],
+    "tests": [
+      "scripts/release.test.mjs#release_refuses_mismatched_or_nonversion_tags"
+    ],
+    "runs": [
+      {
+        "command": "GitHub CI run 38606084277 and Pages run 38606084548",
+        "result": "pass",
+        "failures": 0,
+        "detail": "Final publication-evidence main commit passes all checks and deploys the updated canonical book."
+      },
+      {
+        "command": "public release download, four SHA256SUMS checks and native executable smoke",
+        "result": "pass",
+        "failures": 0
+      }
+    ],
+    "result": "pass",
+    "remaining": [],
+    "note": "User confirmed bootstrap token revoked on 2026-10-14. Local Cargo credentials were already removed. All six packages enforce OIDC trusted publishing. Immutable release-tag rules and four required CI checks protect future publication; source and tag are retained, and only the default Jujutsu workspace remains."
   }
 ]
 ```

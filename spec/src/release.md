@@ -64,3 +64,10 @@ quota interrupted the sixth upload; checksum verification admitted only the
 missing CLI after the published retry time. All six crates enforce the
 configured trusted publisher. M12 remains experimental with its existing
 live-adapter gaps.
+
+The user confirmed bootstrap-token revocation after local credentials were
+removed. Future publication uses the six configured trusted publishers. GitHub
+protects main with the canonical and three native CI checks, forbids
+force-push/deletion, and prevents updates or deletion of v* release tags.
+Contributors submit future source updates through a passing pull request;
+release tags continue to identify the exact published source.
