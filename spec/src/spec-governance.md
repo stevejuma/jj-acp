@@ -152,3 +152,9 @@ commit. Missing specification or evidence changes fail closed. CI checks all
 canonical lanes plus portable packaging; native Rust lanes run on each supported
 target. GitHub Actions dependency updates are weekly and Actions use pinned
 reviewed SHAs.
+
+The canonical CI job installs mdBook through the pinned Rust tooling Action and
+actionlint 1.7.12 from its official release archive with an explicit SHA-256
+check. actionlint is not a supported taiki-e/install-action tool. The initial
+hosted job failed at tool setup before source gates; corrected setup must pass
+those gates before release.

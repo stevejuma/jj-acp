@@ -25,7 +25,7 @@ in its enclosing Jujutsu change.
 | M11         | Done        | M9        | JAC-CTRL-008,JAC-RUN-008,JAC-PROTO-007,JAC-CLI-007                                                                                                                                                                                                                                                      | Persistent interactive sessions, streamed activity, permission decisions and bounded cleanup                                                        | Maintain interactive session contract               | E-M11-001,E-M11-002,E-M11-003               |
 | M12         | In progress | M11       | JAC-CTRL-009,JAC-RUN-009,JAC-PROTO-008,JAC-CLI-008                                                                                                                                                                                                                                                      | Warm worker and scoped sessions with real installed-runner acceptance                                                                               | Qualify installed adapters and jj-store integration | E-M12-001,E-M12-004,E-TOOLS-001,E-TOOLS-002 |
 | M13         | Done        | M11       | JAC-REL-001,JAC-REL-002,JAC-REL-003,JAC-REL-004,JAC-REL-005                                                                                                                                                                                                                                             | Portable crate packaging, Git CI governance, Pages and native release automation                                                                    | Validate source and archives before publication     | E-RELEASE-001                               |
-| M14         | Planned     | M13       | JAC-REL-003,JAC-REL-004,JAC-REL-005                                                                                                                                                                                                                                                                     | Public source, hosted CI/specification, registry installation and four native archives                                                              | Publish the verified source and version             | -                                           |
+| M14         | In progress | M13       | JAC-REL-003,JAC-REL-004,JAC-REL-005                                                                                                                                                                                                                                                                     | Public source, hosted CI/specification, registry installation and four native archives                                                              | Publish the verified source and version             | E-GITHUB-001                                |
 
 ## Evidence
 
@@ -1954,6 +1954,53 @@ coexist with an acknowledged gap.
     "result": "pass",
     "remaining": [],
     "note": "M12 remains In progress. Package metadata and bundled fixtures change; runtime launch authority and protocol contracts do not. Initial Cargo authentication supplied locally by the user. Full source rerun: 180 Rust tests/doctests and 59 governance tests passed; zero failures. All source lanes passed after repairing the parallel directory collision."
+  },
+  {
+    "id": "E-GITHUB-001",
+    "tasks": ["M14"],
+    "date": "2026-10-14",
+    "kind": "hosted publication",
+    "versions": "GitHub source 273b6651; Rust 1.98.1; actionlint 1.7.12; mdBook 0.5.4",
+    "formats": "public main; Actions Pages deployment; coordinated crate 0.1.0 pending",
+    "files": [
+      ".github/workflows/ci.yml",
+      "spec/src/spec-governance.md",
+      "spec/src/release.md"
+    ],
+    "tests": [
+      "scripts/progress-vcs.test.mjs#explicit_git_range_wins_over_local_jj"
+    ],
+    "runs": [
+      {
+        "command": "jj git push --remote origin --bookmark main",
+        "result": "pass",
+        "failures": 0,
+        "detail": "Published signed source history; automatic push signatures updated commit IDs without source changes."
+      },
+      {
+        "command": "GitHub Pages run 38601008185",
+        "result": "pass",
+        "failures": 0,
+        "detail": "Build/deploy succeeded; index, control, release and verification pages return HTTP 200."
+      },
+      {
+        "command": "GitHub CI run 38601008085 canonical setup",
+        "result": "fail",
+        "failures": 1,
+        "detail": "taiki-e/install-action does not support actionlint; native ARM64 Linux/macOS jobs passed."
+      },
+      {
+        "command": "workspace incorporation and cleanup audit",
+        "result": "pass",
+        "failures": 0,
+        "detail": "No substantive changes outside main in either workspace, clean working copies, no extra files to preserve. Forgot and removed both leftover workspaces; default remains."
+      }
+    ],
+    "result": "pending",
+    "remaining": [
+      "Corrected hosted CI, registry bootstrap and native release artifacts pending."
+    ],
+    "note": "No source qualification was waived. M12 retains independent live-adapter gaps."
   }
 ]
 ```

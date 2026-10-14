@@ -41,3 +41,9 @@ trusted publisher. No provider or registry credentials belong in tracked files,
 logs or artifacts. GitHub workflow tokens have minimum job permissions; private
 reports use GitHub's private vulnerability reporting feature. Operational steps
 are in docs/releasing.md.
+
+The canonical CI job installs mdBook through the pinned Rust tooling Action and
+actionlint 1.7.12 from its official release archive with an explicit SHA-256
+check. actionlint is not a supported taiki-e/install-action tool. The initial
+hosted job failed at tool setup before source gates; corrected setup must pass
+those gates before release.
