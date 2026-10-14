@@ -188,3 +188,16 @@ servers; only absolute executable paths are accepted, with bounded
 arguments/environment and no reserved harness identity names. Errors disclose
 stable codes, not file contents or credentials. ACP continues to own no tool
 policy, authentication, network or durable settings.
+
+## Public release packaging
+
+The public Cargo package name is jj-acp, retaining the jj-acp executable and
+jj_acp_cli library. Source paths stay under crates/jj-acp-cli. The README covers
+one-shot tasks, persistent control, trusted tool declarations and installation.
+Packaging changes do not change the control protocol.
+
+Parallel CLI fixtures allocate process-local serials with exclusive directory
+creation. Timestamp collisions must never share state, and peer teardown must
+preserve live test directories. The scratch regression reproduced 31 directories
+for 32 simultaneous callers before this fix. Signal exit-code and record
+assertions remain unchanged.

@@ -24,6 +24,8 @@ in its enclosing Jujutsu change.
 | M10         | Done        | M9        | JAC-ARCH-005                                                                                                                                                                                                                                                                                            | Controlling-application consumer acceptance in a real host                                                                                          | Maintain qualified macOS jj-store profile           | E-M10-001                                   |
 | M11         | Done        | M9        | JAC-CTRL-008,JAC-RUN-008,JAC-PROTO-007,JAC-CLI-007                                                                                                                                                                                                                                                      | Persistent interactive sessions, streamed activity, permission decisions and bounded cleanup                                                        | Maintain interactive session contract               | E-M11-001,E-M11-002,E-M11-003               |
 | M12         | In progress | M11       | JAC-CTRL-009,JAC-RUN-009,JAC-PROTO-008,JAC-CLI-008                                                                                                                                                                                                                                                      | Warm worker and scoped sessions with real installed-runner acceptance                                                                               | Qualify installed adapters and jj-store integration | E-M12-001,E-M12-004,E-TOOLS-001,E-TOOLS-002 |
+| M13         | Done        | M11       | JAC-REL-001,JAC-REL-002,JAC-REL-003,JAC-REL-004,JAC-REL-005                                                                                                                                                                                                                                             | Portable crate packaging, Git CI governance, Pages and native release automation                                                                    | Validate source and archives before publication     | E-RELEASE-001                               |
+| M14         | Planned     | M13       | JAC-REL-003,JAC-REL-004,JAC-REL-005                                                                                                                                                                                                                                                                     | Public source, hosted CI/specification, registry installation and four native archives                                                              | Publish the verified source and version             | -                                           |
 
 ## Evidence
 
@@ -1793,6 +1795,165 @@ coexist with an acknowledged gap.
     "result": "pass",
     "remaining": [],
     "note": "Rebased local-compute change mkopntkz onto mtvyswyw; preserved prepared context, comments-only prompts and request-scoped RPC rejection. Historical evidence retained. Live v3 qualification remains separate."
+  },
+  {
+    "id": "E-RELEASE-001",
+    "tasks": ["M13"],
+    "date": "2026-10-14",
+    "kind": "release preparation",
+    "versions": "Rust 1.98.1; Node 26.9.0 locally / Node 22 in CI; pnpm 10.34.5; mdBook 0.5.4; macOS ARM64",
+    "formats": "coordinated crate 0.1.0; task/record v1; controls v1/v2/v3 unchanged",
+    "files": [
+      "Cargo.toml",
+      "Cargo.lock",
+      "README.md",
+      "LICENSE.md",
+      "scripts/progress-vcs.mjs",
+      "scripts/progress-vcs.test.mjs",
+      "scripts/release.test.mjs",
+      "scripts/package-check.mjs",
+      ".github/workflows/ci.yml",
+      ".github/workflows/release.yml",
+      ".github/workflows/publish-spec-pages.yml",
+      "spec/src/release.md",
+      "spec/src/verification.md",
+      "crates/jj-acp-cli/tests/common/mod.rs",
+      "crates/jj-acp-cli/tests/scratch.rs",
+      "scripts/release-assets.mjs"
+    ],
+    "removed_files": [
+      "tests/fixtures/fixture_agent.py",
+      "tests/fixtures/fleet_agent.py",
+      "tests/fixtures/interactive_agent.py"
+    ],
+    "tests": [
+      "scripts/progress-vcs.test.mjs#explicit_git_range_wins_over_local_jj",
+      "scripts/progress-vcs.test.mjs#incomplete_range_fails_closed",
+      "scripts/progress-vcs.test.mjs#initial_git_commit_uses_empty_tree",
+      "scripts/release.test.mjs#release_refuses_mismatched_or_nonversion_tags",
+      "crates/jj-acp-testkit/tests/fixture.rs#the_fixture_completes_a_turn_without_a_model_provider",
+      "crates/jj-acp-cli/tests/scratch.rs#concurrent_scratch_directories_survive_peer_teardown",
+      "crates/jj-acp-cli/tests/signals.rs#sigterm_produces_bounded_cleanup_and_exit_143"
+    ],
+    "runs": [
+      {
+        "command": "node scripts/check-progress.mjs (Git-only checkout before fix)",
+        "result": "fail",
+        "failures": 1,
+        "detail": "Required jj metadata absent from ordinary Git checkout."
+      },
+      {
+        "command": "node --test scripts/progress-vcs.test.mjs scripts/release.test.mjs",
+        "result": "pass",
+        "failures": 0,
+        "detail": "6 tests passed."
+      },
+      {
+        "command": "pnpm spec:validate (initial release chapter)",
+        "result": "fail",
+        "failures": 5,
+        "detail": "Verification rows were accidentally separated from their table; fixed the canonical map."
+      },
+      {
+        "command": "pnpm package:check (uncommitted preparation)",
+        "result": "fail",
+        "failures": 1,
+        "detail": "Cargo correctly required a clean source or explicit validation-only --allow-dirty."
+      },
+      {
+        "command": "pnpm package:check --allow-dirty",
+        "result": "pass",
+        "failures": 0,
+        "detail": "All six portable manifests/archive file lists verified."
+      },
+      {
+        "command": "cargo publish --workspace --locked --dry-run --allow-dirty",
+        "result": "pass",
+        "failures": 0,
+        "detail": "All six archives compiled from packaged sources; no upload."
+      },
+      {
+        "command": "pnpm spec:check; pnpm check (release preparation)",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm test (release preparation)",
+        "result": "fail",
+        "failures": 1,
+        "detail": "SIGTERM fixture log removed by parallel timestamp collision in shared Scratch allocator."
+      },
+      {
+        "command": "cargo test -p jj-acp --test scratch --locked -- --exact concurrent_scratch_directories_survive_peer_teardown (before allocator fix)",
+        "result": "fail",
+        "failures": 1,
+        "detail": "32 callers obtained 31 unique paths."
+      },
+      {
+        "command": "cargo test -p jj-acp --test scratch --test signals --locked",
+        "result": "pass",
+        "failures": 0,
+        "detail": "Collision regression and both unchanged signal contracts pass."
+      },
+      {
+        "command": "node scripts/check-progress.mjs (real Git-only checkout after fix)",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm check:workflow; pnpm spec:build",
+        "result": "pass",
+        "failures": 0,
+        "detail": "Actionlint passes; mdBook builds without warnings."
+      },
+      {
+        "command": "retained-history credential-pattern audit",
+        "result": "pass",
+        "failures": 0,
+        "detail": "21 commits and 455 distinct blobs; no known credential/private-key patterns."
+      },
+      {
+        "command": "pnpm spec:check (after parallel scratch fix)",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm check (after parallel scratch fix)",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm test (after parallel scratch fix)",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm build (after parallel scratch fix)",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "cargo build -p jj-acp --release --locked --target aarch64-apple-darwin; node scripts/release-archive.mjs aarch64-apple-darwin",
+        "result": "pass",
+        "failures": 0,
+        "detail": "Native release binary and licensed checksum archive verified."
+      },
+      {
+        "command": "cold jj-store developmentAgentEnvironment with candidate ACP executable",
+        "result": "pass",
+        "failures": 0,
+        "detail": "Control v3 and text/context-only preflight; no provider prompt, service restart or consumer edits."
+      },
+      {
+        "command": "README task-file/stdin/catalog/trusted-tools fixture acceptance",
+        "result": "pass",
+        "failures": 0,
+        "detail": "Both task inputs complete with exactly one matching sanitized terminal record."
+      }
+    ],
+    "result": "pass",
+    "remaining": [],
+    "note": "M12 remains In progress. Package metadata and bundled fixtures change; runtime launch authority and protocol contracts do not. Initial Cargo authentication supplied locally by the user. Full source rerun: 180 Rust tests/doctests and 59 governance tests passed; zero failures. All source lanes passed after repairing the parallel directory collision."
   }
 ]
 ```

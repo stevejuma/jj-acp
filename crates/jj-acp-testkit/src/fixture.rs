@@ -24,18 +24,9 @@ pub const STOP_REASON_VARIABLE: &str = "JJ_ACP_FIXTURE_STOP_REASON";
 /// `PATH` under its default name.
 pub const PYTHON_VARIABLE: &str = "JJ_ACP_FIXTURE_PYTHON";
 
-/// The workspace root as seen from this crate at compile time.
-pub fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("..")
-        .canonicalize()
-        .unwrap_or_else(|_| PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
-}
-
-/// Absolute path of the fixture agent script.
+/// Absolute path of the fixture script shipped inside this crate.
 pub fn fixture_script() -> PathBuf {
-    workspace_root().join(FIXTURE_PATH)
+    Path::new(env!("CARGO_MANIFEST_DIR")).join(FIXTURE_PATH)
 }
 
 /// The Python interpreter used to run the fixture.

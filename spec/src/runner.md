@@ -271,3 +271,9 @@ servers; only absolute executable paths are accepted, with bounded
 arguments/environment and no reserved harness identity names. Errors disclose
 stable codes, not file contents or credentials. ACP continues to own no tool
 policy, authentication, network or durable settings.
+
+## Public release packaging
+
+The published runner crate includes registry-versioned dependencies and its own
+README, license and notice. Native release tests retain bounded process-group
+cleanup, signal and unknown-outcome contracts.

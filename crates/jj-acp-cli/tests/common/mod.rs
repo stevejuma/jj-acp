@@ -33,16 +33,19 @@ pub struct Scratch(PathBuf);
 impl Scratch {
     /// Create a uniquely named scratch directory.
     pub fn new(label: &str) -> Self {
-        let path = std::env::temp_dir().join(format!(
-            "jj-acp-cli-{label}-{}-{:?}",
-            std::process::id(),
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .map(|elapsed| elapsed.subsec_nanos())
-                .unwrap_or(0)
-        ));
-        std::fs::create_dir_all(&path).expect("scratch directory");
-        Self(path)
+        static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+        loop {
+            let serial = NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            let path = std::env::temp_dir().join(format!(
+                "jj-acp-cli-{label}-{}-{serial}",
+                std::process::id()
+            ));
+            match std::fs::create_dir(&path) {
+                Ok(()) => return Self(path),
+                Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
+                Err(error) => panic!("scratch directory: {error}"),
+            }
+        }
     }
 
     /// A path inside this scratch directory.

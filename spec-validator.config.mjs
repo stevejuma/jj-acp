@@ -48,6 +48,10 @@ export default defineConfig(tableRequirements(), {
       ],
       rules: [
         {
+          pattern: "^\\.github/",
+          chapters: ["spec/src/spec-governance.md", "spec/src/release.md"],
+        },
+        {
           pattern: "^crates/(?:[a-z0-9]+-)*acp-protocol/",
           chapters: ["spec/src/protocol.md"],
         },
@@ -86,12 +90,12 @@ export default defineConfig(tableRequirements(), {
         },
         {
           pattern:
-            "^(?:Cargo\\.(?:toml|lock)$|rust-toolchain\\.toml$|package\\.json$|pnpm-lock\\.yaml$|README\\.md$|LICENSE\\.md$)",
+            "^(?:Cargo\\.(?:toml|lock)$|rust-toolchain\\.toml$|package\\.json$|pnpm-lock\\.yaml$|README\\.md$|CHANGELOG\\.md$|CONTRIBUTING\\.md$|SECURITY\\.md$|\\.gitattributes$|LICENSE\\.md$)",
           chapters: ["spec/src/architecture.md"],
         },
       ],
       protected: [
-        "^(?:crates/|tests/|scripts/|docs/|Cargo\\.(?:toml|lock)$|rust-toolchain\\.toml$|rustfmt\\.toml$|package\\.json$|pnpm-lock\\.yaml$|README\\.md$|LICENSE\\.md$|AGENTS\\.md$|spec-validator\\.config\\.mjs$|spec/book\\.toml$|\\.gitignore$|\\.prettier)",
+        "^(?:\\.github/|crates/|tests/|scripts/|docs/|Cargo\\.(?:toml|lock)$|rust-toolchain\\.toml$|rustfmt\\.toml$|package\\.json$|pnpm-lock\\.yaml$|README\\.md$|CHANGELOG\\.md$|CONTRIBUTING\\.md$|SECURITY\\.md$|\\.gitattributes$|LICENSE\\.md$|AGENTS\\.md$|spec-validator\\.config\\.mjs$|spec/book\\.toml$|\\.gitignore$|\\.prettier)",
       ],
     },
   },
@@ -135,6 +139,8 @@ export default defineConfig(tableRequirements(), {
           "scripts/governance.test.mjs",
           "scripts/rust-architecture.test.mjs",
           "scripts/upstream-lock.test.mjs",
+          "scripts/progress-vcs.test.mjs",
+          "scripts/release.test.mjs",
         ],
       },
       {

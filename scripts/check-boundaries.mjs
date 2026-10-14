@@ -11,7 +11,7 @@ export const layers = {
   "jj-acp-agent": ["jj-acp-protocol"],
   "jj-acp-runner": ["jj-acp-protocol", "jj-acp-agent"],
   "jj-acp-control": ["jj-acp-protocol", "jj-acp-agent", "jj-acp-runner"],
-  "jj-acp-cli": [
+  "jj-acp": [
     "jj-acp-protocol",
     "jj-acp-agent",
     "jj-acp-runner",

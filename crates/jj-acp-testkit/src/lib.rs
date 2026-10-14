@@ -29,6 +29,6 @@ pub mod log;
 
 pub use fixture::{
     FIXTURE_PATH, Fixture, LOG_VARIABLE, MODE_VARIABLE, Mode, PROTOCOL_VARIABLE, PYTHON_VARIABLE,
-    STOP_REASON_VARIABLE, fixture_script, python, workspace_root,
+    STOP_REASON_VARIABLE, fixture_script, python,
 };
 pub use log::FixtureLog;

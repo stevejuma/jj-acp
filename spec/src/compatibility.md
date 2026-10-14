@@ -298,3 +298,18 @@ Its inert tool declaration never executes a command. CLI rejection tests cover
 bounded input, duplicate names, relative commands and reserved task identities.
 These are source/fixture proofs only; local model coding tools and installed
 permission/cancellation exchange remain controlling-application qualification.
+
+## Public release preparation
+
+Publication relocates all Python fixture peers into
+crates/jj-acp-testkit/tests/fixtures. fixture_script resolves from
+CARGO_MANIFEST_DIR, so an extracted testkit remains usable without the original
+workspace. Historical root fixture paths are retained in evidence with explicit
+removal records. Platform release gates use deterministic fixtures; M12
+live-adapter gates remain open.
+
+Parallel CLI fixtures allocate process-local serials with exclusive directory
+creation. Timestamp collisions must never share state, and peer teardown must
+preserve live test directories. The scratch regression reproduced 31 directories
+for 32 simultaneous callers before this fix. Signal exit-code and record
+assertions remain unchanged.

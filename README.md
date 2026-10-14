@@ -1,97 +1,235 @@
 # jj-acp
 
+[![CI](https://github.com/stevejuma/jj-acp/actions/workflows/ci.yml/badge.svg)](https://github.com/stevejuma/jj-acp/actions/workflows/ci.yml)
+[![crates.io](https://img.shields.io/crates/v/jj-acp.svg)](https://crates.io/crates/jj-acp)
+
 A pluggable [Agent Client Protocol](https://agentclientprotocol.com/) harness
-that runs coding agents on behalf of a controlling application.
+that runs coding agents for a controlling application over stdio JSON-RPC. The
+application owns credentials, authorization, prompt policy and durable history.
+jj-acp owns the runner catalog, subprocesses, sessions and turn lifecycle.
 
-`jj-acp` spawns an ACP-speaking agent subprocess, drives it over stdio JSON-RPC,
-and reports one sanitized terminal record per invocation. It has no message bus,
-no relay, no listener, no authentication and no durable state. The controlling
-application owns identity, authorization, storage and prompt policy; `jj-acp`
-owns the protocol, the runner catalog and the turn lifecycle.
+## Install
 
-```
-controlling app ──task document──▶ jj-acp ──stdio JSON-RPC──▶ ACP agent
-       ▲                              │                              │
-       └──────terminal record─────────┘                              │
-                                             tools, files, side effects
-```
-
-## Provenance
-
-This repository is a derived work of the `buzz-acp` crate in
-[block/buzz](https://github.com/block/buzz), which is Apache-2.0. The ACP
-client, turn pool, session scoping, prompt framing and one-shot task runner are
-ported. The Nostr relay intake, author gating, owner resolution, key custody,
-commit and tag signing, relay publication and onboarding are not ported in any
-form. The pinned upstream commit and the per-region disposition of the port are
-recorded in `docs/upstream-lock.md`, and attribution lives in
-`docs/licenses/NOTICE.md`.
-
-## Status
-
-The one-shot runner and version-1 persistent scoped scheduler are implemented.
-Interactive version 2 retains a session across turns and streams activity and
-permission requests. The deterministic consumer suite qualifies its control
-behavior; real interactive Codex/Cursor consumer acceptance remains outstanding.
-Two installed adapters have separate read-only one-shot qualification.
+With Rust **1.98.1 or newer**:
 
 ```sh
-jj-acp run --task task.json --catalog runners.json --runner codex
-# {"version":1,"taskId":"task-001","status":"completed","stopReason":"end_turn"}
-jj-acp agents   # one JSON object per line: id, label, availability, install hint
+cargo install jj-acp --version 0.1.0 --locked
+jj-acp --version
+jj-acp --help
 ```
 
-| Slice     | Scope                                                                 | Status |
-| --------- | --------------------------------------------------------------------- | ------ |
-| Bootstrap | Specification, ledger, crate skeleton, boundary and line-budget gates | Done   |
-| M1        | Pinned upstream lock, attribution and drift detection                 | Done   |
-| M2        | ACP framing, negotiation and session methods                          | Done   |
-| M3        | Runner catalog, launch environment and deterministic fixture peer     | Done   |
-| M4        | One-shot `run --task` with sanitized terminal record and exit codes   | Done   |
-| M5        | Descendant containment, crash reporting and no re-dispatch            | Done   |
-| M6        | Real installed-runner qualification against `cursor-agent acp`        | Done   |
-| M7        | Model, reasoning-effort and execution-mode application                | Done   |
-| M8        | Persistent control transport                                          | Done   |
-| M9        | Scoped concurrent scheduler and bounded queues                        | Done   |
-| M10       | Controlling-application consumer acceptance                           | Done   |
-| M11       | Interactive version-2 session lifecycle                               | Done   |
+[GitHub releases](https://github.com/stevejuma/jj-acp/releases) provide
+`jj-acp-<version>-<target>.tar.gz` archives and `SHA256SUMS` for:
 
-## Requirements
+| Target                      | Platform                               |
+| --------------------------- | -------------------------------------- |
+| `x86_64-unknown-linux-gnu`  | Linux x86-64, Ubuntu 22.04 or newer    |
+| `aarch64-unknown-linux-gnu` | Linux ARM64, Ubuntu 22.04 or newer     |
+| `x86_64-apple-darwin`       | macOS Intel, macOS 15 or newer         |
+| `aarch64-apple-darwin`      | macOS Apple Silicon, macOS 15 or newer |
 
-Rust 1.98.1 (pinned by `rust-toolchain.toml`), Node 22 or newer and pnpm.
-Integration tests need Python 3 for the deterministic fixture agent, and never
-need a model provider, a network endpoint or a credential.
+Extract your platform's archive, verify its checksum, and place `jj-acp` on
+PATH. These are GNU/Linux builds; macOS downloads have no Developer ID
+notarization. Node, pnpm and Python are developer/test prerequisites, not
+requirements of the installed harness. An adapter can have its own runtime
+requirements.
 
-## Development
+## Choose and authenticate an adapter
+
+Install an ACP-speaking adapter separately and authenticate it using its own
+instructions. jj-acp never installs adapters or authenticates a provider.
 
 ```sh
-pnpm install
-pnpm check          # spec validation, boundaries, line budget, ledger, fmt, clippy
-pnpm test           # governance tests and cargo workspace tests
-pnpm build          # cargo build --workspace --locked
-pnpm spec:check     # canonical specification lanes
+npm install -g @agentclientprotocol/codex-acp
+jj-acp agents
 ```
 
-`pnpm format` runs `cargo fmt --all` and Prettier. Cargo work always passes
-`--locked`; a dependency change is an explicit reviewed edit to `Cargo.lock`.
+Discovery emits one JSON object per runner with availability and installation
+hints. Built-in IDs are `codex`, `claude`, `opencode`, `goose` and `cursor`.
+Codex launches `codex-acp`; Cursor launches `cursor-agent acp` and uses the
+operator's existing `cursor-agent login` session. Availability only proves
+executable discovery; the
+[qualification ledger](https://stevejuma.github.io/jj-acp/milestones.html)
+records the adapter/version combinations actually exercised.
 
-## Specification
+## Run one prepared task
 
-Canonical behaviour lives in [`spec/src`](spec/src). Read
-[architecture](spec/src/architecture.md),
-[governance](spec/src/spec-governance.md) and
-[verification](spec/src/verification.md) before implementing a slice. Build the
-book with `pnpm spec:build`; generated output is ignored and non-normative.
+Save this as `task.json`:
 
-## License
+```json
+{
+  "version": 1,
+  "taskId": "inspect-001",
+  "agent": "codex",
+  "prompt": "Inspect the working copy and report findings.",
+  "maxDurationMs": 120000
+}
+```
 
-Apache-2.0. See [LICENSE.md](LICENSE.md).
+```sh
+jj-acp run --task task.json --runner codex --cwd /absolute/approved/workspace
+cat task.json | jj-acp run --task - --runner codex --cwd /absolute/approved/workspace
+```
 
-## Interactive controlling application
+The task cannot change the executable, working directory, credentials or tools.
+Its runner must match the trusted `--runner`. Stdin must close after a task
+submitted through `--task -`. Stdout emits one sanitized terminal record:
 
-`jj-acp serve --control-version 2 --runner codex --cwd /approved/workspace`
-opens the explicit version-2 stdio interface. Send open, configure and prompt
-frames; activity and permission frames arrive before the terminal record. The
-parent sanitizes and persists content. The runner requires an applied execution
-mode before prompting, and never retries a turn. See the controlling application
-chapter for request fields and lifecycle semantics.
+```json
+{
+  "version": 1,
+  "taskId": "inspect-001",
+  "status": "completed",
+  "stopReason": "end_turn"
+}
+```
+
+The one-shot record omits prompts, credentials and final agent text. Diagnostics
+and child stderr go to stderr. Use interactive control when the application
+needs streamed content and permission decisions.
+
+| Exit code | Meaning                                |
+| --------- | -------------------------------------- |
+| 0         | Completed                              |
+| 1         | Failed                                 |
+| 2         | Invalid task or launch configuration   |
+| 124       | Timed out; outcome unknown             |
+| 130 / 143 | SIGINT / SIGTERM after bounded cleanup |
+
+A timeout does not establish success or failure. The harness never retries an
+invocation. The application must decide how to handle an unknown outcome.
+
+## Customize trusted launch configuration
+
+Flags override their corresponding `JJ_ACP_*` variables. Useful flags include
+`--model`, `--effort`, `--mode`, `--idle-timeout`, `--max-turn-duration`,
+`--cancel-grace`, `--reap-timeout`, `--system-prompt-file`, `--workers` and
+`--queue-capacity`; `jj-acp --help` lists their environment names.
+Adapter-specific model, effort and mode identifiers come from negotiation.
+Interactive prompting requires a successfully applied execution mode.
+
+A catalog adds runners without changing the harness. Save as `runners.json`:
+
+```json
+{
+  "runners": [
+    {
+      "id": "my-agent",
+      "label": "My agent",
+      "command": "/absolute/path/to/my-acp-agent",
+      "args": [],
+      "env": {}
+    }
+  ]
+}
+```
+
+```sh
+jj-acp agents --catalog runners.json
+jj-acp run --task task.json --catalog runners.json --runner my-agent --cwd /approved/workspace
+```
+
+For the custom-runner task, change `task.json`'s `agent` to `my-agent`. Catalog
+IDs cannot shadow built-ins. Launch environments merge inherited values, catalog
+values, then caller overrides. Reserved `JJ_ACP_TASK_*` identity values are
+stripped and supplied by the harness.
+
+Trusted stdio MCP tools can be supplied through `--tools tools.json` or
+`JJ_ACP_TOOLS`. A declaration file is a JSON array:
+
+```json
+[
+  {
+    "name": "workspace",
+    "command": "/absolute/path/to/tool-server",
+    "args": [],
+    "env": []
+  }
+]
+```
+
+The file allows at most eight unique servers and 64 KiB; commands must be
+absolute. Tool selection belongs to the controlling application and cannot be
+changed by a task or control frame. Do not put credentials in argv. The harness
+forwards declarations when creating/loading supported ACP sessions; adapter MCP
+transport support varies.
+
+## Control a persistent process
+
+The default `serve` interface is control version 1: scoped task submissions,
+bounded worker queues, cancellation and terminal records.
+
+```sh
+jj-acp serve --runner codex --cwd /approved/workspace --workers 2 --queue-capacity 8
+```
+
+Explicit version 2 retains one interactive session:
+
+```sh
+jj-acp serve --control-version 2 --runner codex --cwd /approved/workspace
+```
+
+A controlling application reads `ready`, sends `open`, waits for `opened`, sends
+`configure` with an advertised mode, waits for `configured` with `modeReady`,
+then sends `prompt`. For example, request frames are newline-delimited JSON:
+
+```json
+{"version":2,"type":"open","requestId":"open-1"}
+{"version":2,"type":"configure","requestId":"config-1","mode":"<advertised-mode-id>"}
+{"version":2,"type":"prompt","requestId":"turn-1","text":"Inspect the workspace.","maxDurationMs":120000}
+```
+
+Consume streamed `activity` and `permission` frames until `record`. Permission
+replies must use the exact live permission and option IDs. `close` and stdin EOF
+request bounded cleanup. The parent owns redaction and durable transcripts.
+
+**Control version 3 is experimental.** It negotiates one warm worker and opens
+multiple caller-named sessions under a trusted managed directory root:
+
+```sh
+jj-acp serve --control-version 3 --runner codex --cwd /approved/managed-root
+```
+
+Send `warm`, then `open` with an application `sessionId` and an existing `cwd`
+under that root. Configure, prompt, cancel and permission frames carry the same
+session ID. Warmup sends no prompt. Optional prepared `context` is separate from
+authored `text`; nonblank context permits a comments-only turn. Valid session
+preparation rejection preserves unrelated scopes; uncertain execution
+invalidates the worker and is never replayed. Live-adapter,
+permission/cancellation and broader consumer qualification remain open in M12.
+
+See the [control specification](https://stevejuma.github.io/jj-acp/control.html)
+for complete request/response shapes and lifecycle rules.
+
+## Develop and build from source
+
+Install Rust 1.98.1, Node 22 or newer, pnpm 10.34.5, Python 3 and mdBook 0.5.4.
+
+```sh
+pnpm install --frozen-lockfile
+pnpm spec:check
+pnpm check
+pnpm test
+pnpm build
+cargo build -p jj-acp --release --locked
+cargo install --path crates/jj-acp-cli --locked
+```
+
+CI uses deterministic fixtures and requires no model account or credential.
+Apache-2.0 attribution and package licenses ship in every distribution. Read
+[contribution guidance](https://github.com/stevejuma/jj-acp/blob/main/CONTRIBUTING.md)
+and the repository's agent guide before changing protected behavior.
+
+## Specification and provenance
+
+The [published specification](https://stevejuma.github.io/jj-acp/) mirrors the
+canonical `spec/src` Markdown. Build locally with `pnpm spec:build`; generated
+HTML is non-normative. The ledger is the single source of implementation status.
+
+This is a derived work of [block/buzz](https://github.com/block/buzz)'s
+Apache-2.0 `buzz-acp` crate. The ACP lifecycle and task harness were ported;
+Nostr intake, identity, key custody and relay publication were excluded. The
+pinned upstream and region map live in
+[upstream-lock](https://github.com/stevejuma/jj-acp/blob/main/docs/upstream-lock.md).
+See [LICENSE](https://github.com/stevejuma/jj-acp/blob/main/LICENSE.md) and
+[NOTICE](https://github.com/stevejuma/jj-acp/blob/main/docs/licenses/NOTICE.md).

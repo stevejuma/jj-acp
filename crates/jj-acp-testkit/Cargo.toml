@@ -4,7 +4,14 @@ version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
-publish = false
+publish = ["crates-io"]
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme = "README.md"
+description = "Deterministic model-free ACP fixtures for integration testing"
+keywords = ["acp", "agent", "stdio", "json-rpc"]
+categories = ["development-tools"]
 
 [dependencies]
 jj-acp-protocol.workspace = true

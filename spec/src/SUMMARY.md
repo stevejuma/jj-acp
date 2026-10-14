@@ -12,3 +12,5 @@
 - [Specification governance](spec-governance.md)
 - [Implementation progress](milestones.md)
 - [Verification](verification.md)
+
+- [Publication and release](release.md)

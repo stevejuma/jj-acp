@@ -197,9 +197,9 @@ test("rejects_layer_dependency_leaks", () => {
   );
   assert.match(
     dependencyErrors([
-      { name: "jj-acp-agent", dependencies: [{ name: "jj-acp-cli" }] },
+      { name: "jj-acp-agent", dependencies: [{ name: "jj-acp" }] },
     ]).join(),
-    /invalid layer dependency jj-acp-cli/,
+    /invalid layer dependency jj-acp/,
   );
 });
 test("accepts_owned_layer_dependencies", () =>
@@ -223,7 +223,7 @@ test("accepts_owned_layer_dependencies", () =>
 test("rejects_excluded_nostr_transport_and_database_dependencies", () => {
   const errors = dependencyErrors([
     {
-      name: "jj-acp-cli",
+      name: "jj-acp",
       dependencies: [
         { name: "nostr" },
         { name: "reqwest" },
@@ -241,7 +241,7 @@ test("testkit_is_dev_only", () => {
   assert.deepEqual(
     dependencyErrors([
       {
-        name: "jj-acp-cli",
+        name: "jj-acp",
         dependencies: [{ name: "jj-acp-testkit", kind: "dev" }],
       },
     ]),

@@ -178,3 +178,11 @@ Trusted MCP declaration parsing stays in the CLI composition layer and uses
 existing Serde data types. Protocol/runner/control receive fixed declarations
 without introducing any network, authentication, storage or tool-policy
 dependencies.
+
+## Public release preparation
+
+The CLI Cargo package is publicly named jj-acp; its source directory remains
+crates/jj-acp-cli and its library remains jj_acp_cli. All internal path
+dependencies also specify a registry version. Each crate packages its own
+README, full license and attribution. The testkit fixtures and fixture lookup
+live inside the published crate rather than depending on a repository root.

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve, isAbsolute } from "node:path";
 import { fileURLToPath } from "node:url";
-import { execFileSync } from "node:child_process";
+import { snapshot } from "./progress-vcs.mjs";
 
 export const ledgerPath = "spec/src/milestones.md";
 const statuses = new Set([
@@ -13,7 +13,7 @@ const statuses = new Set([
   "Deferred",
 ]);
 export const needsEvidence = (path) =>
-  /^(?:rustfmt\.toml$|crates\/|tests\/|scripts\/|Cargo\.(?:toml|lock)$|package\.json$|pnpm-lock\.yaml$|rust-toolchain\.toml$|AGENTS\.md$|spec-validator\.config\.mjs$|docs\/upstream-lock|spec\/src\/verification\.md$)/.test(
+  /^(?:\.github\/|rustfmt\.toml$|crates\/|tests\/|scripts\/|Cargo\.(?:toml|lock)$|package\.json$|pnpm-lock\.yaml$|rust-toolchain\.toml$|AGENTS\.md$|spec-validator\.config\.mjs$|docs\/upstream-lock|spec\/src\/verification\.md$)/.test(
     path,
   );
 const list = (s) => (s === "-" ? [] : s.split(",").map((v) => v.trim()));
@@ -210,30 +210,24 @@ export function validateLedger({
 
 export function run(root) {
   const read = (path) => readFileSync(resolve(root, path), "utf8");
-  const jj = (args) =>
-    execFileSync("jj", ["--no-pager", "--color=never", ...args], {
-      cwd: root,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "pipe"],
-    });
-  const rev = process.env.JJ_ACP_CHECK_REVISION ?? "@";
-  const changed = jj(["diff", "--name-only", "--from", `${rev}-`, "--to", rev])
-    .trim()
-    .split("\n")
-    .filter(Boolean);
+  const { changed, paths: tracked, previous } = snapshot(root);
   let previousEntries = [];
-  const parentFiles = jj(["file", "list", "-r", `${rev}-`]).split("\n");
-  if (parentFiles.includes(ledgerPath))
-    previousEntries = parseLedger(
-      jj(["file", "show", "-r", `${rev}-`, ledgerPath]),
-    ).entries;
-  const paths = jj(["file", "list"])
-    .split("\n")
-    .filter(
-      (p) =>
-        /^spec\/src\/.+\.md$/.test(p) &&
-        !/(?:milestones|verification)\.md$/.test(p),
-    );
+  try {
+    previousEntries = parseLedger(previous(ledgerPath)).entries;
+  } catch (error) {
+    if (
+      !error.stderr?.includes("does not exist") &&
+      !error.stderr?.includes("not in") &&
+      !error.stderr?.includes("exists on disk") &&
+      !error.stderr?.includes("No such path")
+    )
+      throw error;
+  }
+  const paths = tracked.filter(
+    (p) =>
+      /^spec\/src\/.+\.md$/.test(p) &&
+      !/(?:milestones|verification)\.md$/.test(p),
+  );
   const requirements = new Set(
     paths.flatMap((p) =>
       [...read(p).matchAll(/^\| (JAC-[A-Z]+-\d{3}) \|/gm)].map((m) => m[1]),

@@ -6,3 +6,5 @@ spec/book
 .scratch
 .local
 docs/reference
+
+**/LICENSE.md

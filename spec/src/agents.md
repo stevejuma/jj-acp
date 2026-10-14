@@ -57,6 +57,7 @@ Identifiers are stable and reserved: a lower tier cannot shadow them.
 | `claude`   | `claude-agent-acp`, legacy `claude-code-acp` | stdio         |
 | `opencode` | `opencode`                                   | stdio         |
 | `goose`    | `goose acp`                                  | stdio         |
+| `cursor`   | `cursor-agent acp`                           | http          |
 
 A runner that speaks ACP over stdio and satisfies the protocol requirements in
 [ACP wire protocol](protocol.md) works without being listed here. The catalog
@@ -142,3 +143,9 @@ portable form.
 installed, and that means only that the executable exists. Probing never runs a
 candidate, because executing an untrusted binary to see whether it works is
 worse than not probing. Their ACP entrypoints remain unverified.
+
+## Public release packaging
+
+The published agent crate includes registry-versioned dependencies and its own
+README, license and notice. Runner selection, environment precedence and
+reserved IDs retain their existing contracts.

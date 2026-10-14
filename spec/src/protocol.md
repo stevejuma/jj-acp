@@ -241,3 +241,9 @@ servers; only absolute executable paths are accepted, with bounded
 arguments/environment and no reserved harness identity names. Errors disclose
 stable codes, not file contents or credentials. ACP continues to own no tool
 policy, authentication, network or durable settings.
+
+## Public release packaging
+
+The published protocol crate includes registry-versioned dependencies and its
+own README, Apache-2.0 license and upstream notice. Wire contracts and framing
+limits are unchanged by packaging.

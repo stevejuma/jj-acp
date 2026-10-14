@@ -53,7 +53,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "jj-acp-cli"
+name = "jj-acp"
 version = "0.1.0"
 dependencies = [
  "jj-acp-agent",

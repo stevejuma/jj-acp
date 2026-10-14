@@ -1,10 +1,17 @@
 [package]
-name = "jj-acp-cli"
+name = "jj-acp"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
-publish = false
+publish = ["crates-io"]
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme = "README.md"
+description = "Pluggable Agent Client Protocol harness for controlling applications"
+keywords = ["acp", "agent", "stdio", "json-rpc"]
+categories = ["development-tools"]
 
 [lib]
 name = "jj_acp_cli"

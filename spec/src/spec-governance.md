@@ -42,6 +42,9 @@ repository ports are far larger than jj-store's Rust budget would allow.
 | `^rustfmt\.toml$`                                                                                                 | `spec-governance.md` |
 | `^(?:Cargo\.(?:toml\|lock)$\|rust-toolchain\.toml$\|package\.json$\|pnpm-lock\.yaml$\|README\.md$\|LICENSE\.md$)` | `architecture.md`    |
 
+`.github/` maps to both this chapter and `release.md`. `CHANGELOG.md`,
+`CONTRIBUTING.md`, `SECURITY.md` and `.gitattributes` map to `architecture.md`.
+
 A protected path that matches no rule above fails closed as unmapped rather than
 passing silently. A path that matches more than one rule requires every mapped
 chapter in the same change, so the rules stay disjoint on purpose.
@@ -137,3 +140,15 @@ The pattern still fails closed for a genuinely new crate. Anything under
 `crates/` whose layer is not one of the six listed matches no rule and is
 reported as unmapped, so adding a seventh crate still requires a same-change map
 update.
+
+## Public release preparation
+
+GitHub workflows are protected and require this chapter plus release.md. Root
+contributor, security, changelog and Git attributes configuration map to
+architecture.md. The progress checker selects explicit JJ_ACP_CHECK_BASE/HEAD in
+CI and otherwise preserves local Jujutsu revision checks; ordinary Git-only
+checkouts default to HEAD and its parent, with an empty-tree base for a first
+commit. Missing specification or evidence changes fail closed. CI checks all
+canonical lanes plus portable packaging; native Rust lanes run on each supported
+target. GitHub Actions dependency updates are weekly and Actions use pinned
+reviewed SHAs.
