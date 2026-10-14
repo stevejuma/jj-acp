@@ -40,7 +40,7 @@ fn await_gone(pid: u32) -> bool {
 /// Read the descendant pid the fixture recorded, proving it was really spawned.
 fn descendant(scratch: &Scratch) -> u32 {
     let log = FixtureLog::new(scratch.log());
-    for _ in 0..200 {
+    for _ in 0..1500 {
         if let Ok(Some(pid)) = log.descendant() {
             return pid;
         }
@@ -60,7 +60,9 @@ fn shortened(args: &[String], cancel_grace: &str, reap: &str) -> Vec<String> {
 async fn a_forced_termination_takes_the_agents_descendant_with_it() {
     let scratch = Scratch::new("containment-forced");
     let catalog = write_catalog(&scratch, "descendant-turn", &[]);
-    let path = write_task(&scratch, &task("task-forced", "never answer", 1500));
+    // The absolute deadline includes interpreter startup. Allow startup under
+    // hosted-runner contention without changing the deadline/cleanup contract.
+    let path = write_task(&scratch, &task("task-forced", "never answer", 10_000));
     let arguments = shortened(&run_args(&catalog, &path), "1", "1");
 
     // Start the run, then read the descendant pid while it is in flight.
@@ -75,8 +77,21 @@ async fn a_forced_termination_takes_the_agents_descendant_with_it() {
     let pid = descendant(&scratch);
     assert!(process_exists(pid), "descendant {pid} should be running");
 
-    let output = child.wait_with_output().await.expect("binary exits");
+    let output = tokio::time::timeout(Duration::from_secs(14), child.wait_with_output())
+        .await
+        .expect("deadline and cleanup remain bounded")
+        .expect("binary exits");
     assert_eq!(output.status.code(), Some(124), "deadline expected");
+    let terminal: serde_json::Value = serde_json::from_slice(&output.stdout).expect("one record");
+    assert_eq!(terminal["status"], "timed_out");
+    assert_eq!(terminal["error"], "deadline_exceeded");
+    assert_eq!(
+        FixtureLog::new(scratch.log())
+            .method_count("session/prompt")
+            .expect("log"),
+        1,
+        "the turn must start exactly once before its deadline"
+    );
 
     // The whole point of process-group ownership: the descendant the agent
     // spawned does not outlive the turn that was killed.

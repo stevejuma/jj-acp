@@ -201,3 +201,10 @@ creation. Timestamp collisions must never share state, and peer teardown must
 preserve live test directories. The scratch regression reproduced 31 directories
 for 32 simultaneous callers before this fix. Signal exit-code and record
 assertions remain unchanged.
+
+The deadline containment regression allows interpreter startup before testing
+cleanup of a real descendant. Its configured absolute deadline is ten seconds;
+the test verifies exit 124, a deadline-exceeded terminal record, exactly one
+prompt dispatch, bounded completion and disappearance of the recorded process. A
+two-second delayed interpreter reproduces the previous premature timeout and
+passes the corrected setup. This is fixture timing, not a runtime limit change.

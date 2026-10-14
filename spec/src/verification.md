@@ -92,3 +92,7 @@ Trusted MCP launch declarations are covered by crates/jj-acp-cli/tests/fleet.rs:
 warmup emits no tool session and both independent session/new calls receive the
 same trusted declarations. Installed local-agent tool acceptance remains
 consumer evidence.
+
+E-CI-CLEANUP-001 strengthens the JAC-RUN-007/JAC-CLI-002 containment regression
+with an explicit deadline record, one prompt dispatch and a completion ceiling.
+Delayed-interpreter acceptance separates fixture startup from cleanup evidence.

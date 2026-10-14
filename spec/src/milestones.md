@@ -24,7 +24,7 @@ in its enclosing Jujutsu change.
 | M10         | Done        | M9        | JAC-ARCH-005                                                                                                                                                                                                                                                                                            | Controlling-application consumer acceptance in a real host                                                                                          | Maintain qualified macOS jj-store profile           | E-M10-001                                   |
 | M11         | Done        | M9        | JAC-CTRL-008,JAC-RUN-008,JAC-PROTO-007,JAC-CLI-007                                                                                                                                                                                                                                                      | Persistent interactive sessions, streamed activity, permission decisions and bounded cleanup                                                        | Maintain interactive session contract               | E-M11-001,E-M11-002,E-M11-003               |
 | M12         | In progress | M11       | JAC-CTRL-009,JAC-RUN-009,JAC-PROTO-008,JAC-CLI-008                                                                                                                                                                                                                                                      | Warm worker and scoped sessions with real installed-runner acceptance                                                                               | Qualify installed adapters and jj-store integration | E-M12-001,E-M12-004,E-TOOLS-001,E-TOOLS-002 |
-| M13         | Done        | M11       | JAC-REL-001,JAC-REL-002,JAC-REL-003,JAC-REL-004,JAC-REL-005                                                                                                                                                                                                                                             | Portable crate packaging, Git CI governance, Pages and native release automation                                                                    | Validate source and archives before publication     | E-RELEASE-001                               |
+| M13         | Done        | M11       | JAC-REL-001,JAC-REL-002,JAC-REL-003,JAC-REL-004,JAC-REL-005                                                                                                                                                                                                                                             | Portable crate packaging, Git CI governance, Pages and native release automation                                                                    | Validate source and archives before publication     | E-RELEASE-001,E-CI-CLEANUP-001              |
 | M14         | Done        | M13       | JAC-REL-003,JAC-REL-004,JAC-REL-005                                                                                                                                                                                                                                                                     | Public source, hosted CI/specification, registry installation and four native archives                                                              | Publish the verified source and version             | E-GITHUB-001,E-PUBLISH-001,E-HANDOFF-001    |
 
 ## Evidence
@@ -572,7 +572,7 @@ coexist with an acknowledged gap.
     ],
     "runs": [
       {
-        "command": "cursor-agent acp — initialize and session/new handshake probe, no prompt",
+        "command": "cursor-agent acp \u2014 initialize and session/new handshake probe, no prompt",
         "result": "pass",
         "failures": 0
       },
@@ -2137,6 +2137,78 @@ coexist with an acknowledged gap.
     "result": "pass",
     "remaining": [],
     "note": "User confirmed bootstrap token revoked on 2026-10-14. Local Cargo credentials were already removed. All six packages enforce OIDC trusted publishing. Immutable release-tag rules and four required CI checks protect future publication; source and tag are retained, and only the default Jujutsu workspace remains."
+  },
+  {
+    "id": "E-CI-CLEANUP-001",
+    "tasks": ["M13"],
+    "date": "2026-10-14",
+    "kind": "hosted containment fixture timing",
+    "versions": "Rust 1.98.1; Ubuntu 22.04 x86-64/ARM64 hosted; macOS ARM64 local",
+    "formats": "task/record v1; published 0.1.0 source and archives unchanged",
+    "files": [
+      "crates/jj-acp-cli/tests/cleanup.rs",
+      "spec/src/cli.md",
+      "spec/src/verification.md",
+      "spec/src/milestones.md"
+    ],
+    "tests": [
+      "crates/jj-acp-cli/tests/cleanup.rs#a_forced_termination_takes_the_agents_descendant_with_it"
+    ],
+    "runs": [
+      {
+        "command": "GitHub CI run 38606801599 canonical and native ARM64 Linux cleanup suites (before)",
+        "result": "fail",
+        "failures": 2,
+        "detail": "Each job failed one containment test: the fixture never recorded a descendant before the 1.5-second absolute deadline."
+      },
+      {
+        "command": "cargo test -p jj-acp --test cleanup a_forced_termination_takes_the_agents_descendant_with_it --locked -- --exact (before)",
+        "result": "pass",
+        "failures": 0,
+        "detail": "Idle local interpreter passed; hosted failure required startup contention."
+      },
+      {
+        "command": "JJ_ACP_FIXTURE_PYTHON=.local/publication/slow-python cargo test -p jj-acp --test cleanup a_forced_termination_takes_the_agents_descendant_with_it --locked -- --exact (before)",
+        "result": "fail",
+        "failures": 1,
+        "detail": "Two-second interpreter delay reproduced the exact missing-descendant failure."
+      },
+      {
+        "command": "JJ_ACP_FIXTURE_PYTHON=.local/publication/slow-python cargo test -p jj-acp --test cleanup a_forced_termination_takes_the_agents_descendant_with_it --locked -- --exact",
+        "result": "pass",
+        "failures": 0,
+        "detail": "Two-second delayed interpreter now executes one prompt, times out with exit 124 and leaves no descendant."
+      },
+      {
+        "command": "cargo test -p jj-acp --test cleanup --locked",
+        "result": "pass",
+        "failures": 0,
+        "detail": "All six cleanup and crash classification tests passed."
+      },
+      {
+        "command": "pnpm spec:check",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm check",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm test",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm build",
+        "result": "pass",
+        "failures": 0
+      }
+    ],
+    "result": "pass",
+    "remaining": [],
+    "note": "Test task allows ten seconds of startup/execution and PID readiness allows fifteen seconds. Timeout exit and descendant disappearance remain mandatory; added deadline-record, one-dispatch and bounded-completion assertions. No production or released package source changes. All local canonical lanes passed. Hosted merge requires the four protected CI checks."
   }
 ]
 ```
