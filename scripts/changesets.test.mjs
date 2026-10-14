@@ -20,7 +20,6 @@ import {
   pendingChangesets,
   releaseState,
 } from "./release-state.mjs";
-import { parseLedger } from "./check-progress.mjs";
 import { validateReleaseSource } from "./release-version.mjs";
 
 const source = resolve(new URL("..", import.meta.url).pathname);
@@ -116,6 +115,9 @@ test("missing_cargo_cache_preserves_pending_notes_and_version_metadata", async (
 
 test("changesets_prepare_coordinated_cargo_version_and_consume_notes", async (t) => {
   const root = fixture(t);
+  const canonical = ["architecture", "cli", "release", "milestones"].map(
+    (chapter) => readFileSync(join(root, `spec/src/${chapter}.md`), "utf8"),
+  );
   const original = checkRelease(root);
   const [major, minor, patch] = original.split(".").map(Number);
   const next = `${major}.${minor}.${patch + 1}`;
@@ -136,18 +138,12 @@ test("changesets_prepare_coordinated_cargo_version_and_consume_notes", async (t)
     readFileSync(join(root, "CHANGELOG.md"), "utf8"),
     /Qualify coordinated Cargo version preparation/,
   );
-  const evidence = parseLedger(
-    readFileSync(join(root, "spec/src/milestones.md"), "utf8"),
-  ).entries.find(
-    (entry) => entry.id === `E-VERSION-${next.replaceAll(".", "-")}`,
+  assert.deepEqual(
+    ["architecture", "cli", "release", "milestones"].map((chapter) =>
+      readFileSync(join(root, `spec/src/${chapter}.md`), "utf8"),
+    ),
+    canonical,
   );
-  assert.deepEqual(evidence.removed_files, [".changeset/fixture-release.md"]);
-  for (const chapter of ["architecture", "cli", "release"])
-    assert.ok(
-      readFileSync(join(root, `spec/src/${chapter}.md`), "utf8").includes(
-        `version ${next}`,
-      ),
-    );
   assert.equal((await prepareVersion(root)).changed, false);
 });
 

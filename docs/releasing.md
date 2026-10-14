@@ -9,8 +9,10 @@ After feature notes merge into main, the Changesets workflow creates or updates
 a Version Packages PR. It runs `pnpm release:version`: Changesets bumps the
 coordinator and generates CHANGELOG.md, then the wrapper synchronizes the Cargo
 workspace/internal versions, Cargo.lock, pnpm lockfile, README installation
-example and packaged CLI README. The same PR contains canonical candidate
-metadata and preparation evidence. All required CI checks and a Pages build are
+example and packaged CLI README. Recognized Changesets and Dependabot PRs are
+exempt from same-change specification and ledger updates. Canonical validation,
+ledger integrity, tests, builds and packaging still run; ordinary PRs retain the
+bookkeeping requirements. All required CI checks and a Pages build are
 explicitly dispatched for the bot PR. Review and merge only after they pass.
 
 The merged candidate is qualified again before a missing immutable v<version>
