@@ -318,3 +318,8 @@ Changesets prepares coordinated Cargo metadata and changelog history through
 development tooling. Publication still uses immutable version tags, the existing
 native qualification profile and the configured crates.io trusted publishers.
 Initial 0.1.0 artifacts remain attached to their original source.
+
+On a cold checkout, locked Cargo dependency bootstrap precedes offline
+Changesets preparation. A missing dependency cache preserves the pending note
+and previous coordinator metadata; it is not a reason to disable package
+verification.

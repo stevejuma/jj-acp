@@ -81,6 +81,39 @@ test("version_preparation_without_notes_preserves_released_metadata", async (t) 
   );
 });
 
+test("missing_cargo_cache_preserves_pending_notes_and_version_metadata", async (t) => {
+  const root = fixture(t);
+  const cache = mkdtempSync(join(tmpdir(), "jj-acp-empty-cargo-"));
+  t.after(() => rmSync(cache, { recursive: true, force: true }));
+  writeFileSync(
+    join(root, ".changeset/cold-cache.md"),
+    `---\n"${coordinator}": patch\n---\n\nCold dependency bootstrap.\n`,
+  );
+  const before = [
+    "Cargo.toml",
+    "Cargo.lock",
+    "package.json",
+    "CHANGELOG.md",
+  ].map((path) => readFileSync(join(root, path), "utf8"));
+  await assert.rejects(
+    prepareVersion(root, (command, args) =>
+      execFileSync(command, args, {
+        cwd: root,
+        stdio: "pipe",
+        env: { ...process.env, CARGO_HOME: cache },
+      }),
+    ),
+    /cargo fetch --locked before offline version preparation/,
+  );
+  assert.equal((await pendingChangesets(root)).length, 1);
+  assert.deepEqual(
+    ["Cargo.toml", "Cargo.lock", "package.json", "CHANGELOG.md"].map((path) =>
+      readFileSync(join(root, path), "utf8"),
+    ),
+    before,
+  );
+});
+
 test("changesets_prepare_coordinated_cargo_version_and_consume_notes", async (t) => {
   const root = fixture(t);
   const original = checkRelease(root);

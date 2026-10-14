@@ -94,3 +94,8 @@ main. Failed releases resume through the existing tagged release workflow.
 Version 0.1.0 is backfilled in CHANGELOG.md and docs/releases/0.1.0.md as
 already published history. The archive is outside the active note directory.
 Installing orchestration creates no pending bump, new tag or registry upload.
+
+Cold workflows fetch locked Cargo dependencies during setup. Version preparation
+requires an offline locked fetch before Changesets consumes notes, so missing
+registry metadata aborts without changing the coordinator or release queue. The
+bootstrap is dependency installation, separate from offline source gates.

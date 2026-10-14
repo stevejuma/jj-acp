@@ -64,6 +64,14 @@ export async function prepareVersion(
       failures: 0,
     });
   };
+  // Fail before consuming notes if the cold-checkout dependency bootstrap is missing.
+  try {
+    run("cargo", ["fetch", "--locked", "--offline"]);
+  } catch (cause) {
+    throw Error("Run cargo fetch --locked before offline version preparation", {
+      cause,
+    });
+  }
   run("pnpm", ["exec", "changeset", "version"]);
   const selected = json(root, "package.json").version;
   synchronizeVersion(root, selected);

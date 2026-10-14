@@ -25,6 +25,11 @@ For local preparation use `pnpm release:version`, followed by
 not the repository's version command. With no pending notes the wrapper is a
 no-op. Refresh packaged licenses/notices when their authoritative files change.
 
+On a cold checkout run `cargo fetch --locked` once before preparation. The
+wrapper checks that locked dependencies are available offline before consuming
+notes. CI and the Changesets workflow perform this dependency bootstrap before
+the offline metadata checks; a missing cache cannot leave a half-prepared bump.
+
 Run the exact affected regressions, then pnpm spec:check, pnpm check, pnpm test,
 pnpm build, pnpm check:workflow and pnpm release:dry-run. Packaging verification
 must pass without --no-verify. Before committing, local dry runs may use

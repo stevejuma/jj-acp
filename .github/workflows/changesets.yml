@@ -34,6 +34,8 @@ jobs:
           toolchain: "1.98.1"
       - run: pnpm install --frozen-lockfile --ignore-pnpmfile
       - run: pnpm release:check
+      - name: Bootstrap locked Cargo dependencies before version preparation
+        run: cargo fetch --locked
       - uses: changesets/action@63a615b9cd06ba9a3e6d13796c7fbcb080a60a0b # v1.8.0
         id: changesets
         with:

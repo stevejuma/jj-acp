@@ -172,3 +172,8 @@ release-chapter edit with every feature. The generated version PR updates
 architecture.md, cli.md and release.md plus the evidence ledger in the same
 change as manifests and the packaged README. Normal check/specification lanes
 validate coordinated versions and release automation regressions.
+
+Workflow setup fetches the committed Rust dependency graph before offline
+version-preparation acceptance. Source and fixture checks must not rely on a
+restored Cargo cache. The local wrapper checks cache completeness before
+consuming a note or editing version metadata.
