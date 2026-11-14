@@ -230,6 +230,13 @@ what makes a crashed agent give its slot back. The crash is reported as
 is unknown may already have produced side effects, and running it again is the
 controlling application's decision to make with its own durable state.
 
+The worker releases its permit before it publishes completion to the control
+loop. This ordering is observable: a peer may submit the next turn immediately
+after reading the prior record, and that turn must not become stranded while the
+loop waits for an event that already happened. Repeated immediate
+crash/re-submit acceptance covers this boundary on the real multi-threaded CLI
+runtime.
+
 Shutdown cancels running submissions and waits for slots to return, bounded by
 the same cleanup intervals a single invocation uses. When the bound elapses
 first that is reported as a diagnostic rather than concealed, because a peer

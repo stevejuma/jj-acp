@@ -146,6 +146,11 @@ serial behaviour from before scopes existed, so raising concurrency is an
 explicit choice rather than a surprise. Both are validated: zero is refused, and
 workers are capped at 32.
 
+The real CLI acceptance repeatedly submits a crashing turn immediately after the
+preceding record. This exercises the multi-threaded runtime ordering that
+requires each completed turn to release its worker slot before the record can
+make the next submission observable.
+
 The one-shot path ignores both, because a process that runs one task and exits
 has nothing to size.
 

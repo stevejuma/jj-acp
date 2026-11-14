@@ -326,30 +326,25 @@ async fn a_full_queue_is_refused_rather_than_grown() {
 async fn a_crashed_agent_releases_its_slot_and_is_never_re_dispatched() {
     let scratch = Scratch::new("serve-crash");
     let mut server = Server::start(&scratch, "crash-turn", &["--workers", "1"]).await;
-    server
-        .send(scoped_submit(
-            "req-crash",
-            "s",
-            &task("task-crash", "crash", 60_000),
-        ))
-        .await;
-    let _ = server.recv_type("queued").await;
-    let (record, _) = server.recv_type("record").await;
-    assert_eq!(record["record"]["status"], json!("failed"));
-    assert_eq!(record["record"]["error"], json!("agent_exited"));
-
-    // The slot came back: a second submission in the same scope still runs, which
-    // is what proves the crash released it rather than leaking the worker.
-    server
-        .send(scoped_submit(
-            "req-after",
-            "s",
-            &task("task-after", "crash", 60_000),
-        ))
-        .await;
-    let _ = server.recv_type("queued").await;
-    let (second, _) = server.recv_type("record").await;
-    assert_eq!(second["requestId"], json!("req-after"));
+    // Repeatedly submit immediately after observing the previous record. This is
+    // the ordering a real controller uses and used to expose a race where the
+    // completion became visible just before its worker permit was released.
+    for serial in 0..16 {
+        let request_id = format!("req-{serial}");
+        let task_id = format!("task-{serial}");
+        server
+            .send(scoped_submit(
+                &request_id,
+                "s",
+                &task(&task_id, "crash", 60_000),
+            ))
+            .await;
+        let _ = server.recv_type("queued").await;
+        let (record, _) = server.recv_type("record").await;
+        assert_eq!(record["requestId"], json!(request_id));
+        assert_eq!(record["record"]["status"], json!("failed"));
+        assert_eq!(record["record"]["error"], json!("agent_exited"));
+    }
 
     // And the loop is still serving.
     server.send(status_frame("req-status")).await;
@@ -361,7 +356,7 @@ async fn a_crashed_agent_releases_its_slot_and_is_never_re_dispatched() {
     let log = FixtureLog::new(scratch.log());
     assert_eq!(
         log.method_count("session/prompt").expect("log"),
-        2,
+        16,
         "a crashed turn was retried"
     );
     let _ = server.stop().await;

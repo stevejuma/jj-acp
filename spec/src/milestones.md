@@ -20,7 +20,7 @@ in its enclosing Jujutsu change.
 | M6          | Done        | M5        | JAC-COMPAT-006,JAC-PROTO-002                                                                                                                                                                                                                                                                            | Real installed-runner qualification against cursor-agent acp recorded separately from fixture evidence                                              | Implement M7 session configuration                  | E-M6-001,E-M6-002                                          |
 | M7          | Done        | M6        | JAC-RUN-006                                                                                                                                                                                                                                                                                             | Model, effort and mode resolved per session with transport-versus-rejection classification, qualified live on two adapters                          | Implement M8 persistent transport                   | E-M7-001                                                   |
 | M8          | Done        | M7        | JAC-CTRL-001                                                                                                                                                                                                                                                                                            | Persistent versioned control protocol over stdio with concurrent cancellation, frame-level refusals and one shape for every task outcome            | Implement M9 standing pool                          | E-M8-001                                                   |
-| M9          | Done        | M8        | JAC-RUN-001,JAC-RUN-005                                                                                                                                                                                                                                                                                 | Caller-named scopes with one turn in flight each, concurrent distinct scopes, bounded queue admission and slot release on crash without re-dispatch | Implement M10 consumer acceptance                   | E-M9-001                                                   |
+| M9          | Done        | M8        | JAC-RUN-001,JAC-RUN-005                                                                                                                                                                                                                                                                                 | Caller-named scopes with one turn in flight each, concurrent distinct scopes, bounded queue admission and slot release on crash without re-dispatch | Implement M10 consumer acceptance                   | E-M9-001,E-M9-SLOT-ORDER-001                               |
 | M10         | Done        | M9        | JAC-ARCH-005                                                                                                                                                                                                                                                                                            | Controlling-application consumer acceptance in a real host                                                                                          | Maintain qualified macOS jj-store profile           | E-M10-001                                                  |
 | M11         | Done        | M9        | JAC-CTRL-008,JAC-RUN-008,JAC-PROTO-007,JAC-CLI-007                                                                                                                                                                                                                                                      | Persistent interactive sessions, streamed activity, permission decisions and bounded cleanup                                                        | Maintain interactive session contract               | E-M11-001,E-M11-002,E-M11-003                              |
 | M12         | In progress | M11       | JAC-CTRL-009,JAC-RUN-009,JAC-PROTO-008,JAC-CLI-008                                                                                                                                                                                                                                                      | Warm worker and scoped sessions with real installed-runner acceptance                                                                               | Qualify installed adapters and jj-store integration | E-M12-001,E-M12-004,E-TOOLS-001,E-TOOLS-002                |
@@ -2547,6 +2547,55 @@ coexist with an acknowledged gap.
     "result": "pass",
     "remaining": [],
     "note": "Lapis Notes precedent skips generated Changesets spec-first/release-intent gates. Here both bots skip only spec-first and same-change ledger requirements; ledger integrity and all actual qualification remain. No release/version change. All local required lanes passed. Exact live bot heads select the exemption. Hosted required checks and refreshed bot PRs will verify deployment of this policy; dependency PRs remain open for review."
+  },
+  {
+    "id": "E-M9-SLOT-ORDER-001",
+    "tasks": ["M9"],
+    "date": "2026-11-14",
+    "kind": "scheduler-regression",
+    "files": [
+      "crates/jj-acp-control/src/scheduler.rs",
+      "crates/jj-acp-cli/tests/serve.rs",
+      ".changeset/release-worker-slots.md",
+      "spec/src/control.md",
+      "spec/src/cli.md",
+      "spec/src/milestones.md"
+    ],
+    "tests": [
+      "crates/jj-acp-cli/tests/serve.rs#a_crashed_agent_releases_its_slot_and_is_never_re_dispatched"
+    ],
+    "runs": [
+      {
+        "command": "cargo test -p jj-acp --test serve a_crashed_agent_releases_its_slot_and_is_never_re_dispatched -- --exact --nocapture",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm spec:check",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm check",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm test",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm build",
+        "result": "pass",
+        "failures": 0
+      }
+    ],
+    "result": "pass",
+    "remaining": [],
+    "versions": "control protocol version 1 with scopes; Rust 1.99.0; tokio 1.54.1",
+    "formats": "newline-delimited control frames; one worker permit per dispatched turn; JSON evidence ledger",
+    "note": "Two independent aarch64 Linux CI runs timed out after a crash record when an immediate same-scope submission waited forever. The worker task sent completion while it still held the only semaphore permit, so the multi-threaded loop could observe completion, accept the next job, miss the still-held permit once, and then wait without another wake-up. Releasing the permit before sending completion closes that event-ordering gap. The exact real-binary regression now performs sixteen immediate crash/re-submit cycles, retains the agent_exited and no-re-dispatch assertions, and passes locally before the full required lanes."
   },
   {
     "id": "E-DENO-FREE-001",
