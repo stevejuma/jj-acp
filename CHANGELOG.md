@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.1
+
+### Patch Changes
+
+- 01e0d20: Release a completed serve turn's worker slot before reporting its
+  record, so an immediate follow-up submission cannot become stranded after an
+  agent crash.
+
 ## 0.1.0
 
 ### Minor Changes

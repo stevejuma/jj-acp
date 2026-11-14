@@ -10,7 +10,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 rust-version = "1.98.1"
 license = "Apache-2.0"
@@ -19,11 +19,11 @@ repository = "https://github.com/stevejuma/jj-acp"
 homepage = "https://stevejuma.github.io/jj-acp/"
 
 [workspace.dependencies]
-jj-acp-protocol = { path = "crates/jj-acp-protocol", version = "0.1.0" }
-jj-acp-agent = { path = "crates/jj-acp-agent", version = "0.1.0" }
-jj-acp-runner = { path = "crates/jj-acp-runner", version = "0.1.0" }
-jj-acp-control = { path = "crates/jj-acp-control", version = "0.1.0" }
-jj-acp-testkit = { path = "crates/jj-acp-testkit", version = "0.1.0" }
+jj-acp-protocol = { path = "crates/jj-acp-protocol", version = "0.1.1" }
+jj-acp-agent = { path = "crates/jj-acp-agent", version = "0.1.1" }
+jj-acp-runner = { path = "crates/jj-acp-runner", version = "0.1.1" }
+jj-acp-control = { path = "crates/jj-acp-control", version = "0.1.1" }
+jj-acp-testkit = { path = "crates/jj-acp-testkit", version = "0.1.1" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"
