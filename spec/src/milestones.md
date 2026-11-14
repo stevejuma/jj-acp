@@ -2556,11 +2556,11 @@ coexist with an acknowledged gap.
     "files": [
       "crates/jj-acp-control/src/scheduler.rs",
       "crates/jj-acp-cli/tests/serve.rs",
-      ".changeset/release-worker-slots.md",
       "spec/src/control.md",
       "spec/src/cli.md",
       "spec/src/milestones.md"
     ],
+    "removed_files": [".changeset/release-worker-slots.md"],
     "tests": [
       "crates/jj-acp-cli/tests/serve.rs#a_crashed_agent_releases_its_slot_and_is_never_re_dispatched"
     ],
