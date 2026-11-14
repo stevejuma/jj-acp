@@ -13,7 +13,7 @@ jj-acp owns the runner catalog, subprocesses, sessions and turn lifecycle.
 With Rust **1.98.1 or newer**:
 
 ```sh
-cargo install jj-acp --version 0.1.0 --locked
+cargo install jj-acp --version 0.1.1 --locked
 jj-acp --version
 jj-acp --help
 ```
