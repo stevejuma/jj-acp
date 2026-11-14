@@ -9,7 +9,7 @@ in its enclosing Jujutsu change.
 
 | ID          | Status      | Depends   | Requirements                                                                                                                                                                                                                                                                                            | Gate                                                                                                                                                | Next                                                | Evidence                                                   |
 | ----------- | ----------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- | ---------------------------------------------------------- |
-| Bootstrap   | Done        | -         | JAC-GOV-001,JAC-GOV-002,JAC-GOV-003,JAC-GOV-005,JAC-GOV-006,JAC-ARCH-001,JAC-ARCH-002,JAC-COMPAT-004                                                                                                                                                                                                    | Canonical specification, ledger, crate skeleton, boundary gate and pinned toolchain green on an empty product                                       | Maintain governance each slice                      | E-BOOT-001                                                 |
+| Bootstrap   | Done        | -         | JAC-GOV-001,JAC-GOV-002,JAC-GOV-003,JAC-GOV-005,JAC-GOV-006,JAC-ARCH-001,JAC-ARCH-002,JAC-COMPAT-004                                                                                                                                                                                                    | Canonical specification, ledger, crate skeleton, boundary gate and pinned toolchain green on an empty product                                       | Maintain governance each slice                      | E-BOOT-001,E-DENO-FREE-001                                 |
 | Bootstrap.1 | Done        | -         | JAC-GOV-004,JAC-GOV-007,JAC-ARCH-003,JAC-ARCH-004                                                                                                                                                                                                                                                       | Boundary, counted-line and progress-checker negative tests pass                                                                                     | Maintain gates each slice                           | E-BOOT-002                                                 |
 | Bootstrap.2 | Done        | -         | JAC-GOV-001,JAC-GOV-002,JAC-GOV-003,JAC-ARCH-001                                                                                                                                                                                                                                                        | Repository, crates, binary, requirement prefix and environment namespace renamed from lapis-acp to jj-acp with the change map keyed on crate layer  | Maintain governance each slice                      | E-BOOT-003                                                 |
 | M1          | Done        | Bootstrap | JAC-COMPAT-001,JAC-COMPAT-002,JAC-COMPAT-003,JAC-COMPAT-007,JAC-SEC-001                                                                                                                                                                                                                                 | Pinned upstream lock, attribution and digest-verified drift detection                                                                               | Implement M2 protocol crate                         | E-M1-001                                                   |
@@ -2547,6 +2547,68 @@ coexist with an acknowledged gap.
     "result": "pass",
     "remaining": [],
     "note": "Lapis Notes precedent skips generated Changesets spec-first/release-intent gates. Here both bots skip only spec-first and same-change ledger requirements; ledger integrity and all actual qualification remain. No release/version change. All local required lanes passed. Exact live bot heads select the exemption. Hosted required checks and refreshed bot PRs will verify deployment of this policy; dependency PRs remain open for review."
+  },
+  {
+    "id": "E-DENO-FREE-001",
+    "tasks": ["Bootstrap"],
+    "date": "2026-11-14",
+    "kind": "development-tooling-dependency",
+    "files": [
+      "package.json",
+      "pnpm-lock.yaml",
+      "spec/src/architecture.md",
+      "spec/src/milestones.md"
+    ],
+    "tests": [],
+    "runs": [
+      {
+        "command": "node Deno-free spec-validator manifest and lock assertion",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm spec:first --json",
+        "result": "pass",
+        "failures": 0,
+        "detail": "Two protected dependency files map to the updated architecture chapter."
+      },
+      {
+        "command": "pnpm spec:check (before ledger evidence)",
+        "result": "fail",
+        "failures": 1,
+        "detail": "The progress lane correctly required this same-change ledger and evidence update; preceding validation, rustfmt, prettier, release metadata, boundaries, and architecture lanes passed."
+      },
+      {
+        "command": "node scripts/check-progress.mjs (after ledger evidence)",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm spec:check (12 lanes; 84 governance tests; 180 Rust tests and doctests)",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm check",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm test (84 governance tests; 180 Rust tests and doctests)",
+        "result": "pass",
+        "failures": 0
+      },
+      {
+        "command": "pnpm build",
+        "result": "pass",
+        "failures": 0
+      }
+    ],
+    "result": "pass",
+    "remaining": [],
+    "versions": "Node >=22; pnpm 10.34.5; @lapismd/spec-validator 0.1.4 -> 0.2.0",
+    "formats": "npm development dependency; pnpm lockfile v9; canonical architecture prose; JSON evidence ledger",
+    "note": "The 0.2.0 validator declares only a Node engine and removes the old optional QMD package peer. No Rust dependency, runtime behavior, milestone status, or release version changes."
   }
 ]
 ```

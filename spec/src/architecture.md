@@ -76,6 +76,10 @@ exist yet. Each checker exports its decision function so a governance test can
 exercise it against synthetic input, and each has a thin command-line entry so a
 lane can invoke it directly.
 
+Canonical specification checks consume the published Deno-free
+`@lapismd/spec-validator@^0.2.0` development dependency. The Node validation
+lane must not acquire a Deno-only package or runtime requirement.
+
 | Script                               | Owns                                                         |
 | ------------------------------------ | ------------------------------------------------------------ |
 | `scripts/check-boundaries.mjs`       | Crate layer matrix, excluded dependencies, testkit isolation |
