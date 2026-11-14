@@ -110,9 +110,9 @@ pub fn dispatch(
         let config = config.clone();
         let done_tx = done_tx.clone();
         tokio::spawn(async move {
-            // The permit is held for the whole turn, so releasing it on drop is
-            // what makes a crashed agent give its slot back.
-            let _permit = permit;
+            // The permit is held for the whole turn. Release it before publishing
+            // completion so a peer that immediately submits more work after the
+            // record cannot strand that work behind a permit-release race.
             let Job {
                 request_id,
                 scope,
@@ -130,6 +130,7 @@ pub fn dispatch(
                 request_id,
                 record: invocation.record,
             });
+            drop(permit);
             let _ = done_tx.send(Completion { scope, frames });
         });
     }
