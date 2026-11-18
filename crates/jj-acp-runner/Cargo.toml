@@ -27,7 +27,7 @@ tokio = { workspace = true, features = [
 ] }
 
 [target.'cfg(unix)'.dependencies]
-nix = { version = "0.31", default-features = false, features = [
+nix = { version = "0.32", default-features = false, features = [
   "process",
   "signal",
 ] }
